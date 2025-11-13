@@ -1,0 +1,4 @@
+enum HistoryType {
+  status,
+  note,
+}
