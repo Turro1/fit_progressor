@@ -22,7 +22,4 @@ abstract class ClientRepository {
 
   /// Поиск клиентов по имени или телефону
   Future<Either<Failure, List<Client>>> searchClients(String query);
-
-  /// Получить количество автомобилей клиента
-  Future<Either<Failure, int>> getClientCarsCount(String clientId);
 }

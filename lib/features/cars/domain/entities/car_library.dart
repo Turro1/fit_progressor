@@ -1,19 +1,23 @@
-class CarLibrary {
-  final Map<String, List<String>> makesAndModels;
+import 'package:equatable/equatable.dart';
 
-  CarLibrary({required this.makesAndModels});
+/// Библиотека марок и моделей автомобилей для автозаполнения
+class CarLibrary extends Equatable {
+  final Map<String, List<String>> makeModels;
 
-  List<String> get makes => makesAndModels.keys.toList();
-  
-  List<String> getModelsForMake(String make) {
-    return makesAndModels[make] ?? [];
+  const CarLibrary({required this.makeModels});
+
+  @override
+  List<Object?> get props => [makeModels];
+
+  List<String> getMakes() {
+    return makeModels.keys.toList()..sort();
   }
 
-  CarLibrary copyWith({
-    Map<String, List<String>>? makesAndModels,
-  }) {
-    return CarLibrary(
-      makesAndModels: makesAndModels ?? this.makesAndModels,
-    );
+  List<String> getModels(String make) {
+    return makeModels[make.toUpperCase()] ?? [];
+  }
+
+  bool hasMake(String make) {
+    return makeModels.containsKey(make.toUpperCase());
   }
 }

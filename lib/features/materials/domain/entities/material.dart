@@ -17,7 +17,7 @@ class Material extends Entity {
     required this.minQuantity,
     required this.cost,
     required this.createdAt,
-  }) : super(id: id);
+  }) : super(id: id, createdAt: createdAt);
 
   // Вспомогательные геттеры для бизнес-логики
   bool get isLowStock => quantity < minQuantity;
@@ -42,4 +42,7 @@ class Material extends Entity {
       createdAt: createdAt ?? this.createdAt,
     );
   }
+  
+  @override
+  List<Object?> get props => [  id, name, quantity, unit, minQuantity, cost, createdAt];
 }

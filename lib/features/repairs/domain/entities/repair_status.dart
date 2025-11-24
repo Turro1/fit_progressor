@@ -1,15 +1,15 @@
 enum RepairStatus {
   inProgress('в работе'),
-  waitingForParts('ожидает запчасти'),
+  waitingParts('ожидает запчасти'),
   completed('выполнено'),
   cancelled('отменен');
 
-  const RepairStatus(this.displayName);
   final String displayName;
+  const RepairStatus(this.displayName);
 
   static RepairStatus fromString(String value) {
     return RepairStatus.values.firstWhere(
-      (e) => e.displayName == value,
+      (status) => status.displayName == value,
       orElse: () => RepairStatus.inProgress,
     );
   }

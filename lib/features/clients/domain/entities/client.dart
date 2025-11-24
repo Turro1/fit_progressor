@@ -3,15 +3,15 @@ import 'package:fit_progressor/shared/domain/entities/entity.dart';
 
 class Client extends Entity {
   final String name;
-  final String? phone;
-  final DateTime createdAt;
+  final String phone;
+  
 
   const Client({
-    required String id,
+    required super.id,
     required this.name,
-    this.phone,
-    required this.createdAt,
-  }) : super(id: id);
+    required this.phone,
+    required super.createdAt,
+  });
 
   Client copyWith({
     String? id,
@@ -26,4 +26,7 @@ class Client extends Entity {
       createdAt: createdAt ?? this.createdAt,
     );
   }
+  
+  @override
+  List<Object?> get props => [id, name, phone];
 }

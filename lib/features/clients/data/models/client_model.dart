@@ -1,87 +1,37 @@
-import 'package:hive/hive.dart';
-import '../../domain/entities/client.dart';
+import 'package:fit_progressor/features/clients/domain/entities/client.dart';
 
-@HiveType(typeId: 0)
 class ClientModel extends Client {
-  @HiveField(0)
-  final String id;
-
-  @HiveField(1)
-  final String name;
-
-  @HiveField(2)
-  final String? phone;
-
-  @HiveField(3)
-  final DateTime createdAt;
-
   const ClientModel({
-    required this.id,
-    required this.name,
-    this.phone,
-    required this.createdAt 
-  }) : super(
-          id: id,
-          name: name,
-          phone: phone,
-          createdAt: createdAt
-        );
+    required super.id,
+    required super.phone,
+    required super.name,
+    super.createdAt,
+  });
 
-  /// Создание модели из entity
-  factory ClientModel.fromEntity(Client client) {
-    return ClientModel(
-      id: client.id,
-      name: client.name,
-      phone: client.phone,
-      createdAt: client.createdAt
-    );
-  }
-
-  /// Конвертация в entity
-  Client toEntity() {
-    return Client(
-      id: id,
-      name: name,
-      phone: phone, 
-      createdAt: createdAt,
-    );
-  }
-
-  /// Из JSON (для SharedPreferences)
   factory ClientModel.fromJson(Map<String, dynamic> json) {
     return ClientModel(
       id: json['id'] as String,
+      phone: json['phone'] as String,
       name: json['name'] as String,
-      phone: json['phone'] as String?,
-      createdAt: json['createdAt'] as DateTime
+      createdAt: DateTime.parse(json['createdAt'] as String),
     );
   }
 
-  /// В JSON
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'name': name,
       'phone': phone,
-      'createdAt': createdAt
+      'name': name,
+      'createdAt': createdAt?.toIso8601String(),
     };
   }
 
-  /// CopyWith для удобного обновления
-  ClientModel copyWith({
-    String? id,
-    String? name,
-    String? phone,
-    DateTime? createdAt
-  }) {
+  factory ClientModel.fromEntity(Client client) {
     return ClientModel(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      phone: phone ?? this.phone,
-      createdAt: createdAt ?? this.createdAt
+      id: client.id,
+      phone: client.phone,
+      name: client.name,
+      createdAt: client.createdAt,
     );
   }
-
-  @override
-  String toString() => 'ClientModel(id: $id, name: $name, phone: $phone, createdAt: $createdAt)';
 }

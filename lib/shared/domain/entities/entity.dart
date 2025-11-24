@@ -1,7 +1,10 @@
-abstract class Entity {
+import 'package:equatable/equatable.dart';
+
+abstract class Entity extends Equatable {
   final String id;
+  final DateTime? createdAt;
   
-  const Entity({required this.id});
+  const Entity({required this.id, required this.createdAt});
   
   @override
   bool operator ==(Object other) =>

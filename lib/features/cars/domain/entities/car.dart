@@ -5,17 +5,16 @@ class Car extends Entity {
   final String clientId;
   final String make;
   final String model;
-  final String? plate;
-  final DateTime createdAt;
+  final String plate;
 
   const Car({
     required String id,
     required this.clientId,
     required this.make,
     required this.model,
-    this.plate,
-    required this.createdAt,
-  }) : super(id: id);
+    required this.plate,
+    DateTime? createdAt,
+  }) : super(id: id, createdAt: createdAt);
 
   Car copyWith({
     String? id,
@@ -34,4 +33,7 @@ class Car extends Entity {
       createdAt: createdAt ?? this.createdAt,
     );
   }
+  
+  @override
+  List<Object?> get props => [id, clientId, make, model, plate, createdAt];
 }

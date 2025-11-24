@@ -14,7 +14,7 @@ class RepairPhoto extends Entity {
     required this.type,
     required this.data,
     required this.createdAt,
-  }) :super(id: id);
+  }) :super(id: id, createdAt: createdAt);
 
   bool get isImage => type.startsWith('image/');
   bool get isPdf => type == 'application/pdf';
@@ -36,4 +36,7 @@ class RepairPhoto extends Entity {
       createdAt: createdAt ?? this.createdAt,
     );
   }
+  
+  @override
+  List<Object?> get props => [ id, repairId, name, type, data, createdAt];
 }

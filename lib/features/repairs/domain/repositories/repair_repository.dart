@@ -1,25 +1,28 @@
 import 'package:dartz/dartz.dart';
 import 'package:fit_progressor/core/error/failures/failure.dart';
-import 'package:fit_progressor/features/repairs/domain/entities/repair.dart';
+import '../entities/repair.dart';
+import '../entities/repair_status.dart';
 
-//Репозиторий ремонтов
 abstract class RepairRepository {
 
-  // Получить все ремонты
-  Future<Either<Failure, List<Repair>>> getAllRepairs();
+  // Получить ремонты
+  Future<Either<Failure, List<Repair>>> getRepairs();
 
-  // Получить ремонт по ID
-  Future<Either<Failure, Repair>> getRepairById(String id);
-  
   // Добавить новый ремонт
   Future<Either<Failure, Repair>> addRepair(Repair repair);
 
-  // Обновить существующий ремонт
+  // Обновить ремонт
   Future<Either<Failure, Repair>> updateRepair(Repair repair);
 
   // Удалить ремонт
-  Future<Either<Failure, void>> deleteRepair(String id);
+  Future<Either<Failure, void>> deleteRepair(String repairId);
 
-  // Поиск ремонтов по запросу
+  // Найти ремонты по запросу
   Future<Either<Failure, List<Repair>>> searchRepairs(String query);
+
+  // Получить ремонты по статусу
+  Future<Either<Failure, List<Repair>>> getRepairsByStatus(RepairStatus status);
+
+  // Получить ремонты автомобиля
+  Future<Either<Failure, List<Repair>>> getRepairsByCar(String carId);
 }

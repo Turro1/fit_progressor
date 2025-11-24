@@ -1,23 +1,21 @@
 import 'package:fit_progressor/features/cars/data/models/car_model.dart';
 
-// Локальное хранилище автомобилей
 abstract class CarLocalDataSource {
+  // Получить список всех машин
+  Future<List<CarModel>> getCars();
 
-// Получить все автомобили 
-Future<List<CarModel>> getAllCars();
+  // Добавить новую машину
+  Future<CarModel> addCar(CarModel car);
 
-// Получить автомобиль по ID
-Future<CarModel> getCarById(String id);
+  // Обновить информацию о машине
+  Future<CarModel> updateCar(CarModel car);
 
-// Сохранить автомобиль
-Future<CarModel> saveCar(CarModel car);
+  // Удалить машину по ID
+  Future<void> deleteCar(String carId);
 
-// Обновить автомобиль
-Future<CarModel> upadteCar(CarModel car);
+  // Поиск машин по модели или номеру
+  Future<List<CarModel>> searchCars(String query);
 
-// Удалить автомобиль
-Future<void> deleteCar(String id);
-
-// Поиск автомобилей
-Future<List<CarModel>> searchCars(String query);
+  // Получить машины по ID клиента
+  Future<List<CarModel>> getCarsByClient(String clientId);
 }

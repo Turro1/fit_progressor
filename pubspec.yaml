@@ -55,6 +55,9 @@ dependencies:
   material_symbols_icons: ^4.2874.0  # <-- Исправленная версия
   intl: ^0.18.1
   flutter_slidable: ^3.0.1
+
+  # Navigation
+  go_router: ^13.0.0
   
   # Utils
   uuid: ^4.2.1
