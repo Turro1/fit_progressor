@@ -5,13 +5,13 @@ class CarLibraryModel extends CarLibrary {
 
   factory CarLibraryModel.fromJson(Map<String, dynamic> json) {
     final Map<String, List<String>> makeModels = {};
-    
+
     json.forEach((key, value) {
       if (value is List) {
         makeModels[key] = List<String>.from(value);
       }
     });
-    
+
     return CarLibraryModel(makeModels: makeModels);
   }
 
@@ -30,15 +30,15 @@ class CarLibraryModel extends CarLibrary {
   CarLibraryModel addMakeModel(String make, String model) {
     final newMakeModels = Map<String, List<String>>.from(makeModels);
     final upperMake = make.toUpperCase();
-    
+
     if (!newMakeModels.containsKey(upperMake)) {
       newMakeModels[upperMake] = [];
     }
-    
+
     if (!newMakeModels[upperMake]!.contains(model)) {
       newMakeModels[upperMake] = [...newMakeModels[upperMake]!, model];
     }
-    
+
     return CarLibraryModel(makeModels: newMakeModels);
   }
 }

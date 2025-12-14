@@ -4,7 +4,6 @@ import 'package:fit_progressor/core/error/failures/failure.dart';
 import 'package:fit_progressor/features/clients/domain/repositories/client_repository.dart';
 import '../../../../core/usecases/usecase.dart';
 
-
 class DeleteClient implements UseCase<void, String> {
   final ClientRepository repository;
 

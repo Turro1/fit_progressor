@@ -4,7 +4,6 @@ import 'package:fit_progressor/features/clients/domain/entities/client.dart';
 import 'package:fit_progressor/features/clients/domain/repositories/client_repository.dart';
 import '../../../../core/usecases/usecase.dart';
 
-
 class UpdateClient implements UseCase<Client, Client> {
   final ClientRepository repository;
 

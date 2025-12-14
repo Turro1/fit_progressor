@@ -1,6 +1,8 @@
 import 'package:fit_progressor/features/cars/data/models/car_model.dart';
 
 abstract class CarLocalDataSource {
+  Future<CarModel> getCarById(String id);
+
   // Получить список всех машин
   Future<List<CarModel>> getCars();
 

@@ -1,4 +1,3 @@
-
 import 'package:fit_progressor/core/usecases/usecase.dart';
 import 'package:fit_progressor/features/clients/domain/usecases/add_client.dart';
 import 'package:fit_progressor/features/clients/domain/usecases/delete_client.dart';
@@ -37,7 +36,8 @@ class ClientBloc extends Bloc<ClientEvent, ClientState> {
     emit(ClientLoading());
     final result = await getClients(NoParams());
     result.fold(
-      (failure) => emit(const ClientError(message: 'Не удалось загрузить автомобили')),
+      (failure) =>
+          emit(const ClientError(message: 'Не удалось загрузить автомобили')),
       (clients) => emit(ClientLoaded(clients: clients)),
     );
   }
@@ -47,12 +47,9 @@ class ClientBloc extends Bloc<ClientEvent, ClientState> {
     Emitter<ClientState> emit,
   ) async {
     emit(ClientLoading());
-    final params = AddClientParams(
-      phone: event.phone,
-      name: event.name,
-    );
+    final params = AddClientParams(phone: event.phone, name: event.name);
     final result = await addClient(params);
-    
+
     await result.fold(
       (failure) async {
         emit(const ClientError(message: 'Не удалось добавить автомобиль'));
@@ -70,7 +67,7 @@ class ClientBloc extends Bloc<ClientEvent, ClientState> {
   ) async {
     emit(ClientLoading());
     final result = await updateClient(event.client);
-    
+
     await result.fold(
       (failure) async {
         emit(const ClientError(message: 'Не удалось обновить автомобиль'));
@@ -88,7 +85,7 @@ class ClientBloc extends Bloc<ClientEvent, ClientState> {
   ) async {
     emit(ClientLoading());
     final result = await deleteClient(event.clientId);
-    
+
     await result.fold(
       (failure) async {
         emit(const ClientError(message: 'Не удалось удалить автомобиль'));
@@ -113,7 +110,8 @@ class ClientBloc extends Bloc<ClientEvent, ClientState> {
     final result = await searchClients(event.query);
     result.fold(
       (failure) => emit(const ClientError(message: 'Ошибка поиска')),
-      (clients) => emit(ClientLoaded(clients: clients, searchQuery: event.query)),
+      (clients) =>
+          emit(ClientLoaded(clients: clients, searchQuery: event.query)),
     );
   }
 }

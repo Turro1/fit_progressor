@@ -1,6 +1,8 @@
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/repair.dart';
 import '../../domain/entities/repair_status.dart';
+import '../../domain/entities/repair_material.dart';
+import '../../domain/entities/repair_part.dart';
 
 abstract class RepairEvent extends Equatable {
   const RepairEvent();
@@ -9,23 +11,50 @@ abstract class RepairEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class LoadRepairs extends RepairEvent {}
+class LoadRepairs extends RepairEvent {
+  final String? carIdFilter; // Optional filter for car ID
+
+  const LoadRepairs({this.carIdFilter});
+
+  @override
+  List<Object?> get props => [carIdFilter];
+}
 
 class AddRepairEvent extends RepairEvent {
   final String carId;
+  final String clientId;
   final RepairStatus status;
   final String description;
   final double costWork;
+  final List<RepairMaterial> materials;
+  final List<RepairPart> parts;
+  final List<String> photos;
+  final DateTime? plannedAt;
 
   const AddRepairEvent({
     required this.carId,
+    required this.clientId,
     required this.status,
     required this.description,
     required this.costWork,
+    this.materials = const [],
+    this.parts = const [],
+    this.photos = const [],
+    this.plannedAt,
   });
 
   @override
-  List<Object?> get props => [carId, status, description, costWork];
+  List<Object?> get props => [
+    carId,
+    clientId,
+    status,
+    description,
+    costWork,
+    materials,
+    parts,
+    photos,
+    plannedAt,
+  ];
 }
 
 class UpdateRepairEvent extends RepairEvent {

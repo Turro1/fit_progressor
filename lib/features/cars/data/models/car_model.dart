@@ -11,24 +11,25 @@ class CarModel extends Car {
   });
 
   factory CarModel.fromJson(Map<String, dynamic> json) {
-  final String id = json['id'] as String? ?? (throw FormatException('Missing id'));
-  final String clientId = json['clientId'] as String? ?? '';
-  final String make = json['make'] as String? ?? '';
-  final String model = json['model'] as String? ?? '';
-  final String plate = json['plate'] as String? ?? '';
-  final DateTime? createdAt = json['createdAt'] != null
-      ? DateTime.tryParse(json['createdAt'].toString())
-      : null;
+    final String id =
+        json['id'] as String? ?? (throw FormatException('Missing id'));
+    final String clientId = json['clientId'] as String? ?? '';
+    final String make = json['make'] as String? ?? '';
+    final String model = json['model'] as String? ?? '';
+    final String plate = json['plate'] as String? ?? '';
+    final DateTime? createdAt = json['createdAt'] != null
+        ? DateTime.tryParse(json['createdAt'].toString())
+        : null;
 
-  return CarModel(
-    id: id,
-    clientId: clientId,
-    make: make,
-    model: model,
-    plate: plate,
-    createdAt: createdAt,
-  );
-}
+    return CarModel(
+      id: id,
+      clientId: clientId,
+      make: make,
+      model: model,
+      plate: plate,
+      createdAt: createdAt,
+    );
+  }
 
   Map<String, dynamic> toJson() {
     return {

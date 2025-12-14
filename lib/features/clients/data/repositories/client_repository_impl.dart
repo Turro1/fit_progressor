@@ -13,40 +13,59 @@ class ClientRepositoryImpl implements ClientRepository {
 
   ClientRepositoryImpl({required this.localDataSource});
 
-   @override
+  @override
   Future<Either<Failure, Client>> addClient(Client client) async {
     try {
       final clientModel = ClientModel.fromEntity(client);
       final result = await localDataSource.saveClient(clientModel);
       return Right(result);
     } on CacheException {
-      return Left(CacheFailure(message: 'Cache error occurred while adding client'));
+      return Left(
+        CacheFailure(message: 'Cache error occurred while adding client'),
+      );
     } catch (e) {
-      return Left(CacheFailure(message: 'Unexpected error occurred while adding client: $e'));
+      return Left(
+        CacheFailure(
+          message: 'Unexpected error occurred while adding client: $e',
+        ),
+      );
     }
   }
 
   @override
-  Future<Either<Failure, void>> deleteClient(String id) async{
+  Future<Either<Failure, void>> deleteClient(String id) async {
     try {
       await localDataSource.deleteClient(id);
       return const Right(null);
     } on CacheException {
-      return Left(CacheFailure(message: 'Cache error occurred while deleting client'));
+      return Left(
+        CacheFailure(message: 'Cache error occurred while deleting client'),
+      );
     } catch (e) {
-      return Left(CacheFailure(message: 'Unexpected error occurred while deleting client: $e'));
+      return Left(
+        CacheFailure(
+          message: 'Unexpected error occurred while deleting client: $e',
+        ),
+      );
     }
   }
 
   @override
-  Future<Either<Failure, List<Client>>> getAllClients() async{
+  Future<Either<Failure, List<Client>>> getAllClients() async {
     try {
-      final clients = await localDataSource.getAllClients();
+      final clientModels = await localDataSource.getAllClients();
+      final clients = clientModels.map((model) => model.toEntity()).toList();
       return Right(clients);
-    } on CacheException {
-      return Left(CacheFailure(message: 'Cache error occurred while retrieving clients'));
+    } on CacheException catch (e) { // Catch the exception explicitly
+      return Left(
+        CacheFailure(message: 'Cache error occurred while retrieving clients: ${e.message}'),
+      );
     } catch (e) {
-      return Left(CacheFailure(message: 'Unexpected error occurred while retrieving clients: $e'));
+      return Left(
+        CacheFailure(
+          message: 'Unexpected error occurred while retrieving clients: $e',
+        ),
+      );
     }
   }
 
@@ -56,34 +75,52 @@ class ClientRepositoryImpl implements ClientRepository {
       final clients = await localDataSource.getClientById(id);
       return Right(clients);
     } on CacheException {
-      return Left(CacheFailure(message: 'Cache error occurred while retrieving client'));
+      return Left(
+        CacheFailure(message: 'Cache error occurred while retrieving client'),
+      );
     } catch (e) {
-      return Left(CacheFailure(message: 'Unexpected error occurred while retrieving client: $e'));
+      return Left(
+        CacheFailure(
+          message: 'Unexpected error occurred while retrieving client: $e',
+        ),
+      );
     }
   }
 
   @override
-  Future<Either<Failure, List<Client>>> searchClients(String query) async{
+  Future<Either<Failure, List<Client>>> searchClients(String query) async {
     try {
       final clients = await localDataSource.searchClients(query);
       return Right(clients);
     } on CacheException {
-      return Left(CacheFailure(message: 'Cache error occurred while searching clients'));
+      return Left(
+        CacheFailure(message: 'Cache error occurred while searching clients'),
+      );
     } catch (e) {
-      return Left(CacheFailure(message: 'Unexpected error occurred while searching clients: $e'));
+      return Left(
+        CacheFailure(
+          message: 'Unexpected error occurred while searching clients: $e',
+        ),
+      );
     }
   }
 
   @override
-  Future<Either<Failure, Client>> updateClient(Client client) async{
+  Future<Either<Failure, Client>> updateClient(Client client) async {
     try {
       final clientModel = ClientModel.fromEntity(client);
       final result = await localDataSource.updateClient(clientModel);
       return Right(result);
     } on CacheException {
-      return Left(CacheFailure(message: 'Cache error occurred while updating client'));
+      return Left(
+        CacheFailure(message: 'Cache error occurred while updating client'),
+      );
     } catch (e) {
-      return Left(CacheFailure(message: 'Unexpected error occurred while updating client: $e'));
+      return Left(
+        CacheFailure(
+          message: 'Unexpected error occurred while updating client: $e',
+        ),
+      );
     }
   }
 }

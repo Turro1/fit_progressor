@@ -14,15 +14,37 @@ class CarRepositoryImpl implements CarRepository {
   CarRepositoryImpl({required this.localDataSource});
 
   @override
+  Future<Either<Failure, Car>> getCarById(String id) async {
+    try {
+      final car = await localDataSource.getCarById(id);
+      return Right(car);
+    } on CacheException {
+      return Left(
+        CacheFailure(message: 'Cache error occurred while retrieving car by ID'),
+      );
+    } catch (e) {
+      return Left(
+        CacheFailure(
+          message: 'Unexpected error occurred while retrieving car by ID: $e',
+        ),
+      );
+    }
+  }
+
+  @override
   Future<Either<Failure, Car>> addCar(Car car) async {
     try {
       final carModel = CarModel.fromEntity(car);
       final result = await localDataSource.addCar(carModel);
       return Right(result);
     } on CacheException {
-      return Left(CacheFailure(message: 'Cache error occurred while adding car'));
+      return Left(
+        CacheFailure(message: 'Cache error occurred while adding car'),
+      );
     } catch (e) {
-      return Left(CacheFailure(message: 'Unexpected error occurred while adding car: $e'));
+      return Left(
+        CacheFailure(message: 'Unexpected error occurred while adding car: $e'),
+      );
     }
   }
 
@@ -32,9 +54,15 @@ class CarRepositoryImpl implements CarRepository {
       await localDataSource.deleteCar(carId);
       return const Right(null);
     } on CacheException {
-      return Left(CacheFailure(message: 'Cache error occurred while deleting car'));
+      return Left(
+        CacheFailure(message: 'Cache error occurred while deleting car'),
+      );
     } catch (e) {
-      return Left(CacheFailure(message: 'Unexpected error occurred while deleting car: $e'));
+      return Left(
+        CacheFailure(
+          message: 'Unexpected error occurred while deleting car: $e',
+        ),
+      );
     }
   }
 
@@ -44,21 +72,33 @@ class CarRepositoryImpl implements CarRepository {
       final cars = await localDataSource.getCars();
       return Right(cars);
     } on CacheException {
-      return Left(CacheFailure(message: 'Cache error occurred while retrieving cars'));
+      return Left(
+        CacheFailure(message: 'Cache error occurred while retrieving cars'),
+      );
     } catch (e) {
-      return Left(CacheFailure(message: 'Unexpected error occurred while retrieving cars: $e'));
+      return Left(
+        CacheFailure(
+          message: 'Unexpected error occurred while retrieving cars: $e',
+        ),
+      );
     }
   }
 
   @override
   Future<Either<Failure, List<Car>>> getCarsByClient(String clientId) async {
-     try {
+    try {
       final clients = await localDataSource.getCarsByClient(clientId);
       return Right(clients);
     } on CacheException {
-      return Left(CacheFailure(message: 'Cache error occurred while retrieving car'));
+      return Left(
+        CacheFailure(message: 'Cache error occurred while retrieving car'),
+      );
     } catch (e) {
-      return Left(CacheFailure(message: 'Unexpected error occurred while retrieving car: $e'));
+      return Left(
+        CacheFailure(
+          message: 'Unexpected error occurred while retrieving car: $e',
+        ),
+      );
     }
   }
 
@@ -68,9 +108,15 @@ class CarRepositoryImpl implements CarRepository {
       final clients = await localDataSource.searchCars(query);
       return Right(clients);
     } on CacheException {
-      return Left(CacheFailure(message: 'Cache error occurred while searching cars'));
+      return Left(
+        CacheFailure(message: 'Cache error occurred while searching cars'),
+      );
     } catch (e) {
-      return Left(CacheFailure(message: 'Unexpected error occurred while searching cars: $e'));
+      return Left(
+        CacheFailure(
+          message: 'Unexpected error occurred while searching cars: $e',
+        ),
+      );
     }
   }
 
@@ -81,9 +127,15 @@ class CarRepositoryImpl implements CarRepository {
       final result = await localDataSource.updateCar(clientModel);
       return Right(result);
     } on CacheException {
-      return Left(CacheFailure(message: 'Cache error occurred while updating client'));
+      return Left(
+        CacheFailure(message: 'Cache error occurred while updating client'),
+      );
     } catch (e) {
-      return Left(CacheFailure(message: 'Unexpected error occurred while updating client: $e'));
+      return Left(
+        CacheFailure(
+          message: 'Unexpected error occurred while updating client: $e',
+        ),
+      );
     }
   }
 }

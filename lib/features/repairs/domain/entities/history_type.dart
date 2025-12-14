@@ -1,4 +1,0 @@
-enum HistoryType {
-  status,
-  note,
-}

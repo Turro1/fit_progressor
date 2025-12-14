@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
+import 'package:fit_progressor/shared/widgets/app_search_bar.dart'; // Import AppSearchBar
 
 class ClientSearchBar extends StatelessWidget {
   final Function(String) onSearch;
@@ -8,31 +8,12 @@ class ClientSearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      onChanged: onSearch,
-      style: TextStyle(color: AppColors.textPrimary),
-      decoration: InputDecoration(
-        hintText: 'Поиск по имени или телефону...',
-        hintStyle: TextStyle(color: AppColors.textSecondary),
-        filled: true,
-        fillColor: AppColors.bgCard,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: AppColors.borderColor),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: AppColors.borderColor),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: AppColors.accentPrimary, width: 2),
-        ),
-        prefixIcon: Icon(Icons.search, color: AppColors.textSecondary),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
-        ),
+    return AppSearchBar(
+      onSearch: onSearch,
+      hintText: 'Поиск по имени или телефону...',
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 14,
       ),
     );
   }

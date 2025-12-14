@@ -5,10 +5,10 @@ import 'app.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize dependency injection
   await di.init();
-  
+
   // Set system UI overlay style
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
@@ -18,6 +18,6 @@ void main() async {
       systemNavigationBarIconBrightness: Brightness.light,
     ),
   );
-  
-  runApp(const RepairManagerApp());
+
+  runApp(const FitProgressorApp());
 }

@@ -3,15 +3,18 @@ import 'package:fit_progressor/features/cars/data/datasources/car_library_local_
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/car_library_model.dart';
 
-class CarLibraryLocalDataSourceSharedPreferencesImpl implements CarLibraryLocalDataSource {
+class CarLibraryLocalDataSourceSharedPreferencesImpl
+    implements CarLibraryLocalDataSource {
   final SharedPreferences sharedPreferences;
-  static const String CAR_LIBRARY_KEY = 'CACHED_CAR_LIBRARY';
+  static const String carLibraryKey = 'cachedCarLibrary';
 
-  CarLibraryLocalDataSourceSharedPreferencesImpl({required this.sharedPreferences});
+  CarLibraryLocalDataSourceSharedPreferencesImpl({
+    required this.sharedPreferences,
+  });
 
   @override
   Future<CarLibraryModel> getCarLibrary() async {
-    final jsonString = sharedPreferences.getString(CAR_LIBRARY_KEY);
+    final jsonString = sharedPreferences.getString(carLibraryKey);
     if (jsonString == null) {
       return CarLibraryModel.empty();
     }
@@ -35,17 +38,17 @@ class CarLibraryLocalDataSourceSharedPreferencesImpl implements CarLibraryLocalD
   Future<void> addToLibrary(String make, String model) async {
     final library = await getCarLibrary();
     final upperMake = make.toUpperCase();
-    
+
     // Создаем новую библиотеку с добавленной маркой/моделью
     final newLibrary = library.addMakeModel(upperMake, model);
-    
+
     // Сохраняем
     await _saveCarLibrary(newLibrary);
   }
 
   Future<void> _saveCarLibrary(CarLibraryModel library) async {
     await sharedPreferences.setString(
-      CAR_LIBRARY_KEY,
+      carLibraryKey,
       json.encode(library.toJson()),
     );
   }

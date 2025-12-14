@@ -15,7 +15,9 @@ class MainScaffold extends StatelessWidget {
     return Scaffold(
       body: child,
       bottomNavigationBar: CustomBottomNavigationBar(currentPath: currentPath),
-      floatingActionButton: FloatingActionButtonHandler(currentPath: currentPath),
+      floatingActionButton: FloatingActionButtonHandler(
+        currentPath: currentPath,
+      ),
     );
   }
 }

@@ -12,15 +12,23 @@ class CarLibraryRepositoryImpl implements CarLibraryRepository {
 
   CarLibraryRepositoryImpl({required this.localDataSource});
 
- @override
+  @override
   Future<Either<Failure, CarLibrary>> getCarLibrary() async {
     try {
       final library = await localDataSource.getCarLibrary();
       return Right(library);
     } on CacheException {
-      return Left(CacheFailure(message: 'Cache error occurred while retrieving car library'));
+      return Left(
+        CacheFailure(
+          message: 'Cache error occurred while retrieving car library',
+        ),
+      );
     } catch (e) {
-      return Left(CacheFailure(message: 'Unexpected error occurred while retrieving car library: $e'));
+      return Left(
+        CacheFailure(
+          message: 'Unexpected error occurred while retrieving car library: $e',
+        ),
+      );
     }
   }
 
@@ -30,9 +38,17 @@ class CarLibraryRepositoryImpl implements CarLibraryRepository {
       final makes = await localDataSource.getCarMakes();
       return Right(makes);
     } on CacheException {
-      return Left(CacheFailure(message: 'Cache error occurred while retrieving car makes'));
+      return Left(
+        CacheFailure(
+          message: 'Cache error occurred while retrieving car makes',
+        ),
+      );
     } catch (e) {
-      return Left(CacheFailure(message: 'Unexpected error occurred while retrieving car makes: $e'));
+      return Left(
+        CacheFailure(
+          message: 'Unexpected error occurred while retrieving car makes: $e',
+        ),
+      );
     }
   }
 
@@ -42,9 +58,17 @@ class CarLibraryRepositoryImpl implements CarLibraryRepository {
       final models = await localDataSource.getCarModels(make);
       return Right(models);
     } on CacheException {
-      return Left(CacheFailure(message: 'Cache error occurred while retrieving car models'));
+      return Left(
+        CacheFailure(
+          message: 'Cache error occurred while retrieving car models',
+        ),
+      );
     } catch (e) {
-      return Left(CacheFailure(message: 'Unexpected error occurred while retrieving car models: $e'));
+      return Left(
+        CacheFailure(
+          message: 'Unexpected error occurred while retrieving car models: $e',
+        ),
+      );
     }
   }
 
@@ -54,9 +78,17 @@ class CarLibraryRepositoryImpl implements CarLibraryRepository {
       await localDataSource.addToLibrary(make, model);
       return const Right(null);
     } on CacheException {
-      return Left(CacheFailure(message: 'Cache error occurred while adding to car library'));
+      return Left(
+        CacheFailure(
+          message: 'Cache error occurred while adding to car library',
+        ),
+      );
     } catch (e) {
-      return Left(CacheFailure(message: 'Unexpected error occurred while adding to car library: $e'));
+      return Left(
+        CacheFailure(
+          message: 'Unexpected error occurred while adding to car library: $e',
+        ),
+      );
     }
   }
 }

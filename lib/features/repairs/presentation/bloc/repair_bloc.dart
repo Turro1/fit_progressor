@@ -1,6 +1,6 @@
-import 'package:fit_progressor/features/repairs/domain/entities/repair.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/usecases/usecase.dart';
+import '../../domain/entities/repair.dart';
 import '../../domain/usecases/add_repair.dart';
 import '../../domain/usecases/delete_repair.dart';
 import '../../domain/usecases/filter_repairs_by_status.dart';
@@ -43,10 +43,20 @@ class RepairBloc extends Bloc<RepairEvent, RepairState> {
     result.fold(
       (failure) => emit(const RepairError(message: 'Не удалось загрузить ремонты')),
       (repairs) {
-        // Сортируем по дате создания (новые сначала)
-        final sortedRepairs = List.from(repairs) as List<Repair>
+        List<Repair> filteredRepairs = repairs;
+        if (event.carIdFilter != null) {
+          filteredRepairs = filteredRepairs
+              .where((repair) => repair.carId == event.carIdFilter)
+              .toList();
+        }
+        
+        // Sort repairs by creation date, newest first
+        final sortedRepairs = List<Repair>.from(filteredRepairs)
           ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-        emit(RepairLoaded(repairs: sortedRepairs));
+        emit(RepairLoaded(
+          repairs: sortedRepairs,
+          carIdFilter: event.carIdFilter, // Pass carIdFilter to state
+        ));
       },
     );
   }
@@ -55,22 +65,24 @@ class RepairBloc extends Bloc<RepairEvent, RepairState> {
     AddRepairEvent event,
     Emitter<RepairState> emit,
   ) async {
-    emit(RepairLoading());
+    emit(RepairLoading()); // Indicate loading while adding
     final params = AddRepairParams(
       carId: event.carId,
+      clientId: event.clientId,
       status: event.status,
       description: event.description,
       costWork: event.costWork,
+      materials: event.materials,
+      parts: event.parts,
+      photos: event.photos,
+      plannedAt: event.plannedAt,
     );
     final result = await addRepair(params);
-
-    await result.fold(
-      (failure) async {
-        emit(const RepairError(message: 'Не удалось добавить ремонт'));
-      },
+    result.fold(
+      (failure) => emit(const RepairError(message: 'Не удалось добавить ремонт')),
       (repair) async {
-        emit(const RepairOperationSuccess(message: 'Ремонт создан'));
-        add(LoadRepairs());
+        emit(const RepairOperationSuccess(message: 'Ремонт успешно добавлен'));
+        add(LoadRepairs()); // Reload repairs after successful addition
       },
     );
   }
@@ -79,16 +91,13 @@ class RepairBloc extends Bloc<RepairEvent, RepairState> {
     UpdateRepairEvent event,
     Emitter<RepairState> emit,
   ) async {
-    emit(RepairLoading());
+    emit(RepairLoading()); // Indicate loading while updating
     final result = await updateRepair(event.repair);
-
-    await result.fold(
-      (failure) async {
-        emit(const RepairError(message: 'Не удалось обновить ремонт'));
-      },
+    result.fold(
+      (failure) => emit(const RepairError(message: 'Не удалось обновить ремонт')),
       (repair) async {
-        emit(const RepairOperationSuccess(message: 'Ремонт обновлен'));
-        add(LoadRepairs());
+        emit(const RepairOperationSuccess(message: 'Ремонт успешно обновлен'));
+        add(LoadRepairs()); // Reload repairs after successful update
       },
     );
   }
@@ -97,16 +106,13 @@ class RepairBloc extends Bloc<RepairEvent, RepairState> {
     DeleteRepairEvent event,
     Emitter<RepairState> emit,
   ) async {
-    emit(RepairLoading());
+    emit(RepairLoading()); // Indicate loading while deleting
     final result = await deleteRepair(event.repairId);
-
-    await result.fold(
-      (failure) async {
-        emit(const RepairError(message: 'Не удалось удалить ремонт'));
-      },
+    result.fold(
+      (failure) => emit(const RepairError(message: 'Не удалось удалить ремонт')),
       (_) async {
-        emit(const RepairOperationSuccess(message: 'Ремонт удален'));
-        add(LoadRepairs());
+        emit(const RepairOperationSuccess(message: 'Ремонт успешно удален'));
+        add(LoadRepairs()); // Reload repairs after successful deletion
       },
     );
   }
@@ -115,17 +121,12 @@ class RepairBloc extends Bloc<RepairEvent, RepairState> {
     SearchRepairsEvent event,
     Emitter<RepairState> emit,
   ) async {
-    if (event.query.isEmpty) {
-      add(LoadRepairs());
-      return;
-    }
-
-    emit(RepairLoading());
+    emit(RepairLoading()); // Indicate loading while searching
     final result = await searchRepairs(event.query);
     result.fold(
-      (failure) => emit(const RepairError(message: 'Ошибка поиска')),
+      (failure) => emit(const RepairError(message: 'Ошибка при поиске ремонтов')),
       (repairs) {
-        final sortedRepairs = List.from(repairs) as List<Repair>
+        final sortedRepairs = List<Repair>.from(repairs)
           ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
         emit(RepairLoaded(repairs: sortedRepairs, searchQuery: event.query));
       },
@@ -136,22 +137,18 @@ class RepairBloc extends Bloc<RepairEvent, RepairState> {
     FilterRepairsByStatusEvent event,
     Emitter<RepairState> emit,
   ) async {
+    emit(RepairLoading()); // Indicate loading while filtering
     if (event.status == null) {
-      add(LoadRepairs());
+      add(LoadRepairs()); // Load all if filter is cleared
       return;
     }
-
-    emit(RepairLoading());
     final result = await filterRepairsByStatus(event.status!);
     result.fold(
-      (failure) => emit(const RepairError(message: 'Ошибка фильтрации')),
+      (failure) => emit(const RepairError(message: 'Ошибка при фильтрации ремонтов')),
       (repairs) {
-        final sortedRepairs = List.from(repairs) as List<Repair>
+        final sortedRepairs = List<Repair>.from(repairs)
           ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-        emit(RepairLoaded(
-          repairs: sortedRepairs,
-          statusFilter: event.status,
-        ));
+        emit(RepairLoaded(repairs: sortedRepairs, statusFilter: event.status));
       },
     );
   }

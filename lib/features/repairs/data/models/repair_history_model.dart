@@ -2,34 +2,39 @@ import '../../domain/entities/repair_history.dart';
 
 class RepairHistoryModel extends RepairHistory {
   const RepairHistoryModel({
+    required super.id,
     required super.timestamp,
     required super.type,
-    required super.note,
+    required super.description,
   });
 
   factory RepairHistoryModel.fromJson(Map<String, dynamic> json) {
     return RepairHistoryModel(
+      id: json['id'] as String,
       timestamp: DateTime.parse(json['timestamp'] as String),
-      type: json['type'] == 'status'
-          ? HistoryType.statusChange
-          : HistoryType.note,
-      note: json['note'] as String,
+      type: HistoryType.values.firstWhere(
+        (e) => e.toString() == json['type'],
+        orElse: () => HistoryType.noteAdded,
+      ),
+      description: json['description'] as String,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'timestamp': timestamp.toIso8601String(),
-      'type': type == HistoryType.statusChange ? 'status' : 'note',
-      'note': note,
+      'type': type.toString(),
+      'description': description,
     };
   }
 
-  factory RepairHistoryModel.fromEntity(RepairHistory history) {
+  factory RepairHistoryModel.fromEntity(RepairHistory entity) {
     return RepairHistoryModel(
-      timestamp: history.timestamp,
-      type: history.type,
-      note: history.note,
+      id: entity.id,
+      timestamp: entity.timestamp,
+      type: entity.type,
+      description: entity.description,
     );
   }
 }

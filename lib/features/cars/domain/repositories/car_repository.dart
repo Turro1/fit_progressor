@@ -3,6 +3,9 @@ import 'package:fit_progressor/core/error/failures/failure.dart';
 import '../entities/car.dart';
 
 abstract class CarRepository {
+  // Получить машину по ID
+  Future<Either<Failure, Car>> getCarById(String id);
+
   // Получить все машины
   Future<Either<Failure, List<Car>>> getCars();
 

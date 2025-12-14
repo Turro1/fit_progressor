@@ -21,10 +21,10 @@ class AddCar implements UseCase<Car, AddCarParams> {
       plate: params.plate,
       createdAt: DateTime.now(),
     );
-    
+
     // Добавляем в библиотеку
     await libraryRepository.addToLibrary(car.make, car.model);
-    
+
     return await repository.addCar(car);
   }
 }

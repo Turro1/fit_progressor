@@ -5,7 +5,6 @@ import 'package:fit_progressor/features/clients/domain/entities/client.dart';
 import 'package:fit_progressor/features/clients/domain/repositories/client_repository.dart';
 import '../../../../core/usecases/usecase.dart';
 
-
 class AddClient implements UseCase<Client, AddClientParams> {
   final ClientRepository repository;
 
@@ -28,8 +27,5 @@ class AddClientParams {
   final String name;
   final String phone;
 
-  AddClientParams({
-    required this.name,
-    required this.phone,
-  });
+  AddClientParams({required this.name, required this.phone});
 }

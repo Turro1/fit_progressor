@@ -11,7 +11,7 @@ abstract class CarLibraryRepository {
 
   // Получить список моделей машин по марке
   Future<Either<Failure, List<String>>> getCarModels(String make);
-  
+
   // Добавить марку и модель в библиотеку
   Future<Either<Failure, void>> addToLibrary(String make, String model);
 }

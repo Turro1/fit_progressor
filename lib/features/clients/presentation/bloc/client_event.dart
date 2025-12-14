@@ -14,10 +14,7 @@ class AddClientEvent extends ClientEvent {
   final String name;
   final String phone;
 
-  const AddClientEvent({
-    required this.name,
-    required this.phone,
-  });
+  const AddClientEvent({required this.name, required this.phone});
 
   @override
   List<Object?> get props => [name, phone];

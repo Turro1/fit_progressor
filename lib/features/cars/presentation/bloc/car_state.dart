@@ -26,7 +26,12 @@ class CarLoaded extends CarState {
   });
 
   @override
-  List<Object?> get props => [cars, searchQuery, availableMakes, availableModels];
+  List<Object?> get props => [
+    cars,
+    searchQuery,
+    availableMakes,
+    availableModels,
+  ];
 
   CarLoaded copyWith({
     List<Car>? cars,

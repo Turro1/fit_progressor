@@ -1,11 +1,11 @@
 import 'package:fit_progressor/features/clients/domain/entities/client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../bloc/client_bloc.dart';
 import '../bloc/client_event.dart';
 import '../bloc/client_state.dart';
 import '../widgets/client_card.dart';
+import '../widgets/client_cars_modal.dart';
 import '../widgets/client_form_modal.dart';
 import '../widgets/client_search_bar.dart';
 
@@ -14,8 +14,16 @@ class ClientsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    // Dispatch LoadClients event when the page is first built.
+    // This ensures that clients are loaded when the page becomes active.
+    final clientBloc = context.read<ClientBloc>();
+    if (clientBloc.state is! ClientLoaded &&
+        clientBloc.state is! ClientLoading) {
+      clientBloc.add(LoadClients());
+    }
+
     return Scaffold(
-      backgroundColor: AppColors.bgMain,
       body: SafeArea(
         child: Column(
           children: [
@@ -28,17 +36,13 @@ class ClientsPage extends StatelessWidget {
                     children: [
                       Icon(
                         Icons.groups,
-                        color: AppColors.textPrimary,
+                        color: theme.colorScheme.onSurface,
                         size: 28,
                       ),
                       const SizedBox(width: 10),
                       Text(
                         'Клиенты',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
-                        ),
+                        style: theme.textTheme.headlineMedium,
                       ),
                     ],
                   ),
@@ -46,8 +50,8 @@ class ClientsPage extends StatelessWidget {
                   ClientSearchBar(
                     onSearch: (query) {
                       context.read<ClientBloc>().add(
-                            SearchClientsEvent(query: query),
-                          );
+                        SearchClientsEvent(query: query),
+                      );
                     },
                   ),
                 ],
@@ -60,7 +64,7 @@ class ClientsPage extends StatelessWidget {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(state.message),
-                        backgroundColor: AppColors.danger,
+                        backgroundColor: theme.colorScheme.error,
                       ),
                     );
                   }
@@ -68,7 +72,7 @@ class ClientsPage extends StatelessWidget {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(state.message),
-                        backgroundColor: AppColors.accentSecondary,
+                        backgroundColor: theme.colorScheme.secondary,
                       ),
                     );
                   }
@@ -76,9 +80,7 @@ class ClientsPage extends StatelessWidget {
                 builder: (context, state) {
                   if (state is ClientLoading) {
                     return const Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.accentPrimary,
-                      ),
+                      child: CircularProgressIndicator(),
                     );
                   }
 
@@ -91,24 +93,17 @@ class ClientsPage extends StatelessWidget {
                             Icon(
                               Icons.person_add_outlined,
                               size: 80,
-                              color: AppColors.textSecondary,
+                              color: theme.textTheme.bodyMedium?.color,
                             ),
                             const SizedBox(height: 16),
                             Text(
                               'Нет клиентов',
-                              style: TextStyle(
-                                color: AppColors.textPrimary,
-                                fontSize: 20,
-                                fontWeight: FontWeight.w600,
-                              ),
+                              style: theme.textTheme.titleLarge,
                             ),
                             const SizedBox(height: 8),
                             Text(
                               'Нажмите "+" для добавления клиента',
-                              style: TextStyle(
-                                color: AppColors.textSecondary,
-                                fontSize: 16,
-                              ),
+                              style: theme.textTheme.bodyMedium,
                             ),
                           ],
                         ),
@@ -124,6 +119,8 @@ class ClientsPage extends StatelessWidget {
                           client: client,
                           onEdit: () => _showClientModal(context, client),
                           onDelete: () => _confirmDelete(context, client),
+                          onTap: () =>
+                              _showClientCarsModal(context, client),
                         );
                       },
                     );
@@ -148,38 +145,39 @@ class ClientsPage extends StatelessWidget {
     );
   }
 
+  void _showClientCarsModal(BuildContext context, Client client) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => ClientCarsModal(client: client),
+    );
+  }
+
   void _confirmDelete(BuildContext context, Client client) {
+    final theme = Theme.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppColors.bgCard,
-        title: Text(
-          'Удалить клиента?',
-          style: TextStyle(color: AppColors.textPrimary),
-        ),
+        title: const Text('Удалить клиента?'),
         content: Text(
           'Это также удалит ВСЕ его автомобили и ремонты!',
-          style: TextStyle(color: AppColors.textSecondary),
+          style: theme.textTheme.bodyMedium,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Отмена',
-              style: TextStyle(color: AppColors.textSecondary),
-            ),
+            child: const Text('Отмена'),
           ),
           TextButton(
             onPressed: () {
               context.read<ClientBloc>().add(
-                    DeleteClientEvent(clientId: client.id),
-                  );
+                DeleteClientEvent(clientId: client.id),
+              );
               Navigator.pop(context);
             },
-            child: Text(
-              'Удалить',
-              style: TextStyle(color: AppColors.danger),
-            ),
+            child: Text('Удалить',
+                style: TextStyle(color: theme.colorScheme.error)),
           ),
         ],
       ),

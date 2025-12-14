@@ -1,17 +1,23 @@
-import 'package:fit_progressor/features/repairs/domain/entities/repair.dart';
+import 'package:equatable/equatable.dart';
 
-class DashboardStats {
-  final int activeRepairsCount;
-  final int lowStockMaterialsCount;
-  final double monthlyRevenue;
-  final double monthlyProfit;
-  final List<Repair> recentRepairs;
+class DashboardStats extends Equatable {
+  final int activeRepairs;
+  final int lowStockMaterials;
+  final double revenueThisMonth;
+  final double profitThisMonth;
 
-  DashboardStats({
-    required this.activeRepairsCount,
-    required this.lowStockMaterialsCount,
-    required this.monthlyRevenue,
-    required this.monthlyProfit,
-    required this.recentRepairs,
+  const DashboardStats({
+    required this.activeRepairs,
+    required this.lowStockMaterials,
+    required this.revenueThisMonth,
+    required this.profitThisMonth,
   });
+
+  @override
+  List<Object?> get props => [
+    activeRepairs,
+    lowStockMaterials,
+    revenueThisMonth,
+    profitThisMonth,
+  ];
 }

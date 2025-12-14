@@ -1,7 +1,6 @@
 import 'package:dartz/dartz.dart';
-import 'package:fit_progressor/core/error/failures/failure.dart';
-
-import '../../../../core/usecases/usecase.dart';
+import '../../../../../core/error/failures/failure.dart';
+import '../../../../../core/usecases/usecase.dart';
 import '../entities/repair.dart';
 import '../entities/repair_status.dart';
 import '../repositories/repair_repository.dart';
@@ -12,7 +11,7 @@ class FilterRepairsByStatus implements UseCase<List<Repair>, RepairStatus> {
   FilterRepairsByStatus(this.repository);
 
   @override
-  Future<Either<Failure, List<Repair>>> call(RepairStatus params) async {
-    return await repository.getRepairsByStatus(params);
+  Future<Either<Failure, List<Repair>>> call(RepairStatus status) async {
+    return await repository.getRepairsByStatus(status);
   }
 }

@@ -5,7 +5,7 @@ import 'package:fit_progressor/features/clients/domain/entities/client.dart';
 import 'package:fit_progressor/features/clients/domain/repositories/client_repository.dart';
 
 class GetClientById extends UseCase<Client, String> {
-   final ClientRepository repository;
+  final ClientRepository repository;
 
   GetClientById({required this.repository});
 
@@ -13,5 +13,4 @@ class GetClientById extends UseCase<Client, String> {
   Future<Either<Failure, Client>> call(String id) async {
     return await repository.getClientById(id);
   }
-
 }

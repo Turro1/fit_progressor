@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/theme/app_colors.dart';
+import 'package:go_router/go_router.dart';
 import '../../../clients/presentation/bloc/client_bloc.dart';
 import '../../../clients/presentation/bloc/client_event.dart';
+import '../../../repairs/presentation/bloc/repair_bloc.dart';
+import '../../../repairs/presentation/bloc/repair_event.dart';
 import '../../domain/entities/car.dart';
 import '../bloc/car_bloc.dart';
 import '../bloc/car_event.dart';
@@ -24,12 +26,14 @@ class _CarsPageState extends State<CarsPage> {
     super.initState();
     // Загружаем клиентов для выбора владельца
     context.read<ClientBloc>().add(LoadClients());
+    // Загружаем автомобили
+    context.read<CarBloc>().add(LoadCars());
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: AppColors.bgMain,
       body: SafeArea(
         child: Column(
           children: [
@@ -40,15 +44,15 @@ class _CarsPageState extends State<CarsPage> {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.directions_car, color: AppColors.textPrimary, size: 28),
+                      Icon(
+                        Icons.directions_car,
+                        color: theme.colorScheme.onSurface,
+                        size: 28,
+                      ),
                       const SizedBox(width: 10),
                       Text(
                         'Автомобили',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
-                        ),
+                        style: theme.textTheme.headlineMedium,
                       ),
                     ],
                   ),
@@ -70,7 +74,7 @@ class _CarsPageState extends State<CarsPage> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(state.message),
-                        backgroundColor: AppColors.danger,
+                        backgroundColor: theme.colorScheme.error,
                       ),
                     );
                   }
@@ -78,7 +82,7 @@ class _CarsPageState extends State<CarsPage> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(state.message),
-                        backgroundColor: AppColors.accentSecondary,
+                        backgroundColor: theme.colorScheme.secondary,
                       ),
                     );
                   }
@@ -86,9 +90,7 @@ class _CarsPageState extends State<CarsPage> {
                 builder: (context, state) {
                   if (state is CarLoading) {
                     return const Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.accentPrimary,
-                      ),
+                      child: CircularProgressIndicator(),
                     );
                   }
 
@@ -97,10 +99,7 @@ class _CarsPageState extends State<CarsPage> {
                       return Center(
                         child: Text(
                           'Нажмите "+" для добавления автомобиля',
-                          style: TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 16,
-                          ),
+                          style: theme.textTheme.bodyMedium,
                         ),
                       );
                     }
@@ -112,6 +111,12 @@ class _CarsPageState extends State<CarsPage> {
                         final car = state.cars[index];
                         return CarCard(
                           car: car,
+                          onTap: () {
+                            context
+                                .read<RepairBloc>()
+                                .add(LoadRepairs(carIdFilter: car.id));
+                            context.go('/repairs');
+                          },
                           onEdit: () => _showCarModal(context, car),
                           onDelete: () => _confirmDelete(context, car),
                         );
@@ -139,29 +144,27 @@ class _CarsPageState extends State<CarsPage> {
   }
 
   void _confirmDelete(BuildContext context, Car car) {
+    final theme = Theme.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppColors.bgCard,
-        title: Text(
-          'Удалить автомобиль?',
-          style: TextStyle(color: AppColors.textPrimary),
-        ),
+        title: const Text('Удалить автомобиль?'),
         content: Text(
           'Это также удалит ВСЕ его ремонты!',
-          style: TextStyle(color: AppColors.textSecondary),
+          style: theme.textTheme.bodyMedium,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Отмена', style: TextStyle(color: AppColors.textSecondary)),
+            child: const Text('Отмена'),
           ),
           TextButton(
             onPressed: () {
               context.read<CarBloc>().add(DeleteCarEvent(carId: car.id));
               Navigator.pop(context);
             },
-            child: Text('Удалить', style: TextStyle(color: AppColors.danger)),
+            child: Text('Удалить',
+                style: TextStyle(color: theme.colorScheme.error)),
           ),
         ],
       ),

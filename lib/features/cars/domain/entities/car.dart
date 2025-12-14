@@ -6,6 +6,7 @@ class Car extends Entity {
   final String make;
   final String model;
   final String plate;
+  final String clientName;
 
   const Car({
     required String id,
@@ -13,6 +14,7 @@ class Car extends Entity {
     required this.make,
     required this.model,
     required this.plate,
+    this.clientName = '',
     DateTime? createdAt,
   }) : super(id: id, createdAt: createdAt);
 
@@ -22,6 +24,7 @@ class Car extends Entity {
     String? make,
     String? model,
     String? plate,
+    String? clientName,
     DateTime? createdAt,
   }) {
     return Car(
@@ -30,10 +33,19 @@ class Car extends Entity {
       make: make ?? this.make,
       model: model ?? this.model,
       plate: plate ?? this.plate,
+      clientName: clientName ?? this.clientName,
       createdAt: createdAt ?? this.createdAt,
     );
   }
-  
+
   @override
-  List<Object?> get props => [id, clientId, make, model, plate, createdAt];
+  List<Object?> get props => [
+    id,
+    clientId,
+    make,
+    model,
+    plate,
+    clientName,
+    createdAt,
+  ];
 }

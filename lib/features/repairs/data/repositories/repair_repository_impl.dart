@@ -2,11 +2,13 @@ import 'package:dartz/dartz.dart';
 import 'package:fit_progressor/core/error/exceptions/cache_exception.dart';
 import 'package:fit_progressor/core/error/failures/cache_failure.dart';
 import 'package:fit_progressor/core/error/failures/failure.dart';
-import '../../domain/entities/repair.dart';
-import '../../domain/entities/repair_status.dart';
-import '../../domain/repositories/repair_repository.dart';
-import '../datasources/repair_local_datasource.dart';
-import '../models/repair_model.dart';
+import 'package:fit_progressor/features/repairs/data/datasources/repair_local_datasource.dart';
+import 'package:fit_progressor/features/repairs/data/models/car_photo_model.dart';
+import 'package:fit_progressor/features/repairs/data/models/repair_model.dart';
+import 'package:fit_progressor/features/repairs/domain/entities/car_photo.dart';
+import 'package:fit_progressor/features/repairs/domain/entities/repair.dart';
+import 'package:fit_progressor/features/repairs/domain/entities/repair_status.dart';
+import 'package:fit_progressor/features/repairs/domain/repositories/repair_repository.dart';
 
 class RepairRepositoryImpl implements RepairRepository {
   final RepairLocalDataSource localDataSource;
@@ -19,9 +21,17 @@ class RepairRepositoryImpl implements RepairRepository {
       final repairs = await localDataSource.getRepairs();
       return Right(repairs);
     } on CacheException {
-      return Left(CacheFailure(message: ''));
-    } catch (e) {
-      return Left(CacheFailure(message: ''));
+      return Left(CacheFailure(message: 'Ошибка кэша'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Repair>> getRepairById(String id) async {
+    try {
+      final repair = await localDataSource.getRepairById(id);
+      return Right(repair);
+    } on CacheException {
+      return Left(CacheFailure(message: 'Ошибка кэша'));
     }
   }
 
@@ -32,9 +42,7 @@ class RepairRepositoryImpl implements RepairRepository {
       final result = await localDataSource.addRepair(repairModel);
       return Right(result);
     } on CacheException {
-      return Left(CacheFailure(message: ''));
-    } catch (e) {
-      return Left(CacheFailure(message: ''));
+      return Left(CacheFailure(message: 'Ошибка кэша'));
     }
   }
 
@@ -45,9 +53,7 @@ class RepairRepositoryImpl implements RepairRepository {
       final result = await localDataSource.updateRepair(repairModel);
       return Right(result);
     } on CacheException {
-      return Left(CacheFailure(message: ''));
-    } catch (e) {
-      return Left(CacheFailure(message: ''));
+      return Left(CacheFailure(message: 'Ошибка кэша'));
     }
   }
 
@@ -57,9 +63,7 @@ class RepairRepositoryImpl implements RepairRepository {
       await localDataSource.deleteRepair(repairId);
       return const Right(null);
     } on CacheException {
-      return Left(CacheFailure(message: ''));
-    } catch (e) {
-      return Left(CacheFailure(message: ''));
+      return Left(CacheFailure(message: 'Ошибка кэша'));
     }
   }
 
@@ -69,9 +73,7 @@ class RepairRepositoryImpl implements RepairRepository {
       final repairs = await localDataSource.searchRepairs(query);
       return Right(repairs);
     } on CacheException {
-      return Left(CacheFailure(message: ''));
-    } catch (e) {
-      return Left(CacheFailure(message: ''));
+      return Left(CacheFailure(message: 'Ошибка кэша'));
     }
   }
 
@@ -82,9 +84,7 @@ class RepairRepositoryImpl implements RepairRepository {
       final repairs = await localDataSource.getRepairsByStatus(status);
       return Right(repairs);
     } on CacheException {
-      return Left(CacheFailure(message: ''));
-    } catch (e) {
-      return Left(CacheFailure(message: ''));
+      return Left(CacheFailure(message: 'Ошибка кэша'));
     }
   }
 
@@ -94,9 +94,44 @@ class RepairRepositoryImpl implements RepairRepository {
       final repairs = await localDataSource.getRepairsByCar(carId);
       return Right(repairs);
     } on CacheException {
-      return Left(CacheFailure(message: ''));
-    } catch (e) {
-      return Left(CacheFailure(message: ''));
+      return Left(CacheFailure(message: 'Ошибка кэша'));
+    }
+  }
+}
+
+class CarPhotoRepositoryImpl implements CarPhotoRepository {
+  final CarPhotoLocalDataSource localDataSource;
+
+  CarPhotoRepositoryImpl({required this.localDataSource});
+
+  @override
+  Future<Either<Failure, List<CarPhoto>>> getCarPhotos(String carId) async {
+    try {
+      final photos = await localDataSource.getCarPhotos(carId);
+      return Right(photos);
+    } on CacheException {
+      return Left(CacheFailure(message: 'Ошибка кэша'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, CarPhoto>> addCarPhoto(CarPhoto photo) async {
+    try {
+      final photoModel = CarPhotoModel.fromEntity(photo);
+      final result = await localDataSource.addCarPhoto(photoModel);
+      return Right(result);
+    } on CacheException {
+      return Left(CacheFailure(message: 'Ошибка кэша'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteCarPhoto(String photoId) async {
+    try {
+      await localDataSource.deleteCarPhoto(photoId);
+      return const Right(null);
+    } on CacheException {
+      return Left(CacheFailure(message: 'Ошибка кэша'));
     }
   }
 }

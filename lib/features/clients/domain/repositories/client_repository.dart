@@ -4,7 +4,6 @@ import '../entities/client.dart';
 
 //Репозиторий клиентов
 abstract class ClientRepository {
-
   /// Получить всех клиентов
   Future<Either<Failure, List<Client>>> getAllClients();
 

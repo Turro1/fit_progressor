@@ -16,10 +16,7 @@ class ClientLoaded extends ClientState {
   final List<Client> clients;
   final String? searchQuery;
 
-  const ClientLoaded({
-    required this.clients,
-    this.searchQuery,
-  });
+  const ClientLoaded({required this.clients, this.searchQuery});
 
   @override
   List<Object?> get props => [clients, searchQuery];

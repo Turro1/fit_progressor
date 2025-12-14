@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
 
 class ClientDropdownField extends StatefulWidget {
   final String label;
@@ -56,27 +55,16 @@ class _CarDropdownFieldState extends State<ClientDropdownField> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         TextFormField(
           controller: _controller,
-          style: TextStyle(color: AppColors.textPrimary),
           decoration: InputDecoration(
             labelText: widget.label,
             hintText: widget.hint,
-            labelStyle: TextStyle(color: AppColors.textSecondary),
-            hintStyle: TextStyle(color: AppColors.textSecondary),
-            filled: true,
-            fillColor: AppColors.bgMain,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: AppColors.borderColor),
-            ),
-            suffixIcon: Icon(
-              Icons.arrow_drop_down,
-              color: AppColors.textSecondary,
-            ),
+            suffixIcon: const Icon(Icons.arrow_drop_down),
           ),
           onChanged: (value) {
             _filterItems(value);
@@ -94,9 +82,9 @@ class _CarDropdownFieldState extends State<ClientDropdownField> {
             margin: const EdgeInsets.only(top: 4),
             constraints: const BoxConstraints(maxHeight: 200),
             decoration: BoxDecoration(
-              color: AppColors.bgHeader,
+              color: theme.colorScheme.surface,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColors.borderColor),
+              border: Border.all(color: theme.colorScheme.outline),
             ),
             child: ListView.builder(
               shrinkWrap: true,
@@ -120,17 +108,14 @@ class _CarDropdownFieldState extends State<ClientDropdownField> {
                     decoration: BoxDecoration(
                       border: Border(
                         bottom: BorderSide(
-                          color: AppColors.borderColor,
+                          color: theme.colorScheme.outline,
                           width: index < _filteredItems.length - 1 ? 1 : 0,
                         ),
                       ),
                     ),
                     child: Text(
                       item,
-                      style: TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 14,
-                      ),
+                      style: theme.textTheme.bodyMedium,
                     ),
                   ),
                 );

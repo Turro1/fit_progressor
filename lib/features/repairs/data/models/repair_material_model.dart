@@ -3,31 +3,35 @@ import '../../domain/entities/repair_material.dart';
 class RepairMaterialModel extends RepairMaterial {
   const RepairMaterialModel({
     required super.materialId,
+    required super.name,
     required super.quantity,
-    required super.cost,
+    required super.price,
   });
 
   factory RepairMaterialModel.fromJson(Map<String, dynamic> json) {
     return RepairMaterialModel(
       materialId: json['materialId'] as String,
-      quantity: (json['quantity'] as num).toDouble(),
-      cost: (json['cost'] as num).toDouble(),
+      name: json['name'] as String,
+      quantity: json['quantity'] as int,
+      price: json['price'] as double,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'materialId': materialId,
+      'name': name,
       'quantity': quantity,
-      'cost': cost,
+      'price': price,
     };
   }
 
-  factory RepairMaterialModel.fromEntity(RepairMaterial material) {
+  factory RepairMaterialModel.fromEntity(RepairMaterial entity) {
     return RepairMaterialModel(
-      materialId: material.materialId,
-      quantity: material.quantity,
-      cost: material.cost,
+      materialId: entity.materialId,
+      name: entity.name,
+      quantity: entity.quantity,
+      price: entity.price,
     );
   }
 }

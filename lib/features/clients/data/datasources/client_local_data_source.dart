@@ -1,7 +1,6 @@
 import '../models/client_model.dart';
 
 abstract class ClientLocalDataSource {
-
   /// Получить всех клиентов из локального хранилища
   Future<List<ClientModel>> getAllClients();
 

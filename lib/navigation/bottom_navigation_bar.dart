@@ -1,23 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../core/theme/app_colors.dart';
+// import '../core/theme/app_colors.dart'; // Removed direct import
 
 class CustomBottomNavigationBar extends StatelessWidget {
   final String currentPath;
 
   const CustomBottomNavigationBar({Key? key, required this.currentPath})
-      : super(key: key);
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       height: 65,
       decoration: BoxDecoration(
-        color: AppColors.bgHeader,
-        border: Border(top: BorderSide(color: AppColors.borderColor)),
+        color: theme.colorScheme.surface, // Changed from AppColors.bgHeader
+        border: Border(top: BorderSide(color: theme.dividerColor)), // Changed from AppColors.borderColor
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: const Color(0x33000000), // Using a standard subtle shadow color
             blurRadius: 15,
             offset: const Offset(0, -5),
           ),
@@ -77,6 +78,7 @@ class _NavButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return InkWell(
       onTap: onTap,
       child: Column(
@@ -85,14 +87,16 @@ class _NavButton extends StatelessWidget {
           Icon(
             icon,
             size: 24,
-            color: isActive ? AppColors.accentPrimary : AppColors.textSecondary,
+            color: isActive ? theme.colorScheme.secondary : theme.colorScheme.onSurface.withValues(alpha: 0.6), // Use theme colors
           ),
           const SizedBox(height: 4),
           Text(
             label,
             style: TextStyle(
               fontSize: 11,
-              color: isActive ? AppColors.accentPrimary : AppColors.textSecondary,
+              color: isActive
+                  ? theme.colorScheme.secondary // Use theme colors
+                  : theme.colorScheme.onSurface.withValues(alpha: 0.6), // Use theme colors
             ),
           ),
         ],
