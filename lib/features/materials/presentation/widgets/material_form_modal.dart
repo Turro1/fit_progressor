@@ -19,7 +19,8 @@ class _MaterialFormModalState extends State<MaterialFormModal> {
   late TextEditingController _quantityController;
   late TextEditingController _minQuantityController;
   late TextEditingController _costController;
-      late material_entity.MaterialUnit _selectedUnit;  final _formKey = GlobalKey<FormState>();
+  late material_entity.MaterialUnit _selectedUnit;
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -56,7 +57,11 @@ class _MaterialFormModalState extends State<MaterialFormModal> {
     return Container(
       decoration: BoxDecoration(
         color: theme.cardTheme.color,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(borderRadius.resolve(Directionality.of(context)).topLeft.x)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(
+            borderRadius.resolve(Directionality.of(context)).topLeft.x,
+          ),
+        ),
       ),
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -151,9 +156,7 @@ class _MaterialFormModalState extends State<MaterialFormModal> {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
-      decoration: InputDecoration(
-        labelText: label,
-      ),
+      decoration: InputDecoration(labelText: label),
       validator: validator,
     );
   }
@@ -162,9 +165,7 @@ class _MaterialFormModalState extends State<MaterialFormModal> {
     final theme = Theme.of(context);
     return DropdownButtonFormField<material_entity.MaterialUnit>(
       initialValue: _selectedUnit,
-      decoration: const InputDecoration(
-        labelText: 'Ед. изм.',
-      ),
+      decoration: const InputDecoration(labelText: 'Ед. изм.'),
       dropdownColor: theme.colorScheme.surface,
       items: material_entity.MaterialUnit.values.map((unit) {
         return DropdownMenuItem(value: unit, child: Text(unit.displayName));
@@ -195,9 +196,7 @@ class _MaterialFormModalState extends State<MaterialFormModal> {
         ElevatedButton(
           onPressed: _submitForm,
           style: theme.elevatedButtonTheme.style,
-          child: Text(
-            widget.material == null ? 'Добавить' : 'Сохранить',
-          ),
+          child: Text(widget.material == null ? 'Добавить' : 'Сохранить'),
         ),
       ],
     );

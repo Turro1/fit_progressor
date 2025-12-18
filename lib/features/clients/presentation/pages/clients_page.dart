@@ -1,4 +1,5 @@
 import 'package:fit_progressor/features/clients/domain/entities/client.dart';
+import 'package:fit_progressor/shared/widgets/empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/client_bloc.dart';
@@ -7,56 +8,66 @@ import '../bloc/client_state.dart';
 import '../widgets/client_card.dart';
 import '../widgets/client_cars_modal.dart';
 import '../widgets/client_form_modal.dart';
-import '../widgets/client_search_bar.dart';
+import 'package:fit_progressor/shared/widgets/app_search_bar.dart';
 
-class ClientsPage extends StatelessWidget {
+class ClientsPage extends StatefulWidget {
   const ClientsPage({Key? key}) : super(key: key);
+
+  @override
+  State<ClientsPage> createState() => _ClientsPageState();
+}
+
+class _ClientsPageState extends State<ClientsPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Load clients on init
+    context.read<ClientBloc>().add(LoadClients());
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // Dispatch LoadClients event when the page is first built.
-    // This ensures that clients are loaded when the page becomes active.
-    final clientBloc = context.read<ClientBloc>();
-    if (clientBloc.state is! ClientLoaded &&
-        clientBloc.state is! ClientLoading) {
-      clientBloc.add(LoadClients());
-    }
 
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showClientModal(context),
+        backgroundColor: theme.colorScheme.secondary,
+        foregroundColor: theme.colorScheme.onSecondary,
+        child: const Icon(Icons.add),
+      ),
       body: SafeArea(
         child: Column(
           children: [
+            // Header with icon and title
             Padding(
               padding: const EdgeInsets.all(15.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.groups,
-                        color: theme.colorScheme.onSurface,
-                        size: 28,
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        'Клиенты',
-                        style: theme.textTheme.headlineMedium,
-                      ),
-                    ],
+                  Icon(
+                    Icons.people,
+                    color: theme.colorScheme.onSurface,
+                    size: 28,
                   ),
-                  const SizedBox(height: 20),
-                  ClientSearchBar(
-                    onSearch: (query) {
-                      context.read<ClientBloc>().add(
-                        SearchClientsEvent(query: query),
-                      );
-                    },
-                  ),
+                  const SizedBox(width: 10),
+                  Text('Клиенты', style: theme.textTheme.headlineMedium),
                 ],
               ),
             ),
+            // Search bar
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              child: AppSearchBar(
+                hintText: 'Поиск по имени или телефону...',
+                onSearch: (query) {
+                  context.read<ClientBloc>().add(
+                    SearchClientsEvent(query: query),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 15),
+            // Content
             Expanded(
               child: BlocConsumer<ClientBloc, ClientState>(
                 listener: (context, state) {
@@ -79,50 +90,48 @@ class ClientsPage extends StatelessWidget {
                 },
                 builder: (context, state) {
                   if (state is ClientLoading) {
-                    return const Center(
-                      child: CircularProgressIndicator(),
-                    );
+                    return const Center(child: CircularProgressIndicator());
                   }
 
                   if (state is ClientLoaded) {
                     if (state.clients.isEmpty) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                      return RefreshIndicator(
+                        onRefresh: () async {
+                          context.read<ClientBloc>().add(LoadClients());
+                        },
+                        child: ListView(
                           children: [
-                            Icon(
-                              Icons.person_add_outlined,
-                              size: 80,
-                              color: theme.textTheme.bodyMedium?.color,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Нет клиентов',
-                              style: theme.textTheme.titleLarge,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Нажмите "+" для добавления клиента',
-                              style: theme.textTheme.bodyMedium,
+                            SizedBox(
+                              height: MediaQuery.of(context).size.height * 0.5,
+                              child: EmptyState(
+                                icon: Icons.people_outline,
+                                title: 'Нет клиентов',
+                                message:
+                                    'Добавьте первого клиента, нажав кнопку "Добавить"',
+                              ),
                             ),
                           ],
                         ),
                       );
                     }
 
-                    return ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 15),
-                      itemCount: state.clients.length,
-                      itemBuilder: (context, index) {
-                        final client = state.clients[index];
-                        return ClientCard(
-                          client: client,
-                          onEdit: () => _showClientModal(context, client),
-                          onDelete: () => _confirmDelete(context, client),
-                          onTap: () =>
-                              _showClientCarsModal(context, client),
-                        );
+                    return RefreshIndicator(
+                      onRefresh: () async {
+                        context.read<ClientBloc>().add(LoadClients());
                       },
+                      child: ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 15),
+                        itemCount: state.clients.length,
+                        itemBuilder: (context, index) {
+                          final client = state.clients[index];
+                          return ClientCard(
+                            client: client,
+                            onEdit: () => _showClientModal(context, client),
+                            onDelete: () => _confirmDelete(context, client),
+                            onTap: () => _showClientCarsModal(context, client),
+                          );
+                        },
+                      ),
                     );
                   }
 
@@ -176,8 +185,10 @@ class ClientsPage extends StatelessWidget {
               );
               Navigator.pop(context);
             },
-            child: Text('Удалить',
-                style: TextStyle(color: theme.colorScheme.error)),
+            child: Text(
+              'Удалить',
+              style: TextStyle(color: theme.colorScheme.error),
+            ),
           ),
         ],
       ),

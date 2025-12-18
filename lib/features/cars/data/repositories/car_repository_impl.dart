@@ -7,11 +7,16 @@ import 'package:fit_progressor/features/cars/data/datasources/car_local_data_sou
 import 'package:fit_progressor/features/cars/data/models/car_model.dart';
 import 'package:fit_progressor/features/cars/domain/entities/car.dart';
 import 'package:fit_progressor/features/cars/domain/repositories/car_repository.dart';
+import 'package:fit_progressor/features/repairs/domain/repositories/repair_repository.dart';
 
 class CarRepositoryImpl implements CarRepository {
   final CarLocalDataSource localDataSource;
+  final RepairRepository repairRepository;
 
-  CarRepositoryImpl({required this.localDataSource});
+  CarRepositoryImpl({
+    required this.localDataSource,
+    required this.repairRepository,
+  });
 
   @override
   Future<Either<Failure, Car>> getCarById(String id) async {
@@ -20,7 +25,9 @@ class CarRepositoryImpl implements CarRepository {
       return Right(car);
     } on CacheException {
       return Left(
-        CacheFailure(message: 'Cache error occurred while retrieving car by ID'),
+        CacheFailure(
+          message: 'Cache error occurred while retrieving car by ID',
+        ),
       );
     } catch (e) {
       return Left(
@@ -51,6 +58,22 @@ class CarRepositoryImpl implements CarRepository {
   @override
   Future<Either<Failure, void>> deleteCar(String carId) async {
     try {
+      // Cascade delete: first delete all repairs for this car
+      final repairsResult = await repairRepository.getRepairs(carId: carId);
+
+      await repairsResult.fold(
+        (failure) async {
+          // If we can't get repairs, just continue - maybe there are none
+        },
+        (repairs) async {
+          // Delete each repair
+          for (final repair in repairs) {
+            await repairRepository.deleteRepair(repair.id);
+          }
+        },
+      );
+
+      // Finally, delete the car
       await localDataSource.deleteCar(carId);
       return const Right(null);
     } on CacheException {

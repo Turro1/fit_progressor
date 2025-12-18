@@ -5,9 +5,8 @@ import 'package:fit_progressor/features/dashboard/presentation/bloc/dashboard_bl
 import 'package:fit_progressor/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:fit_progressor/features/materials/presentation/bloc/material_bloc.dart';
 import 'package:fit_progressor/features/materials/presentation/pages/materials_page.dart';
-import 'package:fit_progressor/features/repairs/presentation/bloc/repair_bloc.dart';
+import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_bloc.dart';
 import 'package:fit_progressor/features/repairs/presentation/pages/repairs_page.dart';
-import 'package:fit_progressor/features/repairs/presentation/pages/car_repairs_page.dart'; // Added this import
 import 'package:fit_progressor/injection_container.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -21,7 +20,7 @@ class AppRouter {
       ShellRoute(
         builder: (context, state, child) {
           return BlocProvider(
-            create: (context) => sl<RepairBloc>(),
+            create: (context) => sl<RepairsBloc>(),
             child: MainScaffold(child: child),
           );
         },
@@ -52,22 +51,14 @@ class AppRouter {
                 child: const CarsPage(),
               ),
             ),
-            routes: [ // Nested route for car repairs
-              GoRoute(
-                path: ':carId/repairs',
-                pageBuilder: (context, state) {
-                  final carId = state.pathParameters['carId'];
-                  return NoTransitionPage(
-                    child: CarRepairsPage(carId: carId!), // CarRepairsPage needs to be created
-                  );
-                },
-              ),
-            ],
           ),
           GoRoute(
             path: '/repairs',
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: RepairsPage(),
+            pageBuilder: (context, state) => NoTransitionPage(
+              child: BlocProvider(
+                create: (context) => sl<RepairsBloc>(),
+                child: const RepairsPage(),
+              ),
             ),
           ),
           GoRoute(

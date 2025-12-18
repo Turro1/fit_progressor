@@ -38,6 +38,8 @@ class Car extends Entity {
     );
   }
 
+  String get fullName => '$make $model';
+
   @override
   List<Object?> get props => [
     id,

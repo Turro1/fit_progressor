@@ -8,18 +8,31 @@ class AppTheme {
     scaffoldBackgroundColor: AppColors.background,
     colorScheme: const ColorScheme.light(
       primary: AppColors.primary,
-      secondary: AppColors.accent,
+      secondary: AppColors.secondary,
       surface: AppColors.surface,
       error: AppColors.error,
       onPrimary: AppColors.textOnPrimary,
-      onSecondary: AppColors.textPrimary,
+      onSecondary: AppColors.white,
       onSurface: AppColors.textPrimary,
-      onError: AppColors.white, // Use AppColors.white instead of Colors.white
+      onError: AppColors.white,
+      outline: AppColors.cardBorder,
+      // Material 3 цвета
+      primaryContainer: AppColors.primaryContainer,
+      onPrimaryContainer: AppColors.onPrimaryContainer,
+      secondaryContainer: AppColors.secondaryContainer,
+      onSecondaryContainer: AppColors.onSecondaryContainer,
+      tertiary: AppColors.tertiary,
+      tertiaryContainer: AppColors.tertiaryContainer,
+      onTertiaryContainer: AppColors.onTertiaryContainer,
+      surfaceContainerHighest: AppColors.surfaceContainerHigh,
+      outlineVariant: AppColors.outlineVariant,
     ),
     appBarTheme: const AppBarTheme(
       backgroundColor: AppColors.primary, // Changed from darkBackground
       elevation: 0,
-      iconTheme: IconThemeData(color: AppColors.textOnPrimary), // Changed from textOnDark
+      iconTheme: IconThemeData(
+        color: AppColors.textOnPrimary,
+      ), // Changed from textOnDark
       titleTextStyle: TextStyle(
         color: AppColors.textOnPrimary, // Changed from textOnDark
         fontSize: 20,
@@ -28,16 +41,17 @@ class AppTheme {
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: AppColors.surface,
+      fillColor: AppColors.surfaceContainer, // Material 3 surface container
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       labelStyle: const TextStyle(color: AppColors.textSecondary),
       hintStyle: const TextStyle(color: AppColors.textSecondary),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.cardBorder), // Use cardBorder
+        borderSide: const BorderSide(color: AppColors.cardBorder),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.cardBorder), // Use cardBorder
+        borderSide: const BorderSide(color: AppColors.cardBorder),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -57,31 +71,33 @@ class AppTheme {
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.textOnPrimary,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         elevation: 2,
       ),
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         foregroundColor: AppColors.primary,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    ),
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.textOnPrimary,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        elevation: 0, // Material 3 filled buttons have no elevation at rest
       ),
     ),
     cardTheme: CardThemeData(
-      elevation: 1,
+      elevation: 2, // Material 3 elevation level 2
       color: AppColors.surface,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16), // Увеличен с 12 до 16
       ),
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
     ),
-    iconTheme: const IconThemeData(
-      color: AppColors.textSecondary,
-      size: 24,
-    ),
+    iconTheme: const IconThemeData(color: AppColors.textSecondary, size: 24),
   );
 }

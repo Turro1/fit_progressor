@@ -1,6 +1,5 @@
 import '../models/car_photo_model.dart';
 import '../models/repair_model.dart';
-import '../../domain/entities/repair_status.dart';
 
 abstract class RepairLocalDataSource {
   Future<List<RepairModel>> getRepairs();
@@ -9,8 +8,6 @@ abstract class RepairLocalDataSource {
   Future<RepairModel> updateRepair(RepairModel repair);
   Future<void> deleteRepair(String repairId);
   Future<List<RepairModel>> searchRepairs(String query);
-  Future<List<RepairModel>> getRepairsByStatus(RepairStatus status);
-  Future<List<RepairModel>> getRepairsByCar(String carId);
 }
 
 abstract class CarPhotoLocalDataSource {

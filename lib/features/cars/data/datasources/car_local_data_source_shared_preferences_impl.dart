@@ -15,8 +15,10 @@ class CarLocalDataSourceSharedPreferencesImpl implements CarLocalDataSource {
   Future<CarModel> getCarById(String id) async {
     debugPrint('DEBUG: CarLocalDataSource - getCarById called for id: $id');
     final cars = await getCars();
-    return cars.firstWhere((car) => car.id == id,
-        orElse: () => throw CacheException(message: 'Car with id $id not found'));
+    return cars.firstWhere(
+      (car) => car.id == id,
+      orElse: () => throw CacheException(message: 'Car with id $id not found'),
+    );
   }
 
   @override
@@ -24,9 +26,13 @@ class CarLocalDataSourceSharedPreferencesImpl implements CarLocalDataSource {
     try {
       debugPrint('DEBUG: CarLocalDataSource - getCars called.');
       final jsonString = sharedPreferences.getString(carsKey);
-      debugPrint('DEBUG: CarLocalDataSource - Retrieved jsonString: $jsonString');
+      debugPrint(
+        'DEBUG: CarLocalDataSource - Retrieved jsonString: $jsonString',
+      );
       if (jsonString == null) {
-        debugPrint('DEBUG: CarLocalDataSource - No cached cars, returning empty list.');
+        debugPrint(
+          'DEBUG: CarLocalDataSource - No cached cars, returning empty list.',
+        );
         return [];
       }
       final List<dynamic> jsonList = json.decode(jsonString);
@@ -34,7 +40,9 @@ class CarLocalDataSourceSharedPreferencesImpl implements CarLocalDataSource {
       debugPrint('DEBUG: CarLocalDataSource - Decoded ${result.length} cars.');
       return result;
     } catch (e) {
-      debugPrint('DEBUG: CarLocalDataSource - Error loading cars from cache: $e');
+      debugPrint(
+        'DEBUG: CarLocalDataSource - Error loading cars from cache: $e',
+      );
       throw CacheException(message: 'Failed to load cars from cache: $e');
     }
   }
@@ -43,7 +51,9 @@ class CarLocalDataSourceSharedPreferencesImpl implements CarLocalDataSource {
   Future<CarModel> addCar(CarModel car) async {
     debugPrint('DEBUG: CarLocalDataSource - addCar called for car: ${car.id}');
     var cars = await getCars();
-    debugPrint('DEBUG: CarLocalDataSource - Cars before adding: ${cars.length}');
+    debugPrint(
+      'DEBUG: CarLocalDataSource - Cars before adding: ${cars.length}',
+    );
     cars.add(car);
     debugPrint('DEBUG: CarLocalDataSource - Cars after adding: ${cars.length}');
     await _saveCars(cars);
@@ -53,22 +63,30 @@ class CarLocalDataSourceSharedPreferencesImpl implements CarLocalDataSource {
 
   @override
   Future<CarModel> updateCar(CarModel car) async {
-    debugPrint('DEBUG: CarLocalDataSource - updateCar called for car: ${car.id}');
+    debugPrint(
+      'DEBUG: CarLocalDataSource - updateCar called for car: ${car.id}',
+    );
     final cars = await getCars();
     final index = cars.indexWhere((c) => c.id == car.id);
     if (index == -1) {
-      debugPrint('DEBUG: CarLocalDataSource - Car not found for update: ${car.id}');
+      debugPrint(
+        'DEBUG: CarLocalDataSource - Car not found for update: ${car.id}',
+      );
       throw Exception('Car not found');
     }
     cars[index] = car;
     await _saveCars(cars);
-    debugPrint('DEBUG: CarLocalDataSource - Car updated successfully: ${car.id}');
+    debugPrint(
+      'DEBUG: CarLocalDataSource - Car updated successfully: ${car.id}',
+    );
     return car;
   }
 
   @override
   Future<void> deleteCar(String carId) async {
-    debugPrint('DEBUG: CarLocalDataSource - deleteCar called for carId: $carId');
+    debugPrint(
+      'DEBUG: CarLocalDataSource - deleteCar called for carId: $carId',
+    );
     final cars = await getCars();
     cars.removeWhere((c) => c.id == carId);
     await _saveCars(cars);
@@ -77,7 +95,9 @@ class CarLocalDataSourceSharedPreferencesImpl implements CarLocalDataSource {
 
   @override
   Future<List<CarModel>> searchCars(String query) async {
-    debugPrint('DEBUG: CarLocalDataSource - searchCars called with query: $query');
+    debugPrint(
+      'DEBUG: CarLocalDataSource - searchCars called with query: $query',
+    );
     final cars = await getCars();
     final lowercaseQuery = query.toLowerCase();
     final filteredCars = cars.where((car) {
@@ -85,26 +105,39 @@ class CarLocalDataSourceSharedPreferencesImpl implements CarLocalDataSource {
           car.model.toLowerCase().contains(lowercaseQuery) ||
           car.plate.toLowerCase().contains(lowercaseQuery);
     }).toList();
-    debugPrint('DEBUG: CarLocalDataSource - Found ${filteredCars.length} cars for query: $query');
+    debugPrint(
+      'DEBUG: CarLocalDataSource - Found ${filteredCars.length} cars for query: $query',
+    );
     return filteredCars;
   }
 
   @override
   Future<List<CarModel>> getCarsByClient(String clientId) async {
-    debugPrint('DEBUG: CarLocalDataSource - getCarsByClient called for clientId: $clientId');
+    debugPrint(
+      'DEBUG: CarLocalDataSource - getCarsByClient called for clientId: $clientId',
+    );
     final cars = await getCars();
     final clientCars = cars.where((car) => car.clientId == clientId).toList();
-    debugPrint('DEBUG: CarLocalDataSource - Found ${clientCars.length} cars for clientId: $clientId');
+    debugPrint(
+      'DEBUG: CarLocalDataSource - Found ${clientCars.length} cars for clientId: $clientId',
+    );
     return clientCars;
   }
 
   Future<void> _saveCars(List<CarModel> cars) async {
-    debugPrint('DEBUG: CarLocalDataSource - _saveCars called. Saving ${cars.length} cars.');
+    debugPrint(
+      'DEBUG: CarLocalDataSource - _saveCars called. Saving ${cars.length} cars.',
+    );
     final jsonList = cars.map((c) => c.toJson()).toList();
-    final success = await sharedPreferences.setString(carsKey, json.encode(jsonList));
+    final success = await sharedPreferences.setString(
+      carsKey,
+      json.encode(jsonList),
+    );
     debugPrint('DEBUG: CarLocalDataSource - setString successful: $success');
     if (!success) {
-      debugPrint('DEBUG: CarLocalDataSource - Failed to save cars to SharedPreferences.');
+      debugPrint(
+        'DEBUG: CarLocalDataSource - Failed to save cars to SharedPreferences.',
+      );
     }
   }
 }

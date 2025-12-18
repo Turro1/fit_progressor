@@ -8,13 +8,31 @@ import '../bloc/material_state.dart' as m_state;
 import '../widgets/material_card.dart';
 import '../widgets/material_form_modal.dart';
 
-class MaterialsPage extends StatelessWidget {
+class MaterialsPage extends StatefulWidget {
   const MaterialsPage({Key? key}) : super(key: key);
+
+  @override
+  State<MaterialsPage> createState() => _MaterialsPageState();
+}
+
+class _MaterialsPageState extends State<MaterialsPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Load materials on init
+    context.read<MaterialBloc>().add(LoadMaterials());
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showMaterialModal(context),
+        backgroundColor: theme.colorScheme.secondary,
+        foregroundColor: theme.colorScheme.onSecondary,
+        child: const Icon(Icons.add),
+      ),
       body: SafeArea(
         child: Column(
           children: [
@@ -31,10 +49,7 @@ class MaterialsPage extends StatelessWidget {
                         size: 28,
                       ),
                       const SizedBox(width: 10),
-                      Text(
-                        'Склад',
-                        style: theme.textTheme.headlineMedium,
-                      ),
+                      Text('Склад', style: theme.textTheme.headlineMedium),
                     ],
                   ),
                   const SizedBox(height: 20),
@@ -71,32 +86,47 @@ class MaterialsPage extends StatelessWidget {
                 },
                 builder: (context, state) {
                   if (state is m_state.MaterialLoading) {
-                    return const Center(
-                      child: CircularProgressIndicator(),
-                    );
+                    return const Center(child: CircularProgressIndicator());
                   }
 
                   if (state is m_state.MaterialLoaded) {
                     if (state.materials.isEmpty) {
-                      return Center(
-                        child: Text(
-                          'Нажмите "+" для добавления материала',
-                          style: theme.textTheme.bodyMedium,
+                      return RefreshIndicator(
+                        onRefresh: () async {
+                          context.read<MaterialBloc>().add(LoadMaterials());
+                        },
+                        child: ListView(
+                          children: [
+                            SizedBox(
+                              height: MediaQuery.of(context).size.height * 0.5,
+                              child: Center(
+                                child: Text(
+                                  'Нажмите "+" для добавления материала',
+                                  style: theme.textTheme.bodyMedium,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       );
                     }
 
-                    return ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 15),
-                      itemCount: state.materials.length,
-                      itemBuilder: (context, index) {
-                        final material = state.materials[index];
-                        return MaterialCard(
-                          material: material,
-                          onEdit: () => _showMaterialModal(context, material),
-                          onDelete: () => _confirmDelete(context, material),
-                        );
+                    return RefreshIndicator(
+                      onRefresh: () async {
+                        context.read<MaterialBloc>().add(LoadMaterials());
                       },
+                      child: ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 15),
+                        itemCount: state.materials.length,
+                        itemBuilder: (context, index) {
+                          final material = state.materials[index];
+                          return MaterialCard(
+                            material: material,
+                            onEdit: () => _showMaterialModal(context, material),
+                            onDelete: () => _confirmDelete(context, material),
+                          );
+                        },
+                      ),
                     );
                   }
 
@@ -111,9 +141,9 @@ class MaterialsPage extends StatelessWidget {
   }
 
   void _showMaterialModal(
-      BuildContext context, [
-        material_entity.Material? material,
-      ]) {
+    BuildContext context, [
+    material_entity.Material? material,
+  ]) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -125,8 +155,7 @@ class MaterialsPage extends StatelessWidget {
     );
   }
 
-  void _confirmDelete(
-      BuildContext context, material_entity.Material material) {
+  void _confirmDelete(BuildContext context, material_entity.Material material) {
     final theme = Theme.of(context);
     showDialog(
       context: context,
@@ -148,8 +177,10 @@ class MaterialsPage extends StatelessWidget {
               );
               Navigator.pop(context);
             },
-            child: Text('Удалить',
-                style: TextStyle(color: theme.colorScheme.error)),
+            child: Text(
+              'Удалить',
+              style: TextStyle(color: theme.colorScheme.error),
+            ),
           ),
         ],
       ),

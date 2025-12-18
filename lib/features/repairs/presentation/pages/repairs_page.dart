@@ -1,184 +1,140 @@
+import 'package:fit_progressor/features/repairs/domain/entities/repair.dart';
+import 'package:fit_progressor/shared/widgets/empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../domain/entities/repair.dart';
-import '../bloc/repair_bloc.dart';
-import '../bloc/repair_event.dart';
-import '../bloc/repair_state.dart';
+import '../bloc/repairs_bloc.dart';
+import '../bloc/repairs_event.dart';
+import '../bloc/repairs_state.dart';
 import '../widgets/repair_card.dart';
-import '../widgets/repair_editor_modal.dart';
-import '../widgets/repair_search_bar.dart';
-import '../widgets/repair_wizard_modal.dart';
-import '../../domain/entities/repair_status.dart';
+import '../widgets/repair_form_modal.dart';
+import 'package:fit_progressor/shared/widgets/app_search_bar.dart';
 
-class RepairsPage extends StatelessWidget {
+class RepairsPage extends StatefulWidget {
   const RepairsPage({Key? key}) : super(key: key);
 
   @override
+  State<RepairsPage> createState() => _RepairsPageState();
+}
+
+class _RepairsPageState extends State<RepairsPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Load repairs on init
+    context.read<RepairsBloc>().add(const LoadRepairs());
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showRepairModal(context),
+        backgroundColor: theme.colorScheme.secondary,
+        foregroundColor: theme.colorScheme.onSecondary,
+        child: const Icon(Icons.add),
+      ),
       body: SafeArea(
         child: Column(
           children: [
+            // Header with icon and title
             Padding(
               padding: const EdgeInsets.all(15.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween, // Добавлено
-                    children: [
-                      Row( // Оборачиваем Icon и Text в отдельный Row для выравнивания
-                        children: [
-                          Icon(
-                            Icons.build, // Иконка для ремонтов
-                            color: AppColors.textPrimary,
-                            size: 28,
-                          ),
-                          const SizedBox(width: 10),
-                          Text(
-                            'Ремонты',
-                            style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                        ],
-                      ),
-                      BlocBuilder<RepairBloc, RepairState>( // Для обновления DropdownButton
-                        builder: (context, state) {
-                          RepairStatus? selectedStatus;
-                          if (state is RepairLoaded) {
-                            selectedStatus = state.statusFilter; // Получаем statusFilter из RepairLoaded
-                          }
-                          // Если фильтр был сброшен (null), то DropdownButton покажет "Все"
-                          // Иначе покажет выбранный статус
-
-                          return DropdownButton<RepairStatus?>(
-                            value: selectedStatus,
-                            icon: Icon(Icons.arrow_drop_down, color: AppColors.textPrimary),
-                            dropdownColor: AppColors.surface,
-                            underline: const SizedBox(), // Убираем подчеркивание
-                            onChanged: (RepairStatus? newValue) {
-                              context.read<RepairBloc>().add(FilterRepairsByStatusEvent(status: newValue));
-                            },
-                            items: [
-                              DropdownMenuItem<RepairStatus?>(
-                                value: null, // Опция "Все"
-                                child: Text(
-                                  'Все',
-                                  style: TextStyle(color: AppColors.textPrimary),
-                                ),
-                              ),
-                              ...RepairStatus.values.map<DropdownMenuItem<RepairStatus?>>((RepairStatus status) {
-                                return DropdownMenuItem<RepairStatus?>(
-                                  value: status,
-                                  child: Text(
-                                    status.displayName,
-                                    style: TextStyle(color: AppColors.textPrimary),
-                                  ),
-                                );
-                              }).toList(),
-                            ],
-                          );
-                        },
-                      ),
-                    ],
+                  Icon(
+                    Icons.build,
+                    color: theme.colorScheme.onSurface,
+                    size: 28,
                   ),
-                  const SizedBox(height: 20), // Добавлено для соответствия CarsPage
-                  RepairSearchBar(
-                    onSearch: (query) {
-                      context.read<RepairBloc>().add(SearchRepairsEvent(query: query));
-                    },
-                  ),
-                  BlocBuilder<RepairBloc, RepairState>(
-                    builder: (context, state) {
-                      if (state is RepairLoaded && state.carIdFilter != null) {
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: Row(
-                            children: [
-                              Text(
-                                'Фильтр по авто: ${state.repairs.isNotEmpty ? '${state.repairs.first.carMake} ${state.repairs.first.carModel}' : state.carIdFilter}',
-                                style: TextStyle(color: AppColors.textSecondary),
-                              ),
-                              IconButton(
-                                icon: Icon(Icons.clear, color: AppColors.error),
-                                onPressed: () {
-                                  context.read<RepairBloc>().add(LoadRepairs());
-                                },
-                              )
-                            ],
-                          ),
-                        );
-                      }
-                      return const SizedBox.shrink();
-                    },
-                  ),
+                  const SizedBox(width: 10),
+                  Text('Ремонты', style: theme.textTheme.headlineMedium),
                 ],
               ),
             ),
+            // Search bar
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              child: AppSearchBar(
+                hintText: 'Поиск по описанию...',
+                onSearch: (query) {
+                  context.read<RepairsBloc>().add(
+                    SearchRepairsEvent(query: query),
+                  );
+                },
+              ),
+            ),
             const SizedBox(height: 15),
+            // Content
             Expanded(
-              child: RefreshIndicator(
-                onRefresh: () async {
-                  final state = context.read<RepairBloc>().state;
-                  if (state is RepairLoaded) {
-                    context.read<RepairBloc>().add(LoadRepairs(carIdFilter: state.carIdFilter));
-                  } else {
-                    context.read<RepairBloc>().add(LoadRepairs());
+              child: BlocConsumer<RepairsBloc, RepairsState>(
+                listener: (context, state) {
+                  if (state is RepairsError) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(state.message),
+                        backgroundColor: theme.colorScheme.error,
+                      ),
+                    );
+                  }
+                  if (state is RepairsOperationSuccess) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(state.message),
+                        backgroundColor: theme.colorScheme.secondary,
+                      ),
+                    );
                   }
                 },
-                child: BlocConsumer<RepairBloc, RepairState>(
-                  listener: (context, state) {
-                    if (state is RepairError) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(state.message)),
-                      );
-                    } else if (state is RepairOperationSuccess) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(state.message)),
+                builder: (context, state) {
+                  if (state is RepairsLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (state is RepairsLoaded) {
+                    if (state.repairs.isEmpty) {
+                      return RefreshIndicator(
+                        onRefresh: () async {
+                          context.read<RepairsBloc>().add(const LoadRepairs());
+                        },
+                        child: ListView(
+                          children: [
+                            SizedBox(
+                              height: MediaQuery.of(context).size.height * 0.5,
+                              child: EmptyState(
+                                icon: Icons.build_circle_outlined,
+                                title: 'Нет ремонтов',
+                                message:
+                                    'Добавьте первый ремонт, нажав кнопку "Добавить"',
+                              ),
+                            ),
+                          ],
+                        ),
                       );
                     }
-                  },
-                  builder: (context, state) {
-                    if (state is RepairLoading) {
-                      return Center(
-                        child: CircularProgressIndicator(color: AppColors.accent),
-                      );
-                    } else if (state is RepairLoaded) {
-                      if (state.repairs.isEmpty) {
-                        return Center(
-                          child: Text(
-                            state.carIdFilter != null ? 'Нет ремонтов для этого автомобиля' : 'Ремонты не найдены',
-                            style: TextStyle(color: AppColors.textSecondary, fontSize: 16),
-                          ),
-                        );
-                      }
-                      return ListView.builder(
+
+                    return RefreshIndicator(
+                      onRefresh: () async {
+                        context.read<RepairsBloc>().add(const LoadRepairs());
+                      },
+                      child: ListView.builder(
                         padding: const EdgeInsets.symmetric(horizontal: 15),
                         itemCount: state.repairs.length,
                         itemBuilder: (context, index) {
                           final repair = state.repairs[index];
                           return RepairCard(
                             repair: repair,
-                            onTap: () => _openRepairEditor(context, repair),
+                            onEdit: () => _showRepairModal(context, repair),
                             onDelete: () => _confirmDelete(context, repair),
                           );
                         },
-                      );
-                    }
-                    return Center(
-                      child: Text(
-                        'Начните добавлять ремонты',
-                        style: TextStyle(color: AppColors.textSecondary, fontSize: 16),
                       ),
                     );
-                  },
-                ),
+                  }
+
+                  return const SizedBox();
+                },
               ),
             ),
           ],
@@ -187,35 +143,41 @@ class RepairsPage extends StatelessWidget {
     );
   }
 
-
-
-  void _openRepairEditor(BuildContext context, Repair repair) {
+  void _showRepairModal(BuildContext context, [Repair? repair]) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => RepairEditorModal(repair: repair),
+      builder: (context) => RepairFormModal(repair: repair),
     );
   }
 
   void _confirmDelete(BuildContext context, Repair repair) {
+    final theme = Theme.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Удалить ремонт?'),
-        content: Text('Вы уверены, что хотите удалить ремонт "${repair.description}" для ${repair.carMake} ${repair.carModel}?'),
+        title: const Text('Удалить ремонт?'),
+        content: Text(
+          'Вы уверены, что хотите удалить этот ремонт?',
+          style: theme.textTheme.bodyMedium,
+        ),
         actions: [
           TextButton(
-            onPressed: () => context.pop(),
-            child: Text('Отмена'),
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Отмена'),
           ),
-          ElevatedButton(
+          TextButton(
             onPressed: () {
-              context.read<RepairBloc>().add(DeleteRepairEvent(repairId: repair.id));
-              context.pop(); // Close dialog
+              context.read<RepairsBloc>().add(
+                DeleteRepairEvent(repairId: repair.id),
+              );
+              Navigator.pop(context);
             },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: Text('Удалить'),
+            child: Text(
+              'Удалить',
+              style: TextStyle(color: theme.colorScheme.error),
+            ),
           ),
         ],
       ),

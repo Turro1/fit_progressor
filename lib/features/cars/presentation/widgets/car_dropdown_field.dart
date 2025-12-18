@@ -116,10 +116,7 @@ class _CarDropdownFieldState extends State<CarDropdownField> {
                         ),
                       ),
                     ),
-                    child: Text(
-                      item,
-                      style: theme.textTheme.bodyMedium,
-                    ),
+                    child: Text(item, style: theme.textTheme.bodyMedium),
                   ),
                 );
               },

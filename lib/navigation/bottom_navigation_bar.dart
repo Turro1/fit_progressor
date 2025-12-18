@@ -15,10 +15,14 @@ class CustomBottomNavigationBar extends StatelessWidget {
       height: 65,
       decoration: BoxDecoration(
         color: theme.colorScheme.surface, // Changed from AppColors.bgHeader
-        border: Border(top: BorderSide(color: theme.dividerColor)), // Changed from AppColors.borderColor
+        border: Border(
+          top: BorderSide(color: theme.dividerColor),
+        ), // Changed from AppColors.borderColor
         boxShadow: [
           BoxShadow(
-            color: const Color(0x33000000), // Using a standard subtle shadow color
+            color: const Color(
+              0x33000000,
+            ), // Using a standard subtle shadow color
             blurRadius: 15,
             offset: const Offset(0, -5),
           ),
@@ -28,25 +32,25 @@ class CustomBottomNavigationBar extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _NavButton(
-            icon: Icons.dashboard,
+            icon: Icons.query_stats,
             label: 'Сводка',
             isActive: currentPath == '/dashboard',
             onTap: () => context.go('/dashboard'),
           ),
           _NavButton(
-            icon: Icons.groups,
+            icon: Icons.groups_rounded,
             label: 'Клиенты',
             isActive: currentPath == '/clients',
             onTap: () => context.go('/clients'),
           ),
           _NavButton(
-            icon: Icons.directions_car,
+            icon: Icons.directions_car_rounded,
             label: 'Авто',
             isActive: currentPath == '/cars',
             onTap: () => context.go('/cars'),
           ),
           _NavButton(
-            icon: Icons.build,
+            icon: Icons.build_circle_rounded,
             label: 'Ремонты',
             isActive: currentPath == '/repairs',
             onTap: () => context.go('/repairs'),
@@ -87,7 +91,11 @@ class _NavButton extends StatelessWidget {
           Icon(
             icon,
             size: 24,
-            color: isActive ? theme.colorScheme.secondary : theme.colorScheme.onSurface.withValues(alpha: 0.6), // Use theme colors
+            color: isActive
+                ? theme.colorScheme.secondary
+                : theme.colorScheme.onSurface.withValues(
+                    alpha: 0.6,
+                  ), // Use theme colors
           ),
           const SizedBox(height: 4),
           Text(
@@ -95,8 +103,12 @@ class _NavButton extends StatelessWidget {
             style: TextStyle(
               fontSize: 11,
               color: isActive
-                  ? theme.colorScheme.secondary // Use theme colors
-                  : theme.colorScheme.onSurface.withValues(alpha: 0.6), // Use theme colors
+                  ? theme
+                        .colorScheme
+                        .secondary // Use theme colors
+                  : theme.colorScheme.onSurface.withValues(
+                      alpha: 0.6,
+                    ), // Use theme colors
             ),
           ),
         ],

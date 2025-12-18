@@ -49,7 +49,9 @@ class CarBloc extends Bloc<CarEvent, CarState> {
           emit(const CarError(message: 'Не удалось загрузить автомобили'));
         },
         (cars) {
-          debugPrint('DEBUG: CarBloc - _onLoadCars loaded ${cars.length} cars.');
+          debugPrint(
+            'DEBUG: CarBloc - _onLoadCars loaded ${cars.length} cars.',
+          );
           emit(CarLoaded(cars: cars));
         },
       );

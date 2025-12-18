@@ -28,16 +28,24 @@ class ClientLocalDataSourceSharedPreferencesImpl
   Future<List<ClientModel>> getAllClients() async {
     try {
       final jsonString = sharedPreferences.getString(clientsKey);
-      debugPrint('DEBUG: getAllClients - Retrieved jsonString: $jsonString'); // Added debugPrint
+      debugPrint(
+        'DEBUG: getAllClients - Retrieved jsonString: $jsonString',
+      ); // Added debugPrint
       if (jsonString == null) {
-        debugPrint('DEBUG: getAllClients - No cached clients, returning empty list.'); // Added debugPrint
+        debugPrint(
+          'DEBUG: getAllClients - No cached clients, returning empty list.',
+        ); // Added debugPrint
         return [];
       }
       final List<dynamic> jsonList = json.decode(jsonString);
-      debugPrint('DEBUG: getAllClients - Decoded JSON list: ${jsonList.length} clients.'); // Added debugPrint
+      debugPrint(
+        'DEBUG: getAllClients - Decoded JSON list: ${jsonList.length} clients.',
+      ); // Added debugPrint
       return jsonList.map((json) => ClientModel.fromJson(json)).toList();
     } catch (e) {
-      debugPrint('DEBUG: Error loading clients from cache: $e'); // Added debugPrint
+      debugPrint(
+        'DEBUG: Error loading clients from cache: $e',
+      ); // Added debugPrint
       throw CacheException(message: 'Failed to load clients from cache: $e');
     }
   }
@@ -48,7 +56,9 @@ class ClientLocalDataSourceSharedPreferencesImpl
       final clients = await getAllClients();
       return clients.where((client) => client.id == id).first;
     } catch (e) {
-      debugPrint('DEBUG: Error loading client by ID from cache: $e'); // Added debugPrint
+      debugPrint(
+        'DEBUG: Error loading client by ID from cache: $e',
+      ); // Added debugPrint
       throw CacheException(message: 'Failed to load client from cache: $e');
     }
   }
@@ -56,13 +66,21 @@ class ClientLocalDataSourceSharedPreferencesImpl
   @override
   Future<ClientModel> saveClient(ClientModel client) async {
     try {
-      debugPrint('DEBUG: saveClient - Attempting to save client: ${client.id}'); // Added debugPrint
+      debugPrint(
+        'DEBUG: saveClient - Attempting to save client: ${client.id}',
+      ); // Added debugPrint
       final clients = await getAllClients();
-      debugPrint('DEBUG: saveClient - Clients before adding: ${clients.length}'); // Added debugPrint
+      debugPrint(
+        'DEBUG: saveClient - Clients before adding: ${clients.length}',
+      ); // Added debugPrint
       clients.add(client);
-      debugPrint('DEBUG: saveClient - Clients after adding: ${clients.length}'); // Added debugPrint
+      debugPrint(
+        'DEBUG: saveClient - Clients after adding: ${clients.length}',
+      ); // Added debugPrint
       await _saveClients(clients);
-      debugPrint('DEBUG: saveClient - Client saved successfully: ${client.id}'); // Added debugPrint
+      debugPrint(
+        'DEBUG: saveClient - Client saved successfully: ${client.id}',
+      ); // Added debugPrint
       return client;
     } catch (e) {
       debugPrint('DEBUG: Error saving client to cache: $e'); // Added debugPrint
@@ -80,7 +98,9 @@ class ClientLocalDataSourceSharedPreferencesImpl
             car.name.toLowerCase().contains(lowercaseQuery);
       }).toList();
     } catch (e) {
-      debugPrint('DEBUG: Error searching clients in cache: $e'); // Added debugPrint
+      debugPrint(
+        'DEBUG: Error searching clients in cache: $e',
+      ); // Added debugPrint
       throw CacheException(message: 'Failed to search clients in cache: $e');
     }
   }
@@ -97,18 +117,29 @@ class ClientLocalDataSourceSharedPreferencesImpl
       await _saveClients(clients);
       return client;
     } catch (e) {
-      debugPrint('DEBUG: Error updating client in cache: $e'); // Added debugPrint
+      debugPrint(
+        'DEBUG: Error updating client in cache: $e',
+      ); // Added debugPrint
       throw CacheException(message: 'Failed to update client in cache: $e');
     }
   }
 
   Future<void> _saveClients(List<ClientModel> clients) async {
-    debugPrint('DEBUG: _saveClients - Saving ${clients.length} clients.'); // Added debugPrint
+    debugPrint(
+      'DEBUG: _saveClients - Saving ${clients.length} clients.',
+    ); // Added debugPrint
     final jsonList = clients.map((c) => c.toJson()).toList();
-    final success = await sharedPreferences.setString(clientsKey, json.encode(jsonList));
-    debugPrint('DEBUG: _saveClients - setString successful: $success'); // Added debugPrint
+    final success = await sharedPreferences.setString(
+      clientsKey,
+      json.encode(jsonList),
+    );
+    debugPrint(
+      'DEBUG: _saveClients - setString successful: $success',
+    ); // Added debugPrint
     if (!success) {
-      debugPrint('DEBUG: _saveClients - Failed to save clients to SharedPreferences.');
+      debugPrint(
+        'DEBUG: _saveClients - Failed to save clients to SharedPreferences.',
+      );
     }
   }
 }

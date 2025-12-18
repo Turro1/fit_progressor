@@ -4,7 +4,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fit_progressor/features/repairs/data/datasources/repair_local_datasource.dart';
 import 'package:fit_progressor/features/repairs/data/models/car_photo_model.dart';
 import 'package:fit_progressor/features/repairs/data/models/repair_model.dart';
-import 'package:fit_progressor/features/repairs/domain/entities/repair_status.dart';
 
 class RepairLocalDataSourceImpl implements RepairLocalDataSource {
   final SharedPreferences sharedPreferences;
@@ -54,24 +53,10 @@ class RepairLocalDataSourceImpl implements RepairLocalDataSource {
     final repairs = await getRepairs();
     final lowercaseQuery = query.toLowerCase();
     return repairs.where((repair) {
-      return repair.description.toLowerCase().contains(lowercaseQuery) ||
-             repair.carMake!.toLowerCase().contains(lowercaseQuery) ||
-             repair.carModel!.toLowerCase().contains(lowercaseQuery) ||
-             repair.carPlate!.toLowerCase().contains(lowercaseQuery) ||
-             repair.clientName!.toLowerCase().contains(lowercaseQuery);
+      // TODO: Improve search by including car and client details.
+      // This will require fetching car and client data first.
+      return repair.description.toLowerCase().contains(lowercaseQuery);
     }).toList();
-  }
-
-  @override
-  Future<List<RepairModel>> getRepairsByStatus(RepairStatus status) async {
-    final repairs = await getRepairs();
-    return repairs.where((repair) => repair.status == status).toList();
-  }
-
-  @override
-  Future<List<RepairModel>> getRepairsByCar(String carId) async {
-    final repairs = await getRepairs();
-    return repairs.where((repair) => repair.carId == carId).toList();
   }
 
   Future<void> _saveRepairs(List<RepairModel> repairs) async {
@@ -82,8 +67,10 @@ class RepairLocalDataSourceImpl implements RepairLocalDataSource {
   @override
   Future<RepairModel> getRepairById(String id) async {
     final repairs = await getRepairs();
-    return repairs.firstWhere((r) => r.id == id,
-        orElse: () => throw Exception('Repair not found'));
+    return repairs.firstWhere(
+      (r) => r.id == id,
+      orElse: () => throw Exception('Repair not found'),
+    );
   }
 }
 

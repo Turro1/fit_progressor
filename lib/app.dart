@@ -4,8 +4,6 @@ import 'package:fit_progressor/features/materials/presentation/bloc/material_blo
 import 'package:fit_progressor/features/materials/presentation/bloc/material_event.dart';
 import 'package:fit_progressor/features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'package:fit_progressor/features/dashboard/presentation/bloc/dashboard_event.dart';
-import 'package:fit_progressor/features/repairs/presentation/bloc/repair_bloc.dart';
-import 'package:fit_progressor/features/repairs/presentation/bloc/repair_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/theme/app_theme.dart';
@@ -33,9 +31,12 @@ class _FitProgressorAppState extends State<FitProgressorApp> {
       providers: [
         BlocProvider(create: (_) => di.sl<ClientBloc>()..add(LoadClients())),
         BlocProvider(create: (_) => di.sl<CarBloc>()..add(LoadCars())),
-        BlocProvider(create: (_) => di.sl<MaterialBloc>()..add((LoadMaterials()))),
-        BlocProvider(create: (_) => di.sl<DashboardBloc>()..add((LoadDashboard()))),
-        BlocProvider(create: (_) => di.sl<RepairBloc>()..add(LoadRepairs())),
+        BlocProvider(
+          create: (_) => di.sl<MaterialBloc>()..add((LoadMaterials())),
+        ),
+        BlocProvider(
+          create: (_) => di.sl<DashboardBloc>()..add((LoadDashboard())),
+        ),
       ],
       child: MaterialApp.router(
         title: 'FitProgressor',

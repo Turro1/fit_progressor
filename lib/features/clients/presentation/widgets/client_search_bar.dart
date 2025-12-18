@@ -11,10 +11,6 @@ class ClientSearchBar extends StatelessWidget {
     return AppSearchBar(
       onSearch: onSearch,
       hintText: 'Поиск по имени или телефону...',
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 14,
-      ),
     );
   }
 }

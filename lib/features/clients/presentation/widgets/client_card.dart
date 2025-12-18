@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:fit_progressor/shared/widgets/entity_card.dart'; // Import the generic EntityCard
+import 'package:fit_progressor/shared/widgets/entity_card.dart';
 import '../../domain/entities/client.dart';
 
 class ClientCard extends StatelessWidget {
@@ -16,9 +16,34 @@ class ClientCard extends StatelessWidget {
     this.onTap,
   }) : super(key: key);
 
+  String _formatPhone(String phone) {
+    // Форматирование телефона: +7 (999) 123-45-67
+    if (phone.isEmpty) return phone;
+
+    // Убираем все кроме цифр
+    String digits = phone.replaceAll(RegExp(r'\D'), '');
+
+    if (digits.length >= 11 && digits.startsWith('7')) {
+      // Российский номер
+      return '+7 (${digits.substring(1, 4)}) ${digits.substring(4, 7)}-${digits.substring(7, 9)}-${digits.substring(9, 11)}';
+    } else if (digits.length >= 10) {
+      // Другой формат
+      return '+${digits.substring(0, 1)} (${digits.substring(1, 4)}) ${digits.substring(4, 7)}-${digits.substring(7, 9)}-${digits.substring(9, 11)}';
+    }
+
+    return phone; // Возвращаем как есть, если не можем отформатировать
+  }
+
+  int _getCarsCount() {
+    // TODO: Получить реальное количество автомобилей из репозитория
+    // Пока возвращаем 0, так как в entity Client нет этого поля
+    return 0;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     return EntityCard(
       slidableKey: ValueKey(client.id),
       groupTag: 'client_actions',
@@ -26,34 +51,66 @@ class ClientCard extends StatelessWidget {
       onTap: onTap,
       onEdit: onEdit,
       onDelete: onDelete,
-      // margin: const EdgeInsets.only(bottom: 15), // Removed hardcoded margin
+      // Новый дизайн
+      compact: false,
+      elevation: 2.0,
       leading: CircleAvatar(
-        backgroundColor: theme.colorScheme.primary.withAlpha(50),
-        radius: 24,
+        backgroundColor: theme.colorScheme.primaryContainer,
+        foregroundColor: theme.colorScheme.onPrimaryContainer,
+        radius: 28, // 56dp diameter
         child: Text(
           client.name.isNotEmpty ? client.name[0].toUpperCase() : '?',
           style: theme.textTheme.titleLarge?.copyWith(
-            color: theme.colorScheme.primary,
+            color: theme.colorScheme.onPrimaryContainer,
+            fontWeight: FontWeight.w500,
           ),
         ),
       ),
       title: Text(
         client.name,
-        style: theme.textTheme.titleLarge,
+        style: theme.textTheme.titleLarge?.copyWith(
+          fontWeight: FontWeight.w500,
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       ),
       subtitle: Row(
         children: [
-          Icon(Icons.call, size: 16, color: theme.iconTheme.color),
-          const SizedBox(width: 8),
+          Icon(
+            Icons.phone,
+            size: 16,
+            color: theme.iconTheme.color?.withValues(alpha: 0.7),
+          ),
+          const SizedBox(width: 4),
           Expanded(
             child: Text(
-              client.phone,
-              style: theme.textTheme.bodyMedium,
+              _formatPhone(client.phone),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.textTheme.bodyMedium?.color?.withValues(
+                  alpha: 0.8,
+                ),
+              ),
               overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
       ),
+      metadata: [
+        if (_getCarsCount() > 0)
+          Text(
+            '${_getCarsCount()} автомобилей',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6),
+            ),
+          ),
+      ],
+      trailing: onTap != null
+          ? Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+              color: theme.iconTheme.color,
+            )
+          : null,
     );
   }
 }

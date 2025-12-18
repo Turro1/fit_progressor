@@ -36,11 +36,6 @@ class ClientModel extends Client {
   }
 
   Client toEntity() {
-    return Client(
-      id: id,
-      phone: phone,
-      name: name,
-      createdAt: createdAt,
-    );
+    return Client(id: id, phone: phone, name: name, createdAt: createdAt);
   }
 }

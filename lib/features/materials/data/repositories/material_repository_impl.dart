@@ -18,7 +18,7 @@ class MaterialRepositoryImpl implements MaterialRepository {
       final localMaterials = await localDataSource.getMaterials();
       return Right(localMaterials);
     } on CacheException {
-      return Left(CacheFailure(message: ''));
+      return Left(const CacheFailure(message: ''));
     }
   }
 
@@ -29,7 +29,7 @@ class MaterialRepositoryImpl implements MaterialRepository {
       final material = localMaterials.firstWhere((m) => m.id == id);
       return Right(material);
     } on CacheException {
-      return Left(CacheFailure(message: ''));
+      return Left(const CacheFailure(message: ''));
     }
   }
 
@@ -41,7 +41,7 @@ class MaterialRepositoryImpl implements MaterialRepository {
       await localDataSource.cacheMaterials(localMaterials);
       return Right(material);
     } on CacheException {
-      return Left(CacheFailure(message: ''));
+      return Left(const CacheFailure(message: ''));
     }
   }
 
@@ -55,10 +55,10 @@ class MaterialRepositoryImpl implements MaterialRepository {
         await localDataSource.cacheMaterials(localMaterials);
         return Right(material);
       } else {
-        return Left(CacheFailure(message: ''));
+        return Left(const CacheFailure(message: ''));
       }
     } on CacheException {
-      return Left(CacheFailure(message: ''));
+      return Left(const CacheFailure(message: ''));
     }
   }
 
@@ -70,7 +70,7 @@ class MaterialRepositoryImpl implements MaterialRepository {
       await localDataSource.cacheMaterials(localMaterials);
       return const Right(null);
     } on CacheException {
-      return Left(CacheFailure(message: ''));
+      return Left(const CacheFailure(message: ''));
     }
   }
 }

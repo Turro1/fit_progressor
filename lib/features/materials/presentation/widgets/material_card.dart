@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-// import '../../../../core/theme/app_colors.dart';
+import 'package:fit_progressor/shared/widgets/entity_card.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../domain/entities/material.dart' as material_entity;
 
@@ -7,19 +7,22 @@ class MaterialCard extends StatelessWidget {
   final material_entity.Material material;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final VoidCallback? onTap;
 
   const MaterialCard({
     Key? key,
     required this.material,
     required this.onEdit,
     required this.onDelete,
+    this.onTap,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    Color stockColor = theme.colorScheme.onSurface;
+    Color stockColor =
+        theme.textTheme.bodyMedium?.color ?? theme.colorScheme.onSurface;
     if (material.isLowStock) {
       stockColor = theme.colorScheme.secondary;
     }
@@ -27,77 +30,72 @@ class MaterialCard extends StatelessWidget {
       stockColor = theme.colorScheme.error;
     }
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 15),
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: theme.cardTheme.color,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: theme.dividerColor),
+    return EntityCard(
+      slidableKey: ValueKey(material.id),
+      groupTag: 'material_actions',
+      enableSwipeActions: true,
+      onTap: onTap,
+      onEdit: onEdit,
+      onDelete: onDelete,
+      leading: Icon(
+        Icons.precision_manufacturing_rounded,
+        size: 30,
+        color: theme.colorScheme.primary,
       ),
-      child: Row(
+      title: Text(
+        material.name,
+        style: theme.textTheme.titleLarge,
+        overflow: TextOverflow.ellipsis,
+      ),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  material.name,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    color: theme.colorScheme.onSurface,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Закуп. цена: ${CurrencyFormatter.format(material.cost)}',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Мин. остаток: ${material.minQuantity} ${material.unit.displayName}',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 15),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+          const SizedBox(height: 4),
+          Row(
             children: [
-              Text(
-                '${material.quantity}',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  color: stockColor,
-                ),
+              Icon(
+                Icons.shopping_cart,
+                size: 16,
+                color: theme.textTheme.bodyMedium?.color,
               ),
-              Text(
-                material.unit.displayName,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Закуп. цена: ${CurrencyFormatter.format(material.cost)}',
+                  style: theme.textTheme.bodyMedium,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
-          const SizedBox(width: 15),
-          Column(
+          const SizedBox(height: 4),
+          Row(
             children: [
-              IconButton(
-                onPressed: onEdit,
-                icon: Icon(Icons.edit, color: theme.colorScheme.onSurface),
-                style: IconButton.styleFrom(
-                  backgroundColor: theme.colorScheme.surface.withValues(alpha: 0.5),
+              Icon(
+                Icons.inventory,
+                size: 16,
+                color: theme.textTheme.bodyMedium?.color,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Мин. остаток: ${material.minQuantity} ${material.unit.displayName}',
+                  style: theme.textTheme.bodyMedium,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const SizedBox(height: 8),
-              IconButton(
-                onPressed: onDelete,
-                icon: Icon(Icons.delete, color: theme.colorScheme.error),
-                style: IconButton.styleFrom(
-                  backgroundColor: theme.colorScheme.surface.withValues(alpha: 0.5),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('На складе:', style: theme.textTheme.bodyMedium),
+              Text(
+                '${material.quantity} ${material.unit.displayName}',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: stockColor,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ],

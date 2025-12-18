@@ -12,7 +12,7 @@ class CarModel extends Car {
 
   factory CarModel.fromJson(Map<String, dynamic> json) {
     final String id =
-        json['id'] as String? ?? (throw FormatException('Missing id'));
+        json['id'] as String? ?? (throw const FormatException('Missing id'));
     final String clientId = json['clientId'] as String? ?? '';
     final String make = json['make'] as String? ?? '';
     final String model = json['model'] as String? ?? '';

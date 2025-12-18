@@ -1,5 +1,4 @@
 import 'package:fit_progressor/features/materials/presentation/widgets/material_form_modal.dart';
-import 'package:fit_progressor/features/repairs/presentation/widgets/repair_wizard_modal.dart'; // Re-add this import
 import 'package:flutter/material.dart';
 // import '../core/theme/app_colors.dart'; // Removed direct import
 import '../features/clients/presentation/widgets/client_form_modal.dart';
@@ -16,8 +15,13 @@ class FloatingActionButtonHandler extends StatelessWidget {
     final theme = Theme.of(context);
     return FloatingActionButton(
       onPressed: () => _handleFabTap(context),
-      backgroundColor: theme.colorScheme.secondary, // Changed from AppColors.accentPrimary
-      child: Icon(Icons.add, color: theme.colorScheme.onSecondary, size: 32), // Changed from Colors.black
+      backgroundColor:
+          theme.colorScheme.secondary, // Changed from AppColors.accentPrimary
+      child: Icon(
+        Icons.add,
+        color: theme.colorScheme.onSecondary,
+        size: 32,
+      ), // Changed from Colors.black
     );
   }
 
@@ -30,14 +34,14 @@ class FloatingActionButtonHandler extends StatelessWidget {
         _showCarModal(context);
         break;
       case '/repairs': // Re-add this case
-        _showRepairWizard(context);
+        //_showRepairForm(context);
         break;
       case '/materials':
         _showMaterialModal(context);
         break;
       case '/dashboard':
       default:
-        _showRepairWizard(context); // Re-add this as default
+      //  _showRepairForm(context); // Re-add this as default
     }
   }
 
@@ -59,14 +63,15 @@ class FloatingActionButtonHandler extends StatelessWidget {
     );
   }
 
-  void _showRepairWizard(BuildContext context) {
+//реализовать
+  /*void _showRepairForm(BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => const RepairWizardModal(),
+      builder: (context) => const RepairFormModal(),
     );
-  }
+  }*/
 
   void _showMaterialModal(BuildContext context) {
     showModalBottomSheet(

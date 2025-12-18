@@ -19,7 +19,7 @@ class CarLibraryRepositoryImpl implements CarLibraryRepository {
       return Right(library);
     } on CacheException {
       return Left(
-        CacheFailure(
+        const CacheFailure(
           message: 'Cache error occurred while retrieving car library',
         ),
       );
@@ -39,7 +39,7 @@ class CarLibraryRepositoryImpl implements CarLibraryRepository {
       return Right(makes);
     } on CacheException {
       return Left(
-        CacheFailure(
+        const CacheFailure(
           message: 'Cache error occurred while retrieving car makes',
         ),
       );
@@ -59,7 +59,7 @@ class CarLibraryRepositoryImpl implements CarLibraryRepository {
       return Right(models);
     } on CacheException {
       return Left(
-        CacheFailure(
+        const CacheFailure(
           message: 'Cache error occurred while retrieving car models',
         ),
       );
@@ -79,7 +79,7 @@ class CarLibraryRepositoryImpl implements CarLibraryRepository {
       return const Right(null);
     } on CacheException {
       return Left(
-        CacheFailure(
+        const CacheFailure(
           message: 'Cache error occurred while adding to car library',
         ),
       );

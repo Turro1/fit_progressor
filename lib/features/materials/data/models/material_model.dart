@@ -10,14 +10,14 @@ class MaterialModel extends Material {
     required double cost,
     required DateTime? createdAt,
   }) : super(
-          id: id,
-          name: name,
-          quantity: quantity,
-          unit: unit,
-          minQuantity: minQuantity,
-          cost: cost,
-          createdAt: createdAt,
-        );
+         id: id,
+         name: name,
+         quantity: quantity,
+         unit: unit,
+         minQuantity: minQuantity,
+         cost: cost,
+         createdAt: createdAt,
+       );
 
   factory MaterialModel.fromJson(Map<String, dynamic> json) {
     return MaterialModel(

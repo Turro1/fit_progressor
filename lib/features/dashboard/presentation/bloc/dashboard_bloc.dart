@@ -22,7 +22,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     emit(DashboardLoading());
 
     final statsEither = await getDashboardStats(NoParams());
-    final repairsEither = await getRepairs(NoParams());
+    final repairsEither = await getRepairs(const GetRepairsParams());
 
     statsEither.fold(
       (failure) => emit(
@@ -36,24 +36,21 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
           (repairs) {
             if (kDebugMode) {
               debugPrint('Total repairs loaded: ${repairs.length}');
-              final repairsWithPlannedDate = repairs.where((r) => r.plannedAt != null).toList();
-              debugPrint('Repairs with plannedAt date: ${repairsWithPlannedDate.length}');
-              for (var r in repairsWithPlannedDate) {
-                debugPrint('  - Repair ID: ${r.id}, plannedAt: ${r.plannedAt}');
-              }
             }
 
-            final upcomingRepairs = repairs
-                .where((r) => r.plannedAt != null && r.plannedAt!.isAfter(DateTime.now()))
-                .toList();
-            
+            repairs.sort(
+              (a, b) => b.createdAt.compareTo(a.createdAt),
+            );
+
+            final recentRepairs = repairs.take(5).toList();
+
             if (kDebugMode) {
-              debugPrint('Upcoming repairs after filtering: ${upcomingRepairs.length}');
+              debugPrint(
+                'Recent repairs after filtering: ${recentRepairs.length}',
+              );
             }
 
-            upcomingRepairs.sort((a, b) => a.plannedAt!.compareTo(b.plannedAt!));
-
-            emit(DashboardLoaded(stats: stats, recentRepairs: upcomingRepairs));
+            emit(DashboardLoaded(stats: stats, recentRepairs: recentRepairs));
           },
         );
       },

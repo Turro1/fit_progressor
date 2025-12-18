@@ -17,9 +17,13 @@ class GetCars implements UseCase<List<Car>, NoParams> {
   Future<Either<Failure, List<Car>>> call(NoParams params) async {
     debugPrint('DEBUG: GetCars UseCase - call method started.');
     final carsEither = await carRepository.getCars();
-    debugPrint('DEBUG: GetCars UseCase - carRepository.getCars() returned: $carsEither');
+    debugPrint(
+      'DEBUG: GetCars UseCase - carRepository.getCars() returned: $carsEither',
+    );
     final clientsEither = await clientRepository.getAllClients();
-    debugPrint('DEBUG: GetCars UseCase - clientRepository.getAllClients() returned: $clientsEither');
+    debugPrint(
+      'DEBUG: GetCars UseCase - clientRepository.getAllClients() returned: $clientsEither',
+    );
 
     return carsEither.fold((failure) => Left(failure), (cars) {
       return clientsEither.fold((failure) => Left(failure), (clients) {

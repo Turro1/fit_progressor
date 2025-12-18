@@ -66,111 +66,147 @@ class _CarFormModalState extends State<CarFormModal> {
   Widget build(BuildContext context) {
     bool isOwnerPrefilled = widget.client != null;
 
-    return BaseFormModal(
-      titleIcon: Icon(
-        widget.car == null ? Icons.directions_car : Icons.edit,
-      ),
-      titleText: widget.car == null ? 'Новый автомобиль' : 'Редактировать авто',
-      formKey: _formKey,
-      formFields: [
-        BlocBuilder<ClientBloc, ClientState>(
-          builder: (context, state) {
-            if (state is ClientLoaded) {
-              _availableClients = state.clients;
-              if (widget.car != null && _selectedClientName.isEmpty) {
-                final owner = _availableClients.firstWhere(
+    return BlocConsumer<CarBloc, CarState>(
+      listener: (context, state) {
+        if (state is CarOperationSuccess) {
+          Navigator.pop(context);
+        }
+      },
+      builder: (context, carState) {
+        final isLoading = carState is CarLoading;
+
+        return BaseFormModal(
+          titleIcon: Icon(
+            widget.car == null ? Icons.directions_car : Icons.edit,
+          ),
+          titleText: widget.car == null
+              ? 'Новый автомобиль'
+              : 'Редактировать авто',
+          showDragHandle: true,
+          centeredTitle: true,
+          isLoading: isLoading,
+          formKey: _formKey,
+          formFields: [
+            BlocBuilder<ClientBloc, ClientState>(
+              builder: (context, state) {
+                if (state is ClientLoaded) {
+                  _availableClients = state.clients;
+                  if (widget.car != null && _selectedClientName.isEmpty) {
+                    final owner = _availableClients.firstWhere(
                       (c) => c.id == widget.car!.clientId,
-                  orElse: () => Client(
-                      id: '',
-                      name: 'Клиент не найден',
-                      phone: '',
-                      createdAt: DateTime.now()),
-                );
-                if (owner.id.isNotEmpty) {
-                  _selectedClientName = owner.name;
+                      orElse: () => Client(
+                        id: '',
+                        name: 'Клиент не найден',
+                        phone: '',
+                        createdAt: DateTime.now(),
+                      ),
+                    );
+                    if (owner.id.isNotEmpty) {
+                      _selectedClientName = owner.name;
+                    }
+                  }
                 }
-              }
-            }
-            return CarDropdownField(
-              label: 'Владелец',
-              hint: 'Начните вводить имя владельца...',
-              items: _availableClients.map((c) => c.name).toList(),
-              value: _selectedClientName.isEmpty ? null : _selectedClientName,
+                return CarDropdownField(
+                  label: 'Владелец',
+                  hint: 'Начните вводить имя владельца...',
+                  items: _availableClients.map((c) => c.name).toList(),
+                  value: _selectedClientName.isEmpty
+                      ? null
+                      : _selectedClientName,
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedClientName = value;
+                      var client = _availableClients.firstWhere(
+                        (c) => c.name == value,
+                      );
+                      _selectedClientId = client.id;
+                    });
+                  },
+                  enabled: !isOwnerPrefilled,
+                );
+              },
+            ),
+            const SizedBox(height: 16),
+            BlocListener<CarBloc, CarState>(
+              listener: (context, state) {
+                if (state is CarMakesLoaded) {
+                  setState(() {
+                    _availableMakes = state.makes;
+                  });
+                }
+                if (state is CarModelsLoaded) {
+                  setState(() {
+                    _availableModels = state.models;
+                  });
+                }
+              },
+              child: CarDropdownField(
+                label: 'Марка',
+                hint: 'Начните вводить марку...',
+                items: _availableMakes,
+                value: _selectedMake.isEmpty ? null : _selectedMake,
+                onChanged: (value) {
+                  setState(() {
+                    _selectedMake = value.toUpperCase();
+                    _selectedModel = '';
+                    _availableModels = [];
+                  });
+                  if (value.isNotEmpty) {
+                    context.read<CarBloc>().add(
+                      LoadCarModels(make: value.toUpperCase()),
+                    );
+                  }
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+            CarDropdownField(
+              label: 'Модель',
+              hint: 'Начните вводить модель...',
+              items: _availableModels,
+              value: _selectedModel.isEmpty ? null : _selectedModel,
               onChanged: (value) {
                 setState(() {
-                  _selectedClientName = value;
-                  var client = _availableClients.firstWhere(
-                        (c) => c.name == value,
-                  );
-                  _selectedClientId = client.id;
+                  _selectedModel = value;
                 });
               },
-              enabled: !isOwnerPrefilled,
-            );
-          },
-        ),
-        const SizedBox(height: 16),
-        BlocListener<CarBloc, CarState>(
-          listener: (context, state) {
-            if (state is CarMakesLoaded) {
-              setState(() {
-                _availableMakes = state.makes;
-              });
-            }
-            if (state is CarModelsLoaded) {
-              setState(() {
-                _availableModels = state.models;
-              });
-            }
-          },
-          child: CarDropdownField(
-            label: 'Марка',
-            hint: 'Начните вводить марку...',
-            items: _availableMakes,
-            value: _selectedMake.isEmpty ? null : _selectedMake,
-            onChanged: (value) {
-              setState(() {
-                _selectedMake = value.toUpperCase();
-                _selectedModel = '';
-                _availableModels = [];
-              });
-              if (value.isNotEmpty) {
-                context
-                    .read<CarBloc>()
-                    .add(LoadCarModels(make: value.toUpperCase()));
-              }
-            },
-          ),
-        ),
-        const SizedBox(height: 16),
-        CarDropdownField(
-          label: 'Модель',
-          hint: 'Начните вводить модель...',
-          items: _availableModels,
-          value: _selectedModel.isEmpty ? null : _selectedModel,
-          onChanged: (value) {
-            setState(() {
-              _selectedModel = value;
-            });
-          },
-        ),
-        const SizedBox(height: 16),
-        TextFormField(
-          controller: _plateController,
-          decoration: const InputDecoration(
-            labelText: 'Гос. номер',
-            hintText: 'А123ВВ 777',
-            prefixIcon: Icon(Icons.badge),
-          ),
-        ),
-      ],
-      onSubmit: _submitForm,
-      submitButtonText: widget.car == null ? 'Добавить' : 'Сохранить',
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _plateController,
+              decoration: InputDecoration(
+                labelText: 'Гос. номер',
+                hintText: 'А123ВВ 777',
+                helperText: 'Введите регистрационный номер автомобиля',
+                prefixIcon: const Icon(Icons.badge),
+                counterText: '${_plateController.text.length}/15',
+              ),
+              maxLength: 15,
+              textCapitalization: TextCapitalization.characters,
+              onChanged: (value) {
+                setState(() {}); // Update counter
+              },
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Пожалуйста, введите номер';
+                }
+                if (value.trim().length < 3) {
+                  return 'Номер должен содержать минимум 3 символа';
+                }
+                return null;
+              },
+            ),
+          ],
+          onSubmit: _submitForm,
+          submitButtonText: widget.car == null ? 'Добавить' : 'Сохранить',
+        );
+      },
     );
   }
 
   void _submitForm() {
     final theme = Theme.of(context);
+
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -189,16 +225,6 @@ class _CarFormModalState extends State<CarFormModal> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Пожалуйста, введите марку и модель'),
-          backgroundColor: theme.colorScheme.error,
-        ),
-      );
-      return;
-    }
-
-    if (_plateController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Пожалуйста, введите номер автомобиля'),
           backgroundColor: theme.colorScheme.error,
         ),
       );

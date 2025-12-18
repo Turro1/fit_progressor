@@ -2,56 +2,27 @@ import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
 import 'package:fit_progressor/core/error/failures/failure.dart';
 import 'package:fit_progressor/core/usecases/usecase.dart';
-import 'package:fit_progressor/features/materials/domain/repositories/material_repository.dart'; // Using package import
 import '../entities/repair.dart';
-import '../entities/repair_history.dart';
-import '../entities/repair_material.dart';
-import '../entities/repair_part.dart';
-import '../entities/repair_status.dart';
 import '../repositories/repair_repository.dart';
 
 class AddRepair implements UseCase<Repair, AddRepairParams> {
   final RepairRepository repairRepository;
-  final MaterialRepository materialRepository; // For managing material stock
 
-  AddRepair({required this.repairRepository, required this.materialRepository});
+  AddRepair({required this.repairRepository});
 
   @override
   Future<Either<Failure, Repair>> call(AddRepairParams params) async {
     final now = DateTime.now();
 
-    // Deduct materials from stock
-    for (var repairMaterial in params.materials) {
-      final materialEither = await materialRepository.getMaterialById(repairMaterial.materialId);
-      await materialEither.fold(
-        (failure) => throw Exception('Material not found for deduction'), // Or handle failure more gracefully
-        (material) async {
-          final updatedMaterial = material.copyWith(quantity: material.quantity - repairMaterial.quantity);
-          await materialRepository.updateMaterial(updatedMaterial);
-        },
-      );
-    }
-
     final repair = Repair(
       id: 'repair_${now.millisecondsSinceEpoch}',
-      carId: params.carId,
-      clientId: params.clientId,
-      status: params.status,
+      name: params.name,
       description: params.description,
-      costWork: params.costWork,
-      materials: params.materials,
-      parts: params.parts,
-      photos: params.photos,
-      history: [
-        RepairHistory(
-          id: 'history_${now.millisecondsSinceEpoch}',
-          timestamp: now,
-          type: HistoryType.statusChange,
-          description: 'Ремонт создан со статусом "${params.status.displayName}"',
-        )
-      ],
+      date: params.date,
+      cost: params.cost,
+      clientId: params.clientId,
+      carId: params.carId,
       createdAt: now,
-      plannedAt: params.plannedAt,
     );
 
     return await repairRepository.addRepair(repair);
@@ -59,38 +30,29 @@ class AddRepair implements UseCase<Repair, AddRepairParams> {
 }
 
 class AddRepairParams extends Equatable {
-  final String carId;
-  final String clientId;
-  final RepairStatus status;
+  final String name;
   final String description;
-  final double costWork;
-  final List<RepairMaterial> materials;
-  final List<RepairPart> parts;
-  final List<String> photos;
-  final DateTime? plannedAt;
+  final DateTime date;
+  final double cost;
+  final String clientId;
+  final String carId;
 
   const AddRepairParams({
-    required this.carId,
+    required this.name,
+    this.description = '',
+    required this.date,
+    required this.cost,
     required this.clientId,
-    required this.status,
-    required this.description,
-    required this.costWork,
-    this.materials = const [],
-    this.parts = const [],
-    this.photos = const [],
-    this.plannedAt,
+    required this.carId,
   });
 
   @override
   List<Object?> get props => [
-    carId,
-    clientId,
-    status,
+    name,
     description,
-    costWork,
-    materials,
-    parts,
-    photos,
-    plannedAt,
+    date,
+    cost,
+    clientId,
+    carId,
   ];
 }

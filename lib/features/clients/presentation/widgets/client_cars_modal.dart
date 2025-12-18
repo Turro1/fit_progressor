@@ -1,11 +1,13 @@
 import 'package:fit_progressor/features/cars/presentation/bloc/car_bloc.dart';
 import 'package:fit_progressor/features/cars/presentation/bloc/car_state.dart';
 import 'package:fit_progressor/features/cars/presentation/widgets/car_form_modal.dart';
-import 'package:fit_progressor/features/cars/presentation/widgets/car_card.dart'; // Added this import
+import 'package:fit_progressor/features/cars/presentation/widgets/car_card.dart';
+import 'package:fit_progressor/shared/widgets/empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart'; // Added this import
-import 'package:url_launcher/url_launcher.dart'; // Import url_launcher
+import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:fit_progressor/core/theme/app_spacing.dart';
 
 import '../../domain/entities/client.dart';
 
@@ -15,14 +17,10 @@ class ClientCarsModal extends StatelessWidget {
   const ClientCarsModal({Key? key, required this.client}) : super(key: key);
 
   void _makePhoneCall(String phoneNumber) async {
-    final Uri launchUri = Uri(
-      scheme: 'tel',
-      path: phoneNumber,
-    );
+    final Uri launchUri = Uri(scheme: 'tel', path: phoneNumber);
     if (await canLaunchUrl(launchUri)) {
       await launchUrl(launchUri);
     } else {
-      // Handle error: could not launch phone call
       debugPrint('Could not launch $phoneNumber');
     }
   }
@@ -30,60 +28,95 @@ class ClientCarsModal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     return Container(
       decoration: BoxDecoration(
         color: theme.cardTheme.color,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      padding: const EdgeInsets.all(20.0),
+      padding: EdgeInsets.only(
+        top: AppSpacing.lg,
+        left: AppSpacing.xl,
+        right: AppSpacing.xl,
+        bottom: AppSpacing.xl + MediaQuery.of(context).viewInsets.bottom,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Drag handle
+          Container(
+            width: 40,
+            height: 4,
+            margin: EdgeInsets.only(bottom: AppSpacing.lg),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.outlineVariant,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          // Header with client info
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Автомобили клиента',
-                style: theme.textTheme.headlineSmall,
+              CircleAvatar(
+                backgroundColor: theme.colorScheme.primaryContainer,
+                foregroundColor: theme.colorScheme.onPrimaryContainer,
+                radius: 28,
+                child: Text(
+                  client.name.isNotEmpty ? client.name[0].toUpperCase() : '?',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    color: theme.colorScheme.onPrimaryContainer,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
+              SizedBox(width: AppSpacing.lg),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      client.name,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    Text(client.phone, style: theme.textTheme.bodyMedium),
+                  ],
+                ),
+              ),
+              // Quick actions
               IconButton(
-                icon: Icon(Icons.phone, color: theme.colorScheme.primary),
+                icon: const Icon(Icons.phone),
                 onPressed: () => _makePhoneCall(client.phone),
+                tooltip: 'Позвонить',
+                color: theme.colorScheme.primary,
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            client.name,
-            style: theme.textTheme.titleMedium,
-          ),
-          Text(
-            client.phone,
-            style: theme.textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 16),
+          SizedBox(height: AppSpacing.xxl),
+          // Cars list
           Expanded(
             child: BlocBuilder<CarBloc, CarState>(
               builder: (context, state) {
                 if (state is CarLoading) {
                   return const Center(child: CircularProgressIndicator());
                 }
+
                 if (state is CarLoaded) {
                   final clientCars = state.cars
                       .where((car) => car.clientId == client.id)
                       .toList();
 
                   if (clientCars.isEmpty) {
-                    return Center(
-                      child: Text(
-                        'У этого клиента нет автомобилей.',
-                        style: theme.textTheme.bodyMedium,
-                      ),
+                    return EmptyState(
+                      icon: Icons.directions_car_outlined,
+                      title: 'Нет автомобилей',
+                      message:
+                          'У этого клиента пока нет добавленных автомобилей',
                     );
                   }
 
                   return ListView.builder(
+                    shrinkWrap: true,
                     itemCount: clientCars.length,
                     itemBuilder: (context, index) {
                       final car = clientCars[index];
@@ -91,14 +124,15 @@ class ClientCarsModal extends StatelessWidget {
                         car: car,
                         onTap: () {
                           context.go('/cars/${car.id}/repairs');
-                          Navigator.pop(context); // Close the modal
+                          Navigator.pop(context);
                         },
-                        onEdit: null, // No edit action from this modal
-                        onDelete: null, // No delete action from this modal
+                        onEdit: null,
+                        onDelete: null,
                       );
                     },
                   );
                 }
+
                 return Center(
                   child: Text(
                     'Не удалось загрузить автомобили',
@@ -108,7 +142,8 @@ class ClientCarsModal extends StatelessWidget {
               },
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: AppSpacing.lg),
+          // Actions
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
@@ -116,10 +151,10 @@ class ClientCarsModal extends StatelessWidget {
                 onPressed: () => Navigator.pop(context),
                 child: const Text('Закрыть'),
               ),
-              const SizedBox(width: 12),
-              ElevatedButton(
+              SizedBox(width: AppSpacing.md),
+              FilledButton.icon(
                 onPressed: () {
-                  Navigator.pop(context); // Close this modal first
+                  Navigator.pop(context);
                   showModalBottomSheet(
                     context: context,
                     isScrollControlled: true,
@@ -127,7 +162,8 @@ class ClientCarsModal extends StatelessWidget {
                     builder: (context) => CarFormModal(client: client),
                   );
                 },
-                child: const Text('Добавить авто'),
+                icon: const Icon(Icons.add),
+                label: const Text('Добавить авто'),
               ),
             ],
           ),
