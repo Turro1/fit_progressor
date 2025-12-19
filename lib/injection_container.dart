@@ -27,11 +27,8 @@ import 'package:fit_progressor/features/repairs/data/datasources/repair_local_da
 import 'package:fit_progressor/features/repairs/data/datasources/repair_local_datasource_shared_preference_impl.dart';
 import 'package:fit_progressor/features/repairs/data/repositories/repair_repository_impl.dart';
 import 'package:fit_progressor/features/repairs/domain/repositories/repair_repository.dart';
-import 'package:fit_progressor/features/repairs/domain/usecases/add_car_photo.dart';
 import 'package:fit_progressor/features/repairs/domain/usecases/add_repair.dart';
-import 'package:fit_progressor/features/repairs/domain/usecases/delete_car_photo.dart';
 import 'package:fit_progressor/features/repairs/domain/usecases/delete_repair.dart';
-import 'package:fit_progressor/features/repairs/domain/usecases/get_car_photos.dart';
 import 'package:fit_progressor/features/repairs/domain/usecases/get_repair_by_id.dart';
 import 'package:fit_progressor/features/repairs/domain/usecases/get_repairs.dart';
 import 'package:fit_progressor/features/repairs/domain/usecases/search_repairs.dart';
@@ -194,10 +191,6 @@ Future<void> init() async {
   sl.registerLazySingleton(() => DeleteRepair(repairRepository: sl()));
   sl.registerLazySingleton(() => SearchRepairs(sl()));
 
-  sl.registerLazySingleton(() => GetCarPhotos(sl()));
-  sl.registerLazySingleton(() => AddCarPhoto(sl()));
-  sl.registerLazySingleton(() => DeleteCarPhoto(sl()));
-
   // Repository
   sl.registerLazySingleton<RepairRepository>(
     () => RepairRepositoryImpl(
@@ -206,16 +199,10 @@ Future<void> init() async {
       clientRepository: sl(),
     ),
   );
-  sl.registerLazySingleton<CarPhotoRepository>(
-    () => CarPhotoRepositoryImpl(localDataSource: sl()),
-  );
 
   // Data sources
   sl.registerLazySingleton<RepairLocalDataSource>(
     () => RepairLocalDataSourceImpl(sharedPreferences: sl()),
-  );
-  sl.registerLazySingleton<CarPhotoLocalDataSource>(
-    () => CarPhotoLocalDataSourceImpl(sharedPreferences: sl()),
   );
 
   // ============================================

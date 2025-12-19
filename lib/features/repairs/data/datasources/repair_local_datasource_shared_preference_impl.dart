@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fit_progressor/features/repairs/data/datasources/repair_local_datasource.dart';
-import 'package:fit_progressor/features/repairs/data/models/car_photo_model.dart';
 import 'package:fit_progressor/features/repairs/data/models/repair_model.dart';
 
 class RepairLocalDataSourceImpl implements RepairLocalDataSource {
@@ -71,47 +70,5 @@ class RepairLocalDataSourceImpl implements RepairLocalDataSource {
       (r) => r.id == id,
       orElse: () => throw Exception('Repair not found'),
     );
-  }
-}
-
-class CarPhotoLocalDataSourceImpl implements CarPhotoLocalDataSource {
-  final SharedPreferences sharedPreferences;
-  static const String carPhotosKey = 'cachedCarPhotos';
-
-  CarPhotoLocalDataSourceImpl({required this.sharedPreferences});
-
-  Future<List<CarPhotoModel>> _getAllCarPhotos() async {
-    final jsonString = sharedPreferences.getString(carPhotosKey);
-    if (jsonString != null) {
-      final List<dynamic> jsonList = json.decode(jsonString);
-      return jsonList.map((json) => CarPhotoModel.fromJson(json)).toList();
-    }
-    return [];
-  }
-
-  Future<void> _saveAllCarPhotos(List<CarPhotoModel> photos) async {
-    final jsonList = photos.map((p) => p.toJson()).toList();
-    await sharedPreferences.setString(carPhotosKey, json.encode(jsonList));
-  }
-
-  @override
-  Future<List<CarPhotoModel>> getCarPhotos(String carId) async {
-    final allPhotos = await _getAllCarPhotos();
-    return allPhotos.where((photo) => photo.carId == carId).toList();
-  }
-
-  @override
-  Future<CarPhotoModel> addCarPhoto(CarPhotoModel photo) async {
-    final allPhotos = await _getAllCarPhotos();
-    allPhotos.add(photo);
-    await _saveAllCarPhotos(allPhotos);
-    return photo;
-  }
-
-  @override
-  Future<void> deleteCarPhoto(String photoId) async {
-    final allPhotos = await _getAllCarPhotos();
-    allPhotos.removeWhere((photo) => photo.id == photoId);
-    await _saveAllCarPhotos(allPhotos);
   }
 }

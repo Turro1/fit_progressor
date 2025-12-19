@@ -1,6 +1,5 @@
 import 'package:dartz/dartz.dart';
 import '../../../../core/error/failures/failure.dart';
-import '../entities/car_photo.dart';
 import '../entities/repair.dart';
 
 abstract class RepairRepository {
@@ -13,10 +12,4 @@ abstract class RepairRepository {
     String query, {
     String? carId,
   });
-}
-
-abstract class CarPhotoRepository {
-  Future<Either<Failure, List<CarPhoto>>> getCarPhotos(String carId);
-  Future<Either<Failure, CarPhoto>> addCarPhoto(CarPhoto photo);
-  Future<Either<Failure, void>> deleteCarPhoto(String photoId);
 }
