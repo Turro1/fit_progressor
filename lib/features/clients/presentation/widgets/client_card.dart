@@ -25,10 +25,10 @@ class ClientCard extends StatelessWidget {
 
     if (digits.length >= 11 && digits.startsWith('7')) {
       // Российский номер
-      return '+7 (${digits.substring(1, 4)}) ${digits.substring(4, 7)}-${digits.substring(7, 9)}-${digits.substring(9, 11)}';
+      return '+373 (${digits.substring(1, 3)}) ${digits.substring(3, 6)}-${digits.substring(6, 9)}-${digits.substring(9, 11)}';
     } else if (digits.length >= 10) {
       // Другой формат
-      return '+${digits.substring(0, 1)} (${digits.substring(1, 4)}) ${digits.substring(4, 7)}-${digits.substring(7, 9)}-${digits.substring(9, 11)}';
+      return '+${digits.substring(0, 3)} (${digits.substring(3, 6)}) ${digits.substring(6, 9)}-${digits.substring(9, 11)}';
     }
 
     return phone; // Возвращаем как есть, если не можем отформатировать

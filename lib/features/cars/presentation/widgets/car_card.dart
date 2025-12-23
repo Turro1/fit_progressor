@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fit_progressor/shared/widgets/entity_card.dart'; // Import the generic EntityCard
+import 'package:fit_progressor/core/utils/car_logo_helper.dart';
 import '../../domain/entities/car.dart';
+import 'dart:developer' as developer;
 
 class CarCard extends StatelessWidget {
   final Car car;
@@ -30,18 +32,27 @@ class CarCard extends StatelessWidget {
       // Новый дизайн
       compact: false,
       elevation: 2.0,
-      leading: Container(
-        width: 56,
-        height: 56,
-        decoration: BoxDecoration(
-          color: theme.colorScheme.secondaryContainer,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Icon(
-          Icons.directions_car_rounded,
-          size: 32,
-          color: theme.colorScheme.onSecondaryContainer,
-        ),
+      leading: CircleAvatar(
+        radius: 38,
+        backgroundColor: Colors.white,
+        child: Image.asset(
+            CarLogoHelper.getLogoPath(car.make),
+            fit: BoxFit.none,
+            scale: 24,
+            errorBuilder: (context, error, stackTrace) {
+              developer.log(
+                'Failed to load logo for ${car.make}: $error',
+                name: 'CarCard',
+                error: error,
+                stackTrace: stackTrace,
+              );
+              return Icon(
+                Icons.directions_car_rounded,
+                size: 32,
+                color: theme.colorScheme.primary,
+              );
+            },
+          ),
       ),
       title: Text(
         '${car.make} ${car.model}',

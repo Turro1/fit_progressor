@@ -2,10 +2,10 @@ import 'package:fit_progressor/features/cars/presentation/bloc/car_bloc.dart';
 import 'package:fit_progressor/features/cars/presentation/bloc/car_state.dart';
 import 'package:fit_progressor/features/cars/presentation/widgets/car_form_modal.dart';
 import 'package:fit_progressor/features/cars/presentation/widgets/car_card.dart';
+import 'package:fit_progressor/features/cars/presentation/widgets/car_repairs_modal.dart';
 import 'package:fit_progressor/shared/widgets/empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:fit_progressor/core/theme/app_spacing.dart';
 
@@ -123,8 +123,13 @@ class ClientCarsModal extends StatelessWidget {
                       return CarCard(
                         car: car,
                         onTap: () {
-                          context.go('/cars/${car.id}/repairs');
                           Navigator.pop(context);
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (context) => CarRepairsModal(car: car),
+                          );
                         },
                         onEdit: null,
                         onDelete: null,

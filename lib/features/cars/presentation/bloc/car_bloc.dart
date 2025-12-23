@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fit_progressor/core/error/failures/duplicate_failure.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../domain/usecases/add_car.dart';
 import '../../domain/usecases/delete_car.dart';
@@ -73,7 +74,10 @@ class CarBloc extends Bloc<CarEvent, CarState> {
 
     await result.fold(
       (failure) async {
-        emit(const CarError(message: 'Не удалось добавить автомобиль'));
+        final message = failure is DuplicateFailure
+            ? failure.message
+            : 'Не удалось добавить автомобиль';
+        emit(CarError(message: message));
       },
       (car) async {
         emit(const CarOperationSuccess(message: 'Автомобиль добавлен'));
@@ -91,7 +95,10 @@ class CarBloc extends Bloc<CarEvent, CarState> {
 
     await result.fold(
       (failure) async {
-        emit(const CarError(message: 'Не удалось обновить автомобиль'));
+        final message = failure is DuplicateFailure
+            ? failure.message
+            : 'Не удалось обновить автомобиль';
+        emit(CarError(message: message));
       },
       (car) async {
         emit(const CarOperationSuccess(message: 'Автомобиль обновлен'));

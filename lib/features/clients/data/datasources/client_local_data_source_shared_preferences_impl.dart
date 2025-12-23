@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:fit_progressor/core/error/exceptions/cache_exception.dart';
+import 'package:fit_progressor/core/error/exceptions/duplicate_exception.dart';
 import 'package:fit_progressor/features/clients/data/datasources/client_local_data_source.dart';
 import 'package:fit_progressor/features/clients/data/models/client_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -70,6 +71,15 @@ class ClientLocalDataSourceSharedPreferencesImpl
         'DEBUG: saveClient - Attempting to save client: ${client.id}',
       ); // Added debugPrint
       final clients = await getAllClients();
+
+      // Проверка уникальности телефона
+      final phoneExists = clients.any((c) => c.phone == client.phone);
+      if (phoneExists) {
+        throw DuplicateException(
+          message: 'Клиент с номером телефона ${client.phone} уже существует',
+        );
+      }
+
       debugPrint(
         'DEBUG: saveClient - Clients before adding: ${clients.length}',
       ); // Added debugPrint
@@ -84,6 +94,9 @@ class ClientLocalDataSourceSharedPreferencesImpl
       return client;
     } catch (e) {
       debugPrint('DEBUG: Error saving client to cache: $e'); // Added debugPrint
+      if (e is DuplicateException) {
+        rethrow;
+      }
       throw CacheException(message: 'Failed to save client to cache: $e');
     }
   }
@@ -111,8 +124,19 @@ class ClientLocalDataSourceSharedPreferencesImpl
       final clients = await getAllClients();
       final index = clients.indexWhere((c) => c.id == client.id);
       if (index == -1) {
-        throw Exception('Car not found');
+        throw Exception('Client not found');
       }
+
+      // Проверка уникальности телефона (исключая текущего клиента)
+      final phoneExists = clients.any(
+        (c) => c.phone == client.phone && c.id != client.id,
+      );
+      if (phoneExists) {
+        throw DuplicateException(
+          message: 'Клиент с номером телефона ${client.phone} уже существует',
+        );
+      }
+
       clients[index] = client;
       await _saveClients(clients);
       return client;
@@ -120,6 +144,9 @@ class ClientLocalDataSourceSharedPreferencesImpl
       debugPrint(
         'DEBUG: Error updating client in cache: $e',
       ); // Added debugPrint
+      if (e is DuplicateException) {
+        rethrow;
+      }
       throw CacheException(message: 'Failed to update client in cache: $e');
     }
   }

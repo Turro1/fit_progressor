@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:fit_progressor/core/error/exceptions/cache_exception.dart';
+import 'package:fit_progressor/core/error/exceptions/duplicate_exception.dart';
 import 'package:fit_progressor/features/cars/data/datasources/car_local_data_source.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/car_model.dart';
@@ -49,37 +50,71 @@ class CarLocalDataSourceSharedPreferencesImpl implements CarLocalDataSource {
 
   @override
   Future<CarModel> addCar(CarModel car) async {
-    debugPrint('DEBUG: CarLocalDataSource - addCar called for car: ${car.id}');
-    var cars = await getCars();
-    debugPrint(
-      'DEBUG: CarLocalDataSource - Cars before adding: ${cars.length}',
-    );
-    cars.add(car);
-    debugPrint('DEBUG: CarLocalDataSource - Cars after adding: ${cars.length}');
-    await _saveCars(cars);
-    debugPrint('DEBUG: CarLocalDataSource - Car added successfully: ${car.id}');
-    return car;
+    try {
+      debugPrint('DEBUG: CarLocalDataSource - addCar called for car: ${car.id}');
+      var cars = await getCars();
+
+      // Проверка уникальности номера
+      final plateExists = cars.any((c) => c.plate == car.plate);
+      if (plateExists) {
+        throw DuplicateException(
+          message: 'Автомобиль с номером ${car.plate} уже существует',
+        );
+      }
+
+      debugPrint(
+        'DEBUG: CarLocalDataSource - Cars before adding: ${cars.length}',
+      );
+      cars.add(car);
+      debugPrint('DEBUG: CarLocalDataSource - Cars after adding: ${cars.length}');
+      await _saveCars(cars);
+      debugPrint('DEBUG: CarLocalDataSource - Car added successfully: ${car.id}');
+      return car;
+    } catch (e) {
+      if (e is DuplicateException) {
+        rethrow;
+      }
+      throw CacheException(message: 'Failed to add car to cache: $e');
+    }
   }
 
   @override
   Future<CarModel> updateCar(CarModel car) async {
-    debugPrint(
-      'DEBUG: CarLocalDataSource - updateCar called for car: ${car.id}',
-    );
-    final cars = await getCars();
-    final index = cars.indexWhere((c) => c.id == car.id);
-    if (index == -1) {
+    try {
       debugPrint(
-        'DEBUG: CarLocalDataSource - Car not found for update: ${car.id}',
+        'DEBUG: CarLocalDataSource - updateCar called for car: ${car.id}',
       );
-      throw Exception('Car not found');
+      final cars = await getCars();
+      final index = cars.indexWhere((c) => c.id == car.id);
+      if (index == -1) {
+        debugPrint(
+          'DEBUG: CarLocalDataSource - Car not found for update: ${car.id}',
+        );
+        throw Exception('Car not found');
+      }
+
+      // Проверка уникальности номера (исключая текущий автомобиль)
+      final plateExists = cars.any(
+        (c) => c.plate == car.plate && c.id != car.id,
+      );
+      if (plateExists) {
+        throw DuplicateException(
+          message: 'Автомобиль с номером ${car.plate} уже существует',
+        );
+      }
+
+      cars[index] = car;
+      await _saveCars(cars);
+      debugPrint(
+        'DEBUG: CarLocalDataSource - Car updated successfully: ${car.id}',
+      );
+      return car;
+    } catch (e) {
+      if (e is DuplicateException) {
+        rethrow;
+      }
+      throw CacheException(message: 'Failed to update car in cache: $e');
     }
-    cars[index] = car;
-    await _saveCars(cars);
-    debugPrint(
-      'DEBUG: CarLocalDataSource - Car updated successfully: ${car.id}',
-    );
-    return car;
   }
 
   @override
@@ -103,7 +138,8 @@ class CarLocalDataSourceSharedPreferencesImpl implements CarLocalDataSource {
     final filteredCars = cars.where((car) {
       return car.make.toLowerCase().contains(lowercaseQuery) ||
           car.model.toLowerCase().contains(lowercaseQuery) ||
-          car.plate.toLowerCase().contains(lowercaseQuery);
+          car.plate.toLowerCase().contains(lowercaseQuery) ||
+          car.clientName.toLowerCase().contains(lowercaseQuery);
     }).toList();
     debugPrint(
       'DEBUG: CarLocalDataSource - Found ${filteredCars.length} cars for query: $query',

@@ -26,6 +26,7 @@ import 'package:fit_progressor/features/dashboard/presentation/bloc/dashboard_bl
 import 'package:fit_progressor/features/repairs/data/datasources/repair_local_datasource.dart';
 import 'package:fit_progressor/features/repairs/data/datasources/repair_local_datasource_shared_preference_impl.dart';
 import 'package:fit_progressor/features/repairs/data/repositories/repair_repository_impl.dart';
+import 'package:fit_progressor/features/repairs/data/services/repair_image_service.dart';
 import 'package:fit_progressor/features/repairs/domain/repositories/repair_repository.dart';
 import 'package:fit_progressor/features/repairs/domain/usecases/add_repair.dart';
 import 'package:fit_progressor/features/repairs/domain/usecases/delete_repair.dart';
@@ -72,7 +73,12 @@ Future<void> init() async {
 
   // Bloc
   sl.registerFactory(
-    () => DashboardBloc(getDashboardStats: sl(), getRepairs: sl()),
+    () => DashboardBloc(
+      getDashboardStats: sl(),
+      getRepairs: sl(),
+      getClients: sl(),
+      getCars: sl(),
+    ),
   );
 
   // Use cases
@@ -104,15 +110,13 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetClients(sl(), sl()));
   sl.registerLazySingleton(() => AddClient(sl()));
   sl.registerLazySingleton(() => UpdateClient(sl()));
-  sl.registerLazySingleton(() => DeleteClient(sl()));
+  sl.registerLazySingleton(() => DeleteClient(sl(), sl(), sl()));
   sl.registerLazySingleton(() => SearchClients(sl()));
 
   // Repository (with lazy dependency resolution to avoid circular dependency)
   sl.registerLazySingleton<ClientRepository>(
     () => ClientRepositoryImpl(
       localDataSource: sl(),
-      carRepository: sl(),
-      repairRepository: sl(),
     ),
   );
 
@@ -142,8 +146,8 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetCars(sl(), sl()));
   sl.registerLazySingleton(() => AddCar(sl(), sl()));
   sl.registerLazySingleton(() => UpdateCar(sl(), sl()));
-  sl.registerLazySingleton(() => DeleteCar(sl()));
-  sl.registerLazySingleton(() => SearchCars(sl()));
+  sl.registerLazySingleton(() => DeleteCar(sl(), sl()));
+  sl.registerLazySingleton(() => SearchCars(sl(), sl()));
   sl.registerLazySingleton(() => GetCarMakes(sl()));
   sl.registerLazySingleton(() => GetCarModels(sl()));
   sl.registerLazySingleton(() => GetCarsByClient(sl()));
@@ -152,7 +156,6 @@ Future<void> init() async {
   sl.registerLazySingleton<CarRepository>(
     () => CarRepositoryImpl(
       localDataSource: sl(),
-      repairRepository: sl(),
     ),
   );
   sl.registerLazySingleton<CarLibraryRepository>(
@@ -180,6 +183,7 @@ Future<void> init() async {
       updateRepair: sl(),
       deleteRepair: sl(),
       searchRepairs: sl(),
+      imageService: sl(),
     ),
   );
 
@@ -188,15 +192,22 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetRepairById(sl()));
   sl.registerLazySingleton(() => AddRepair(repairRepository: sl()));
   sl.registerLazySingleton(() => UpdateRepair(repairRepository: sl()));
-  sl.registerLazySingleton(() => DeleteRepair(repairRepository: sl()));
+  sl.registerLazySingleton(
+    () => DeleteRepair(
+      repairRepository: sl(),
+      getRepairById: sl(),
+      imageService: sl(),
+    ),
+  );
   sl.registerLazySingleton(() => SearchRepairs(sl()));
+
+  // Services
+  sl.registerLazySingleton<RepairImageService>(() => RepairImageService());
 
   // Repository
   sl.registerLazySingleton<RepairRepository>(
     () => RepairRepositoryImpl(
       localDataSource: sl(),
-      carRepository: sl(),
-      clientRepository: sl(),
     ),
   );
 

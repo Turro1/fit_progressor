@@ -1,33 +1,53 @@
-import 'package:flutter/material.dart';
+import 'dart:io';
+import 'package:fit_progressor/features/repairs/domain/entities/repair.dart';
+import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_bloc.dart';
+import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_event.dart';
+import 'package:fit_progressor/features/repairs/presentation/widgets/repair_form_modal.dart';
 import 'package:fit_progressor/shared/widgets/entity_card.dart';
+import 'package:fit_progressor/core/utils/car_logo_helper.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import '../../domain/entities/repair.dart';
 
 class RepairCard extends StatelessWidget {
   final Repair repair;
-  final VoidCallback? onEdit;
-  final VoidCallback? onDelete;
-  final VoidCallback? onTap;
 
-  const RepairCard({
-    Key? key,
-    required this.repair,
-    this.onEdit,
-    this.onDelete,
-    this.onTap,
-  }) : super(key: key);
+  const RepairCard({Key? key, required this.repair}) : super(key: key);
 
-  String _formatDate(DateTime date) {
-    return DateFormat('dd.MM.yyyy').format(date);
+  void _showEditModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => BlocProvider.value(
+        value: context.read<RepairsBloc>(),
+        child: RepairFormModal(repair: repair),
+      ),
+    );
   }
 
-  String _formatCurrency(double amount) {
-    final formatter = NumberFormat.currency(
-      locale: 'ru_RU',
-      symbol: '₽',
-      decimalDigits: 0,
+  void _confirmDelete(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Удалить ремонт?'),
+        content: Text('Вы уверены, что хотите удалить "${repair.name}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Отмена'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              context.read<RepairsBloc>().add(
+                    DeleteRepairEvent(repairId: repair.id),
+                  );
+            },
+            child: const Text('Удалить'),
+          ),
+        ],
+      ),
     );
-    return formatter.format(amount);
   }
 
   @override
@@ -35,95 +55,198 @@ class RepairCard extends StatelessWidget {
     final theme = Theme.of(context);
 
     return EntityCard(
-      slidableKey: ValueKey(repair.id),
-      groupTag: 'repair_actions',
-      enableSwipeActions: onEdit != null || onDelete != null,
-      onTap: onTap,
-      onEdit: onEdit,
-      onDelete: onDelete,
-      compact: false,
-      elevation: 2.0,
-      leading: CircleAvatar(
-        backgroundColor: theme.colorScheme.secondaryContainer,
-        foregroundColor: theme.colorScheme.onSecondaryContainer,
-        radius: 28,
-        child: Icon(
-          Icons.build_circle,
-          size: 32,
-          color: theme.colorScheme.onSecondaryContainer,
-        ),
-      ),
+      groupTag: 'repairs',
+      enableSwipeActions: true,
+      onEdit: () => _showEditModal(context),
+      onDelete: () => _confirmDelete(context),
+      leading: _buildLeading(theme),
       title: Text(
-        repair.name,
-        style: theme.textTheme.titleLarge?.copyWith(
-          fontWeight: FontWeight.w500,
+        repair.partType,
+        style: theme.textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w600,
         ),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
       ),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (repair.description.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Text(
-              repair.description,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.textTheme.bodyMedium?.color?.withValues(
-                  alpha: 0.7,
-                ),
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
           const SizedBox(height: 8),
+
+          // Компактный layout: Позиция и автомобиль | Дата-время и стоимость
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(
-                Icons.calendar_today,
-                size: 14,
-                color: theme.iconTheme.color?.withValues(alpha: 0.6),
-              ),
-              const SizedBox(width: 4),
-              Text(
-                _formatDate(repair.date),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.textTheme.bodySmall?.color?.withValues(
-                    alpha: 0.7,
-                  ),
+              // Левая часть: Позиция и автомобиль
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Позиция
+                    if (repair.partPosition.isNotEmpty)
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.build_outlined,
+                            size: 16,
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              repair.partPosition,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    const SizedBox(height: 4),
+                    // Автомобиль (если есть)
+                    if (repair.carMake.isNotEmpty)
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.directions_car_outlined,
+                            size: 16,
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              '${repair.carMake} ${repair.carModel}',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                  ],
                 ),
+              ),
+
+              const SizedBox(width: 12),
+
+              // Правая часть: Дата-время и стоимость
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  // Дата и время вместе
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.event,
+                          size: 14,
+                          color: theme.colorScheme.onPrimaryContainer,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${DateFormat('dd.MM.yyyy').format(repair.date)} - ${DateFormat('HH:mm').format(repair.date)}',
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: theme.colorScheme.onPrimaryContainer,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  // Стоимость
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.secondaryContainer,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      '${repair.cost.toStringAsFixed(0)} ₽',
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: theme.colorScheme.onSecondaryContainer,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
         ],
       ),
-      metadata: [
-        Row(
-          children: [
-            Icon(
-              Icons.attach_money,
-              size: 16,
-              color: theme.colorScheme.secondary,
-            ),
-            const SizedBox(width: 4),
-            Text(
-              _formatCurrency(repair.cost),
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: theme.colorScheme.secondary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
+    );
+  }
+
+  Widget _buildLeading(ThemeData theme) {
+    // Приоритет: логотип автомобиля, затем фото, затем иконка
+    if (repair.carMake.isNotEmpty) {
+      return CircleAvatar(
+        radius: 38,
+        backgroundColor: Colors.white,
+        child: Image.asset(
+          CarLogoHelper.getLogoPath(repair.carMake),
+          fit: BoxFit.none,
+          scale: 24,
+          errorBuilder: (context, error, stackTrace) {
+            // Если логотип не найден, пытаемся показать фото
+            if (repair.photoPaths.isNotEmpty) {
+              return ClipOval(
+                child: Image.file(
+                  File(repair.photoPaths.first),
+                  width: 84,
+                  height: 84,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Icon(
+                      Icons.build_circle,
+                      size: 56,
+                      color: theme.colorScheme.primary,
+                    );
+                  },
+                ),
+              );
+            }
+            return Icon(
+              Icons.directions_car_rounded,
+              size: 56,
+              color: theme.colorScheme.primary,
+            );
+          },
         ),
-      ],
-      trailing: onTap != null
-          ? Icon(
-              Icons.arrow_forward_ios,
-              size: 16,
-              color: theme.iconTheme.color,
-            )
-          : null,
+      );
+    }
+
+    // Если нет марки, но есть фото
+    if (repair.photoPaths.isNotEmpty) {
+      return CircleAvatar(
+        radius: 42,
+        backgroundImage: FileImage(File(repair.photoPaths.first)),
+        onBackgroundImageError: (error, stackTrace) {},
+      );
+    }
+
+    // Иконка по умолчанию
+    return CircleAvatar(
+      radius: 42,
+      backgroundColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+      child: Icon(
+        Icons.build_circle,
+        size: 56,
+        color: theme.colorScheme.primary,
+      ),
     );
   }
 }

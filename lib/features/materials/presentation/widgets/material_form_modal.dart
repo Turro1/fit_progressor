@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-// import '../../../../core/theme/app_colors.dart';
-import '../../domain/entities/material.dart' as material_entity;
+import '../../domain/entities/material.dart' as entity;
 import '../bloc/material_bloc.dart';
 import '../bloc/material_event.dart';
+import '../bloc/material_state.dart' as material_state;
+import 'package:fit_progressor/shared/widgets/base_form_modal.dart';
 
 class MaterialFormModal extends StatefulWidget {
-  final material_entity.Material? material;
+  final entity.Material? material;
 
   const MaterialFormModal({Key? key, this.material}) : super(key: key);
 
@@ -19,12 +21,14 @@ class _MaterialFormModalState extends State<MaterialFormModal> {
   late TextEditingController _quantityController;
   late TextEditingController _minQuantityController;
   late TextEditingController _costController;
-  late material_entity.MaterialUnit _selectedUnit;
+
   final _formKey = GlobalKey<FormState>();
+  entity.MaterialUnit _selectedUnit = entity.MaterialUnit.pcs;
 
   @override
   void initState() {
     super.initState();
+
     _nameController = TextEditingController(text: widget.material?.name ?? '');
     _quantityController = TextEditingController(
       text: widget.material?.quantity.toString() ?? '0',
@@ -35,7 +39,10 @@ class _MaterialFormModalState extends State<MaterialFormModal> {
     _costController = TextEditingController(
       text: widget.material?.cost.toString() ?? '0',
     );
-    _selectedUnit = widget.material?.unit ?? material_entity.MaterialUnit.pcs;
+
+    if (widget.material != null) {
+      _selectedUnit = widget.material!.unit;
+    }
   }
 
   @override
@@ -49,189 +56,197 @@ class _MaterialFormModalState extends State<MaterialFormModal> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final borderRadius = theme.cardTheme.shape is RoundedRectangleBorder
-        ? (theme.cardTheme.shape as RoundedRectangleBorder).borderRadius
-        : BorderRadius.circular(12);
+    return BlocConsumer<MaterialBloc, material_state.MaterialState>(
+      listener: (context, state) {
+        if (state is material_state.MaterialOperationSuccess) {
+          Navigator.pop(context);
+        }
+      },
+      builder: (context, state) {
+        final isLoading = state is material_state.MaterialLoading;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.cardTheme.color,
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(
-            borderRadius.resolve(Directionality.of(context)).topLeft.x,
+        return BaseFormModal(
+          titleIcon: Icon(
+            widget.material == null ? Icons.inventory_2 : Icons.edit,
           ),
-        ),
-      ),
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+          titleText: widget.material == null
+              ? 'Новый материал'
+              : 'Редактировать материал',
+          showDragHandle: true,
+          centeredTitle: true,
+          isLoading: isLoading,
+          formKey: _formKey,
+          formFields: [
+            TextFormField(
+              controller: _nameController,
+              decoration: InputDecoration(
+                labelText: 'Название',
+                hintText: 'Масло моторное 5W-40',
+                helperText: 'Введите название материала',
+                prefixIcon: const Icon(Icons.label),
+                counterText: '${_nameController.text.length}/100',
+              ),
+              maxLength: 100,
+              textCapitalization: TextCapitalization.sentences,
+              onChanged: (value) {
+                setState(() {}); // Update counter
+              },
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Пожалуйста, введите название';
+                }
+                if (value.trim().length < 2) {
+                  return 'Название должно содержать минимум 2 символа';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+            Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildHeader(context),
-                const SizedBox(height: 24),
-                _buildTextField(
-                  _nameController,
-                  'Название',
-                  validator: (val) {
-                    if (val == null || val.isEmpty) return 'Введите название';
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: _buildTextField(
-                        _quantityController,
-                        'Количество',
-                        keyboardType: TextInputType.number,
-                      ),
+                Expanded(
+                  flex: 2,
+                  child: TextFormField(
+                    controller: _quantityController,
+                    decoration: const InputDecoration(
+                      labelText: 'Количество',
+                      hintText: '10',
+                      helperText: 'Текущее количество',
+                      prefixIcon: Icon(Icons.numbers),
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(flex: 1, child: _buildUnitDropdown(context)),
-                  ],
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                    ],
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Введите количество';
+                      }
+                      final quantity = double.tryParse(value);
+                      if (quantity == null || quantity < 0) {
+                        return 'Некорректное значение';
+                      }
+                      return null;
+                    },
+                  ),
                 ),
-                const SizedBox(height: 16),
-                _buildTextField(
-                  _minQuantityController,
-                  'Минимальный остаток',
-                  keyboardType: TextInputType.number,
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 1,
+                  child: DropdownButtonFormField<entity.MaterialUnit>(
+                    initialValue: _selectedUnit,
+                    decoration: const InputDecoration(
+                      labelText: 'Ед. изм.',
+                      helperText: ' ',
+                    ),
+                    items: entity.MaterialUnit.values.map((unit) {
+                      return DropdownMenuItem(
+                        value: unit,
+                        child: Text(unit.displayName),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() {
+                          _selectedUnit = value;
+                        });
+                      }
+                    },
+                  ),
                 ),
-                const SizedBox(height: 16),
-                _buildTextField(
-                  _costController,
-                  'Закупочная цена (₽)',
-                  keyboardType: TextInputType.number,
-                ),
-                const SizedBox(height: 24),
-                _buildActionButtons(context),
               ],
             ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    final theme = Theme.of(context);
-    return Row(
-      children: [
-        Icon(
-          widget.material == null ? Icons.add_shopping_cart : Icons.edit,
-          color: theme.colorScheme.secondary,
-          size: 28,
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            widget.material == null
-                ? 'Новый материал'
-                : 'Редактировать материал',
-            style: theme.textTheme.headlineSmall?.copyWith(
-              color: theme.colorScheme.onSurface,
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _minQuantityController,
+              decoration: const InputDecoration(
+                labelText: 'Минимальное количество',
+                hintText: '5',
+                helperText: 'Уровень для предупреждения о низком запасе',
+                prefixIcon: Icon(Icons.low_priority),
+              ),
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+              ],
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Введите минимальное количество';
+                }
+                final minQuantity = double.tryParse(value);
+                if (minQuantity == null || minQuantity < 0) {
+                  return 'Некорректное значение';
+                }
+                return null;
+              },
             ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTextField(
-    TextEditingController controller,
-    String label, {
-    TextInputType keyboardType = TextInputType.text,
-    String? Function(String?)? validator,
-  }) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: keyboardType,
-      decoration: InputDecoration(labelText: label),
-      validator: validator,
-    );
-  }
-
-  Widget _buildUnitDropdown(BuildContext context) {
-    final theme = Theme.of(context);
-    return DropdownButtonFormField<material_entity.MaterialUnit>(
-      initialValue: _selectedUnit,
-      decoration: const InputDecoration(labelText: 'Ед. изм.'),
-      dropdownColor: theme.colorScheme.surface,
-      items: material_entity.MaterialUnit.values.map((unit) {
-        return DropdownMenuItem(value: unit, child: Text(unit.displayName));
-      }).toList(),
-      onChanged: (value) {
-        if (value != null) {
-          setState(() => _selectedUnit = value);
-        }
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _costController,
+              decoration: const InputDecoration(
+                labelText: 'Стоимость за единицу',
+                hintText: '500.00',
+                helperText: 'Цена за одну единицу измерения',
+                prefixIcon: Icon(Icons.attach_money),
+                suffixText: '₽',
+              ),
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+              ],
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Введите стоимость';
+                }
+                final cost = double.tryParse(value);
+                if (cost == null || cost < 0) {
+                  return 'Некорректное значение';
+                }
+                return null;
+              },
+            ),
+          ],
+          onSubmit: _submitForm,
+          submitButtonText: widget.material == null ? 'Добавить' : 'Сохранить',
+        );
       },
     );
   }
 
-  Widget _buildActionButtons(BuildContext context) {
-    final theme = Theme.of(context);
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(
-            'Отмена',
-            style: theme.textTheme.labelLarge?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        ElevatedButton(
-          onPressed: _submitForm,
-          style: theme.elevatedButtonTheme.style,
-          child: Text(widget.material == null ? 'Добавить' : 'Сохранить'),
-        ),
-      ],
-    );
-  }
-
   void _submitForm() {
-    if (_formKey.currentState!.validate()) {
-      final name = _nameController.text.trim();
-      final quantity = double.tryParse(_quantityController.text) ?? 0;
-      final minQuantity = double.tryParse(_minQuantityController.text) ?? 0;
-      final cost = double.tryParse(_costController.text) ?? 0;
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
 
-      if (widget.material == null) {
-        context.read<MaterialBloc>().add(
-          AddMaterialEvent(
-            name: name,
-            quantity: quantity,
-            unit: _selectedUnit,
-            minQuantity: minQuantity,
-            cost: cost,
-          ),
-        );
-      } else {
-        final updatedMaterial = widget.material!.copyWith(
-          name: name,
+    final quantity = double.parse(_quantityController.text);
+    final minQuantity = double.parse(_minQuantityController.text);
+    final cost = double.parse(_costController.text);
+
+    if (widget.material == null) {
+      context.read<MaterialBloc>().add(
+        AddMaterialEvent(
+          name: _nameController.text.trim(),
           quantity: quantity,
           unit: _selectedUnit,
           minQuantity: minQuantity,
           cost: cost,
-        );
-        context.read<MaterialBloc>().add(
-          UpdateMaterialEvent(material: updatedMaterial),
-        );
-      }
-      Navigator.pop(context);
+        ),
+      );
+    } else {
+      context.read<MaterialBloc>().add(
+        UpdateMaterialEvent(
+          material: entity.Material(
+            id: widget.material!.id,
+            name: _nameController.text.trim(),
+            quantity: quantity,
+            unit: _selectedUnit,
+            minQuantity: minQuantity,
+            cost: cost,
+            createdAt: widget.material!.createdAt,
+          ),
+        ),
+      );
     }
   }
 }

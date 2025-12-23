@@ -16,12 +16,16 @@ class AddRepair implements UseCase<Repair, AddRepairParams> {
 
     final repair = Repair(
       id: 'repair_${now.millisecondsSinceEpoch}',
-      name: params.name,
+      partType: params.partType,
+      partPosition: params.partPosition,
+      photoPaths: params.photoPaths,
       description: params.description,
       date: params.date,
       cost: params.cost,
       clientId: params.clientId,
       carId: params.carId,
+      carMake: params.carMake,
+      carModel: params.carModel,
       createdAt: now,
     );
 
@@ -30,29 +34,41 @@ class AddRepair implements UseCase<Repair, AddRepairParams> {
 }
 
 class AddRepairParams extends Equatable {
-  final String name;
+  final String partType;
+  final String partPosition;
+  final List<String> photoPaths;
   final String description;
   final DateTime date;
   final double cost;
   final String clientId;
   final String carId;
+  final String carMake;
+  final String carModel;
 
   const AddRepairParams({
-    required this.name,
+    required this.partType,
+    required this.partPosition,
+    this.photoPaths = const [],
     this.description = '',
     required this.date,
     required this.cost,
     required this.clientId,
     required this.carId,
+    this.carMake = '',
+    this.carModel = '',
   });
 
   @override
   List<Object?> get props => [
-    name,
+    partType,
+    partPosition,
+    photoPaths,
     description,
     date,
     cost,
     clientId,
     carId,
+    carMake,
+    carModel,
   ];
 }

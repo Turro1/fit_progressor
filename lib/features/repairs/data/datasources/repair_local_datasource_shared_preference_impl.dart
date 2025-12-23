@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fit_progressor/features/repairs/data/datasources/repair_local_datasource.dart';
 import 'package:fit_progressor/features/repairs/data/models/repair_model.dart';
+import 'package:fit_progressor/features/repairs/domain/entities/part_types.dart';
 
 class RepairLocalDataSourceImpl implements RepairLocalDataSource {
   final SharedPreferences sharedPreferences;
@@ -15,7 +16,15 @@ class RepairLocalDataSourceImpl implements RepairLocalDataSource {
     final jsonString = sharedPreferences.getString(repairsKey);
     if (jsonString != null) {
       final List<dynamic> jsonList = json.decode(jsonString);
-      return jsonList.map((json) => RepairModel.fromJson(json)).toList();
+      return jsonList.map((jsonMap) {
+        // Миграция старых данных без новых полей
+        if (!jsonMap.containsKey('partType')) {
+          jsonMap['partType'] = PartTypes.shock;
+          jsonMap['partPosition'] = PartPositions.frontLeft;
+          jsonMap['photoPaths'] = [];
+        }
+        return RepairModel.fromJson(jsonMap);
+      }).toList();
     }
     return [];
   }
@@ -52,9 +61,11 @@ class RepairLocalDataSourceImpl implements RepairLocalDataSource {
     final repairs = await getRepairs();
     final lowercaseQuery = query.toLowerCase();
     return repairs.where((repair) {
-      // TODO: Improve search by including car and client details.
-      // This will require fetching car and client data first.
-      return repair.description.toLowerCase().contains(lowercaseQuery);
+      return repair.partType.toLowerCase().contains(lowercaseQuery) ||
+          repair.partPosition.toLowerCase().contains(lowercaseQuery) ||
+          repair.description.toLowerCase().contains(lowercaseQuery) ||
+          repair.carMake.toLowerCase().contains(lowercaseQuery) ||
+          repair.carModel.toLowerCase().contains(lowercaseQuery);
     }).toList();
   }
 

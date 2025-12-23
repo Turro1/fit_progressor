@@ -8,6 +8,7 @@ import '../bloc/car_event.dart';
 import '../bloc/car_state.dart';
 import '../widgets/car_card.dart';
 import '../widgets/car_form_modal.dart';
+import '../widgets/car_repairs_modal.dart';
 
 class CarsPage extends StatefulWidget {
   const CarsPage({Key? key}) : super(key: key);
@@ -57,7 +58,7 @@ class _CarsPageState extends State<CarsPage> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15.0),
               child: AppSearchBar(
-                hintText: 'Поиск по марке, модели или номеру...',
+                hintText: 'Поиск по марке, модели, номеру или владельцу...',
                 onSearch: (query) {
                   context.read<CarBloc>().add(SearchCarsEvent(query: query));
                 },
@@ -123,7 +124,7 @@ class _CarsPageState extends State<CarsPage> {
                           final car = state.cars[index];
                           return CarCard(
                             car: car,
-
+                            onTap: () => _showCarRepairsModal(context, car),
                             onEdit: () => _showCarModal(context, car),
                             onDelete: () => _confirmDelete(context, car),
                           );
@@ -148,6 +149,15 @@ class _CarsPageState extends State<CarsPage> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => CarFormModal(car: car),
+    );
+  }
+
+  void _showCarRepairsModal(BuildContext context, Car car) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => CarRepairsModal(car: car),
     );
   }
 

@@ -18,24 +18,43 @@ class LoadRepairs extends RepairsEvent {
 }
 
 class AddRepairEvent extends RepairsEvent {
-  final String name;
+  final String partType;
+  final String partPosition;
+  final List<String> photoPaths;
   final String description;
   final DateTime date;
   final double cost;
   final String clientId;
   final String carId;
+  final String carMake;
+  final String carModel;
 
   const AddRepairEvent({
-    required this.name,
-    required this.description,
+    required this.partType,
+    required this.partPosition,
+    this.photoPaths = const [],
+    this.description = '',
     required this.date,
     required this.cost,
     required this.clientId,
     required this.carId,
+    this.carMake = '',
+    this.carModel = '',
   });
 
   @override
-  List<Object?> get props => [name, description, date, cost, clientId, carId];
+  List<Object?> get props => [
+        partType,
+        partPosition,
+        photoPaths,
+        description,
+        date,
+        cost,
+        clientId,
+        carId,
+        carMake,
+        carModel,
+      ];
 }
 
 class UpdateRepairEvent extends RepairsEvent {

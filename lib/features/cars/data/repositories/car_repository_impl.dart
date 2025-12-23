@@ -1,21 +1,20 @@
 import 'package:dartz/dartz.dart';
 
 import 'package:fit_progressor/core/error/exceptions/cache_exception.dart';
+import 'package:fit_progressor/core/error/exceptions/duplicate_exception.dart';
 import 'package:fit_progressor/core/error/failures/cache_failure.dart';
+import 'package:fit_progressor/core/error/failures/duplicate_failure.dart';
 import 'package:fit_progressor/core/error/failures/failure.dart';
 import 'package:fit_progressor/features/cars/data/datasources/car_local_data_source.dart';
 import 'package:fit_progressor/features/cars/data/models/car_model.dart';
 import 'package:fit_progressor/features/cars/domain/entities/car.dart';
 import 'package:fit_progressor/features/cars/domain/repositories/car_repository.dart';
-import 'package:fit_progressor/features/repairs/domain/repositories/repair_repository.dart';
 
 class CarRepositoryImpl implements CarRepository {
   final CarLocalDataSource localDataSource;
-  final RepairRepository repairRepository;
 
   CarRepositoryImpl({
     required this.localDataSource,
-    required this.repairRepository,
   });
 
   @override
@@ -44,9 +43,11 @@ class CarRepositoryImpl implements CarRepository {
       final carModel = CarModel.fromEntity(car);
       final result = await localDataSource.addCar(carModel);
       return Right(result);
+    } on DuplicateException catch (e) {
+      return Left(DuplicateFailure(message: e.message));
     } on CacheException {
       return Left(
-        CacheFailure(message: 'Cache error occurred while adding car'),
+        const CacheFailure(message: 'Cache error occurred while adding car'),
       );
     } catch (e) {
       return Left(
@@ -58,22 +59,6 @@ class CarRepositoryImpl implements CarRepository {
   @override
   Future<Either<Failure, void>> deleteCar(String carId) async {
     try {
-      // Cascade delete: first delete all repairs for this car
-      final repairsResult = await repairRepository.getRepairs(carId: carId);
-
-      await repairsResult.fold(
-        (failure) async {
-          // If we can't get repairs, just continue - maybe there are none
-        },
-        (repairs) async {
-          // Delete each repair
-          for (final repair in repairs) {
-            await repairRepository.deleteRepair(repair.id);
-          }
-        },
-      );
-
-      // Finally, delete the car
       await localDataSource.deleteCar(carId);
       return const Right(null);
     } on CacheException {
@@ -149,14 +134,16 @@ class CarRepositoryImpl implements CarRepository {
       final clientModel = CarModel.fromEntity(car);
       final result = await localDataSource.updateCar(clientModel);
       return Right(result);
+    } on DuplicateException catch (e) {
+      return Left(DuplicateFailure(message: e.message));
     } on CacheException {
       return Left(
-        CacheFailure(message: 'Cache error occurred while updating client'),
+        const CacheFailure(message: 'Cache error occurred while updating car'),
       );
     } catch (e) {
       return Left(
         CacheFailure(
-          message: 'Unexpected error occurred while updating client: $e',
+          message: 'Unexpected error occurred while updating car: $e',
         ),
       );
     }

@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
-import 'package:fit_progressor/features/repairs/domain/entities/repair.dart';
 import '../../domain/entities/dashboard_stats.dart';
+import '../../domain/entities/repair_with_details.dart';
 
 abstract class DashboardState extends Equatable {
   const DashboardState();
@@ -15,7 +15,7 @@ class DashboardLoading extends DashboardState {}
 
 class DashboardLoaded extends DashboardState {
   final DashboardStats stats;
-  final List<Repair> recentRepairs;
+  final List<RepairWithDetails> recentRepairs;
 
   const DashboardLoaded({required this.stats, required this.recentRepairs});
 

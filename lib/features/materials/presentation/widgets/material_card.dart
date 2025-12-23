@@ -1,107 +1,137 @@
 import 'package:flutter/material.dart';
 import 'package:fit_progressor/shared/widgets/entity_card.dart';
-import '../../../../core/utils/currency_formatter.dart';
-import '../../domain/entities/material.dart' as material_entity;
+import '../../domain/entities/material.dart' as entity;
 
 class MaterialCard extends StatelessWidget {
-  final material_entity.Material material;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
+  final entity.Material material;
   final VoidCallback? onTap;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   const MaterialCard({
     Key? key,
     required this.material,
-    required this.onEdit,
-    required this.onDelete,
     this.onTap,
+    this.onEdit,
+    this.onDelete,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    Color stockColor =
-        theme.textTheme.bodyMedium?.color ?? theme.colorScheme.onSurface;
-    if (material.isLowStock) {
-      stockColor = theme.colorScheme.secondary;
+    // Determine stock status color
+    Color getStatusColor() {
+      if (material.isOutOfStock) {
+        return theme.colorScheme.error;
+      } else if (material.isLowStock) {
+        return Colors.orange;
+      }
+      return theme.colorScheme.secondary;
     }
-    if (material.isOutOfStock) {
-      stockColor = theme.colorScheme.error;
+
+    // Determine stock status icon
+    IconData getStatusIcon() {
+      if (material.isOutOfStock) {
+        return Icons.error_outline;
+      } else if (material.isLowStock) {
+        return Icons.warning_amber_rounded;
+      }
+      return Icons.check_circle_outline;
     }
 
     return EntityCard(
       slidableKey: ValueKey(material.id),
       groupTag: 'material_actions',
-      enableSwipeActions: true,
+      enableSwipeActions: onEdit != null || onDelete != null,
       onTap: onTap,
       onEdit: onEdit,
       onDelete: onDelete,
-      leading: Icon(
-        Icons.precision_manufacturing_rounded,
-        size: 30,
-        color: theme.colorScheme.primary,
+      compact: false,
+      elevation: 2.0,
+      leading: Container(
+        width: 56,
+        height: 56,
+        decoration: BoxDecoration(
+          color: getStatusColor().withValues(alpha: 0.2),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(
+          Icons.inventory_2_rounded,
+          size: 32,
+          color: getStatusColor(),
+        ),
       ),
       title: Text(
         material.name,
-        style: theme.textTheme.titleLarge,
+        style: theme.textTheme.titleLarge?.copyWith(
+          fontWeight: FontWeight.w500,
+        ),
+        maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      subtitle: Row(
         children: [
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              Icon(
-                Icons.shopping_cart,
-                size: 16,
-                color: theme.textTheme.bodyMedium?.color,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Закуп. цена: ${CurrencyFormatter.format(material.cost)}',
-                  style: theme.textTheme.bodyMedium,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
+          Icon(
+            getStatusIcon(),
+            size: 16,
+            color: getStatusColor(),
           ),
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              Icon(
-                Icons.inventory,
-                size: 16,
-                color: theme.textTheme.bodyMedium?.color,
+          const SizedBox(width: 4),
+          Expanded(
+            child: Text(
+              '${material.quantity.toStringAsFixed(1)} ${material.unit.displayName}',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: getStatusColor(),
+                fontWeight: FontWeight.w500,
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Мин. остаток: ${material.minQuantity} ${material.unit.displayName}',
-                  style: theme.textTheme.bodyMedium,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('На складе:', style: theme.textTheme.bodyMedium),
-              Text(
-                '${material.quantity} ${material.unit.displayName}',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: stockColor,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
       ),
+      metadata: [
+        Row(
+          children: [
+            Icon(
+              Icons.attach_money,
+              size: 14,
+              color: theme.iconTheme.color?.withValues(alpha: 0.6),
+            ),
+            const SizedBox(width: 4),
+            Text(
+              '${material.cost.toStringAsFixed(2)} ₽',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.textTheme.bodySmall?.color?.withValues(
+                  alpha: 0.6,
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Icon(
+              Icons.low_priority,
+              size: 14,
+              color: theme.iconTheme.color?.withValues(alpha: 0.6),
+            ),
+            const SizedBox(width: 4),
+            Text(
+              'Мин: ${material.minQuantity.toStringAsFixed(1)} ${material.unit.displayName}',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.textTheme.bodySmall?.color?.withValues(
+                  alpha: 0.6,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+      trailing: onTap != null
+          ? Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+              color: theme.iconTheme.color,
+            )
+          : null,
     );
   }
 }

@@ -46,7 +46,7 @@ class DashboardPage extends StatelessWidget {
     final theme = Theme.of(context);
     final groupedRepairs = groupBy(
       state.recentRepairs,
-      (repair) => DateUtils.dateOnly(repair.date),
+      (repair) => DateUtils.dateOnly(repair.repair.date),
     );
 
     return ListView(
@@ -115,7 +115,7 @@ class DashboardPage extends StatelessWidget {
                     style: theme.textTheme.titleMedium,
                   ),
                 ),
-                ...repairs.map((repair) => DashboardRepairCard(repair: repair)),
+                ...repairs.map((repair) => DashboardRepairCard(repairWithDetails: repair)),
               ],
             );
           }),

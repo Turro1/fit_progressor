@@ -2,8 +2,6 @@ import 'package:dartz/dartz.dart';
 import 'package:fit_progressor/core/error/exceptions/cache_exception.dart';
 import 'package:fit_progressor/core/error/failures/cache_failure.dart';
 import 'package:fit_progressor/core/error/failures/failure.dart';
-import 'package:fit_progressor/features/cars/domain/repositories/car_repository.dart';
-import 'package:fit_progressor/features/clients/domain/repositories/client_repository.dart';
 import 'package:fit_progressor/features/repairs/data/datasources/repair_local_datasource.dart';
 import 'package:fit_progressor/features/repairs/data/models/repair_model.dart';
 import 'package:fit_progressor/features/repairs/domain/entities/repair.dart';
@@ -11,13 +9,9 @@ import 'package:fit_progressor/features/repairs/domain/repositories/repair_repos
 
 class RepairRepositoryImpl implements RepairRepository {
   final RepairLocalDataSource localDataSource;
-  final CarRepository carRepository;
-  final ClientRepository clientRepository;
 
   RepairRepositoryImpl({
     required this.localDataSource,
-    required this.carRepository,
-    required this.clientRepository,
   });
 
   @override

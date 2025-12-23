@@ -1,13 +1,12 @@
-import 'package:fit_progressor/features/repairs/domain/entities/repair.dart';
+import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_bloc.dart';
+import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_event.dart';
+import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_state.dart';
+import 'package:fit_progressor/features/repairs/presentation/widgets/repair_card.dart';
+import 'package:fit_progressor/features/repairs/presentation/widgets/repair_form_modal.dart';
+import 'package:fit_progressor/shared/widgets/app_search_bar.dart';
 import 'package:fit_progressor/shared/widgets/empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../bloc/repairs_bloc.dart';
-import '../bloc/repairs_event.dart';
-import '../bloc/repairs_state.dart';
-import '../widgets/repair_card.dart';
-import '../widgets/repair_form_modal.dart';
-import 'package:fit_progressor/shared/widgets/app_search_bar.dart';
 
 class RepairsPage extends StatefulWidget {
   const RepairsPage({Key? key}) : super(key: key);
@@ -20,8 +19,18 @@ class _RepairsPageState extends State<RepairsPage> {
   @override
   void initState() {
     super.initState();
-    // Load repairs on init
     context.read<RepairsBloc>().add(const LoadRepairs());
+  }
+
+  void _showRepairModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => BlocProvider.value(
+        value: context.read<RepairsBloc>(),
+        child: const RepairFormModal(),
+      ),
+    );
   }
 
   @override
@@ -44,7 +53,7 @@ class _RepairsPageState extends State<RepairsPage> {
               child: Row(
                 children: [
                   Icon(
-                    Icons.build,
+                    Icons.build_circle,
                     color: theme.colorScheme.onSurface,
                     size: 28,
                   ),
@@ -57,11 +66,11 @@ class _RepairsPageState extends State<RepairsPage> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15.0),
               child: AppSearchBar(
-                hintText: 'Поиск по описанию...',
+                hintText: 'Поиск по ремонтам...',
                 onSearch: (query) {
                   context.read<RepairsBloc>().add(
-                    SearchRepairsEvent(query: query),
-                  );
+                        SearchRepairsEvent(query: query),
+                      );
                 },
               ),
             ),
@@ -103,7 +112,7 @@ class _RepairsPageState extends State<RepairsPage> {
                             SizedBox(
                               height: MediaQuery.of(context).size.height * 0.5,
                               child: EmptyState(
-                                icon: Icons.build_circle_outlined,
+                                icon: Icons.build_circle,
                                 title: 'Нет ремонтов',
                                 message:
                                     'Добавьте первый ремонт, нажав кнопку "Добавить"',
@@ -119,15 +128,10 @@ class _RepairsPageState extends State<RepairsPage> {
                         context.read<RepairsBloc>().add(const LoadRepairs());
                       },
                       child: ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 15),
+                        padding: const EdgeInsets.symmetric(horizontal: 15.0),
                         itemCount: state.repairs.length,
                         itemBuilder: (context, index) {
-                          final repair = state.repairs[index];
-                          return RepairCard(
-                            repair: repair,
-                            onEdit: () => _showRepairModal(context, repair),
-                            onDelete: () => _confirmDelete(context, repair),
-                          );
+                          return RepairCard(repair: state.repairs[index]);
                         },
                       ),
                     );
@@ -139,47 +143,6 @@ class _RepairsPageState extends State<RepairsPage> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  void _showRepairModal(BuildContext context, [Repair? repair]) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => RepairFormModal(repair: repair),
-    );
-  }
-
-  void _confirmDelete(BuildContext context, Repair repair) {
-    final theme = Theme.of(context);
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Удалить ремонт?'),
-        content: Text(
-          'Вы уверены, что хотите удалить этот ремонт?',
-          style: theme.textTheme.bodyMedium,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Отмена'),
-          ),
-          TextButton(
-            onPressed: () {
-              context.read<RepairsBloc>().add(
-                DeleteRepairEvent(repairId: repair.id),
-              );
-              Navigator.pop(context);
-            },
-            child: Text(
-              'Удалить',
-              style: TextStyle(color: theme.colorScheme.error),
-            ),
-          ),
-        ],
       ),
     );
   }

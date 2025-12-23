@@ -1,10 +1,11 @@
+import 'package:fit_progressor/shared/widgets/app_search_bar.dart';
+import 'package:fit_progressor/shared/widgets/empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:fit_progressor/shared/widgets/app_search_bar.dart';
-import '../../domain/entities/material.dart' as material_entity;
+import '../../domain/entities/material.dart' as entity;
 import '../bloc/material_bloc.dart';
 import '../bloc/material_event.dart';
-import '../bloc/material_state.dart' as m_state;
+import '../bloc/material_state.dart' as material_state;
 import '../widgets/material_card.dart';
 import '../widgets/material_form_modal.dart';
 
@@ -26,6 +27,7 @@ class _MaterialsPageState extends State<MaterialsPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showMaterialModal(context),
@@ -36,38 +38,37 @@ class _MaterialsPageState extends State<MaterialsPage> {
       body: SafeArea(
         child: Column(
           children: [
+            // Header with icon and title
             Padding(
               padding: const EdgeInsets.all(15.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.inventory_2,
-                        color: theme.colorScheme.onSurface,
-                        size: 28,
-                      ),
-                      const SizedBox(width: 10),
-                      Text('Склад', style: theme.textTheme.headlineMedium),
-                    ],
+                  Icon(
+                    Icons.inventory_2,
+                    color: theme.colorScheme.onSurface,
+                    size: 28,
                   ),
-                  const SizedBox(height: 20),
-                  AppSearchBar(
-                    onSearch: (query) {
-                      context.read<MaterialBloc>().add(
-                        SearchMaterialsEvent(query: query),
-                      );
-                    },
-                    hintText: 'Поиск материалов...',
-                  ),
+                  const SizedBox(width: 10),
+                  Text('Материалы', style: theme.textTheme.headlineMedium),
                 ],
               ),
             ),
+            // Search bar
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              child: AppSearchBar(
+                hintText: 'Поиск по названию материала...',
+                onSearch: (query) {
+                  context.read<MaterialBloc>().add(SearchMaterialsEvent(query: query));
+                },
+              ),
+            ),
+            const SizedBox(height: 15),
+            // Content
             Expanded(
-              child: BlocConsumer<MaterialBloc, m_state.MaterialState>(
+              child: BlocConsumer<MaterialBloc, material_state.MaterialState>(
                 listener: (context, state) {
-                  if (state is m_state.MaterialError) {
+                  if (state is material_state.MaterialError) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(state.message),
@@ -75,7 +76,7 @@ class _MaterialsPageState extends State<MaterialsPage> {
                       ),
                     );
                   }
-                  if (state is m_state.MaterialOperationSuccess) {
+                  if (state is material_state.MaterialOperationSuccess) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(state.message),
@@ -85,11 +86,11 @@ class _MaterialsPageState extends State<MaterialsPage> {
                   }
                 },
                 builder: (context, state) {
-                  if (state is m_state.MaterialLoading) {
+                  if (state is material_state.MaterialLoading) {
                     return const Center(child: CircularProgressIndicator());
                   }
 
-                  if (state is m_state.MaterialLoaded) {
+                  if (state is material_state.MaterialLoaded) {
                     if (state.materials.isEmpty) {
                       return RefreshIndicator(
                         onRefresh: () async {
@@ -99,11 +100,11 @@ class _MaterialsPageState extends State<MaterialsPage> {
                           children: [
                             SizedBox(
                               height: MediaQuery.of(context).size.height * 0.5,
-                              child: Center(
-                                child: Text(
-                                  'Нажмите "+" для добавления материала',
-                                  style: theme.textTheme.bodyMedium,
-                                ),
+                              child: EmptyState(
+                                icon: Icons.inventory_2_outlined,
+                                title: 'Нет материалов',
+                                message:
+                                    'Добавьте первый материал, нажав кнопку "Добавить"',
                               ),
                             ),
                           ],
@@ -140,29 +141,23 @@ class _MaterialsPageState extends State<MaterialsPage> {
     );
   }
 
-  void _showMaterialModal(
-    BuildContext context, [
-    material_entity.Material? material,
-  ]) {
+  void _showMaterialModal(BuildContext context, [entity.Material? material]) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => BlocProvider.value(
-        value: BlocProvider.of<MaterialBloc>(context),
-        child: MaterialFormModal(material: material),
-      ),
+      builder: (context) => MaterialFormModal(material: material),
     );
   }
 
-  void _confirmDelete(BuildContext context, material_entity.Material material) {
+  void _confirmDelete(BuildContext context, entity.Material material) {
     final theme = Theme.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Удалить материал?'),
         content: Text(
-          'Это действие нельзя отменить.',
+          'Вы уверены, что хотите удалить "${material.name}"?',
           style: theme.textTheme.bodyMedium,
         ),
         actions: [
@@ -172,9 +167,7 @@ class _MaterialsPageState extends State<MaterialsPage> {
           ),
           TextButton(
             onPressed: () {
-              context.read<MaterialBloc>().add(
-                DeleteMaterialEvent(materialId: material.id),
-              );
+              context.read<MaterialBloc>().add(DeleteMaterialEvent(materialId: material.id));
               Navigator.pop(context);
             },
             child: Text(

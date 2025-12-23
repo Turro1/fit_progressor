@@ -1,3 +1,4 @@
+import 'package:fit_progressor/features/repairs/data/services/repair_image_service.dart';
 import 'package:fit_progressor/features/repairs/domain/usecases/add_repair.dart';
 import 'package:fit_progressor/features/repairs/domain/usecases/delete_repair.dart';
 import 'package:fit_progressor/features/repairs/domain/usecases/get_repairs.dart';
@@ -13,6 +14,7 @@ class RepairsBloc extends Bloc<RepairsEvent, RepairsState> {
   final UpdateRepair updateRepair;
   final DeleteRepair deleteRepair;
   final SearchRepairs searchRepairs;
+  final RepairImageService imageService;
 
   RepairsBloc({
     required this.getRepairs,
@@ -20,6 +22,7 @@ class RepairsBloc extends Bloc<RepairsEvent, RepairsState> {
     required this.updateRepair,
     required this.deleteRepair,
     required this.searchRepairs,
+    required this.imageService,
   }) : super(RepairsInitial()) {
     on<LoadRepairs>(_onLoadRepairs);
     on<AddRepairEvent>(_onAddRepair);
@@ -49,13 +52,33 @@ class RepairsBloc extends Bloc<RepairsEvent, RepairsState> {
     Emitter<RepairsState> emit,
   ) async {
     emit(RepairsLoading());
+
+    // 1. Сгенерировать ID для ремонта
+    final repairId = 'repair_${DateTime.now().millisecondsSinceEpoch}';
+
+    // 2. Сохранить изображения в постоянное хранилище
+    final savedPhotoPaths = <String>[];
+    for (final tempPath in event.photoPaths) {
+      try {
+        final savedPath = await imageService.saveImage(tempPath, repairId);
+        savedPhotoPaths.add(savedPath);
+      } catch (e) {
+        // Логировать, но продолжать
+      }
+    }
+
+    // 3. Создать параметры с сохранёнными путями
     final params = AddRepairParams(
-      name: event.name,
+      partType: event.partType,
+      partPosition: event.partPosition,
+      photoPaths: savedPhotoPaths,
       description: event.description,
       date: event.date,
       cost: event.cost,
       clientId: event.clientId,
       carId: event.carId,
+      carMake: event.carMake,
+      carModel: event.carModel,
     );
     final result = await addRepair(params);
 

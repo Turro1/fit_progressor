@@ -1,3 +1,4 @@
+import 'package:fit_progressor/core/error/failures/duplicate_failure.dart';
 import 'package:fit_progressor/core/usecases/usecase.dart';
 import 'package:fit_progressor/features/clients/domain/usecases/add_client.dart';
 import 'package:fit_progressor/features/clients/domain/usecases/delete_client.dart';
@@ -52,10 +53,13 @@ class ClientBloc extends Bloc<ClientEvent, ClientState> {
 
     await result.fold(
       (failure) async {
-        emit(const ClientError(message: 'Не удалось добавить автомобиль'));
+        final message = failure is DuplicateFailure
+            ? failure.message
+            : 'Не удалось добавить клиента';
+        emit(ClientError(message: message));
       },
       (client) async {
-        emit(const ClientOperationSuccess(message: 'Автомобиль добавлен'));
+        emit(const ClientOperationSuccess(message: 'Клиент добавлен'));
         add(LoadClients());
       },
     );
@@ -70,10 +74,13 @@ class ClientBloc extends Bloc<ClientEvent, ClientState> {
 
     await result.fold(
       (failure) async {
-        emit(const ClientError(message: 'Не удалось обновить автомобиль'));
+        final message = failure is DuplicateFailure
+            ? failure.message
+            : 'Не удалось обновить клиента';
+        emit(ClientError(message: message));
       },
       (client) async {
-        emit(const ClientOperationSuccess(message: 'Автомобиль обновлен'));
+        emit(const ClientOperationSuccess(message: 'Клиент обновлен'));
         add(LoadClients());
       },
     );
