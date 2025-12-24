@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'repair_status.dart';
 
 class Repair extends Equatable {
   final String id;
@@ -12,6 +13,7 @@ class Repair extends Equatable {
   final String carId;
   final String carMake;
   final String carModel;
+  final RepairStatus status;
   final DateTime createdAt;
 
   const Repair({
@@ -26,6 +28,7 @@ class Repair extends Equatable {
     required this.carId,
     this.carMake = '',
     this.carModel = '',
+    this.status = RepairStatus.pending,
     required this.createdAt,
   });
 
@@ -44,6 +47,7 @@ class Repair extends Equatable {
     carId,
     carMake,
     carModel,
+    status,
     createdAt,
   ];
 
@@ -59,6 +63,7 @@ class Repair extends Equatable {
     String? carId,
     String? carMake,
     String? carModel,
+    RepairStatus? status,
     DateTime? createdAt,
   }) {
     return Repair(
@@ -73,6 +78,7 @@ class Repair extends Equatable {
       carId: carId ?? this.carId,
       carMake: carMake ?? this.carMake,
       carModel: carModel ?? this.carModel,
+      status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
     );
   }

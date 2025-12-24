@@ -10,7 +10,6 @@ import '../../domain/usecases/search_cars.dart';
 import '../../domain/usecases/update_car.dart';
 import 'car_event.dart';
 import 'car_state.dart';
-import 'package:flutter/foundation.dart'; // Import for debugPrint
 
 class CarBloc extends Bloc<CarEvent, CarState> {
   final GetCars getCars;
@@ -40,24 +39,15 @@ class CarBloc extends Bloc<CarEvent, CarState> {
   }
 
   Future<void> _onLoadCars(LoadCars event, Emitter<CarState> emit) async {
-    debugPrint('DEBUG: CarBloc - _onLoadCars event received.');
     emit(CarLoading());
     try {
       final result = await getCars(NoParams());
       result.fold(
-        (failure) {
-          debugPrint('DEBUG: CarBloc - _onLoadCars failed: $failure');
-          emit(const CarError(message: 'Не удалось загрузить автомобили'));
-        },
-        (cars) {
-          debugPrint(
-            'DEBUG: CarBloc - _onLoadCars loaded ${cars.length} cars.',
-          );
-          emit(CarLoaded(cars: cars));
-        },
+        (failure) =>
+            emit(const CarError(message: 'Не удалось загрузить автомобили')),
+        (cars) => emit(CarLoaded(cars: cars)),
       );
     } catch (e) {
-      debugPrint('DEBUG: CarBloc - _onLoadCars caught exception: $e');
       emit(CarError(message: 'Произошла ошибка при загрузке автомобилей: $e'));
     }
   }
@@ -81,7 +71,7 @@ class CarBloc extends Bloc<CarEvent, CarState> {
       },
       (car) async {
         emit(const CarOperationSuccess(message: 'Автомобиль добавлен'));
-        add(LoadCars());
+        // Не вызываем LoadCars здесь - это будет сделано в UI после закрытия модала
       },
     );
   }
@@ -102,7 +92,7 @@ class CarBloc extends Bloc<CarEvent, CarState> {
       },
       (car) async {
         emit(const CarOperationSuccess(message: 'Автомобиль обновлен'));
-        add(LoadCars());
+        // Не вызываем LoadCars здесь - это будет сделано в UI после закрытия модала
       },
     );
   }

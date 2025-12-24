@@ -1,4 +1,5 @@
 import 'package:fit_progressor/features/repairs/domain/entities/repair.dart';
+import 'package:fit_progressor/features/repairs/domain/entities/repair_status.dart';
 
 class RepairModel extends Repair {
   const RepairModel({
@@ -13,6 +14,7 @@ class RepairModel extends Repair {
     required super.carId,
     super.carMake = '',
     super.carModel = '',
+    super.status = RepairStatus.pending,
     required super.createdAt,
   });
 
@@ -21,7 +23,8 @@ class RepairModel extends Repair {
       id: json['id'] as String,
       partType: json['partType'] as String,
       partPosition: json['partPosition'] as String,
-      photoPaths: (json['photoPaths'] as List<dynamic>?)
+      photoPaths:
+          (json['photoPaths'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
           const [],
@@ -32,6 +35,9 @@ class RepairModel extends Repair {
       carId: json['carId'] as String,
       carMake: json['carMake'] as String? ?? '',
       carModel: json['carModel'] as String? ?? '',
+      status: json['status'] != null
+          ? RepairStatus.fromString(json['status'] as String)
+          : RepairStatus.pending,
       createdAt: DateTime.parse(json['createdAt'] as String),
     );
   }
@@ -49,6 +55,7 @@ class RepairModel extends Repair {
       'carId': carId,
       'carMake': carMake,
       'carModel': carModel,
+      'status': status.value,
       'createdAt': createdAt.toIso8601String(),
     };
   }
@@ -66,6 +73,7 @@ class RepairModel extends Repair {
       carId: repair.carId,
       carMake: repair.carMake,
       carModel: repair.carModel,
+      status: repair.status,
       createdAt: repair.createdAt,
     );
   }

@@ -5,7 +5,6 @@ import 'package:fit_progressor/features/clients/domain/repositories/client_repos
 import '../../../../core/usecases/usecase.dart';
 import '../entities/car.dart';
 import '../repositories/car_repository.dart';
-import 'package:flutter/foundation.dart';
 
 class GetCars implements UseCase<List<Car>, NoParams> {
   final CarRepository carRepository;
@@ -15,15 +14,8 @@ class GetCars implements UseCase<List<Car>, NoParams> {
 
   @override
   Future<Either<Failure, List<Car>>> call(NoParams params) async {
-    debugPrint('DEBUG: GetCars UseCase - call method started.');
     final carsEither = await carRepository.getCars();
-    debugPrint(
-      'DEBUG: GetCars UseCase - carRepository.getCars() returned: $carsEither',
-    );
     final clientsEither = await clientRepository.getAllClients();
-    debugPrint(
-      'DEBUG: GetCars UseCase - clientRepository.getAllClients() returned: $clientsEither',
-    );
 
     return carsEither.fold((failure) => Left(failure), (cars) {
       return clientsEither.fold((failure) => Left(failure), (clients) {

@@ -62,8 +62,9 @@ class StepIndicator extends StatelessWidget {
                               style: theme.textTheme.labelMedium?.copyWith(
                                 color: isActive
                                     ? theme.colorScheme.onSecondary
-                                    : theme.colorScheme.onSurface
-                                        .withValues(alpha: 0.6),
+                                    : theme.colorScheme.onSurface.withValues(
+                                        alpha: 0.6,
+                                      ),
                                 fontWeight: FontWeight.w600,
                               ),
                             ),

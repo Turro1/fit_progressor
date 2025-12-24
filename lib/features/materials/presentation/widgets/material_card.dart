@@ -72,11 +72,7 @@ class MaterialCard extends StatelessWidget {
       ),
       subtitle: Row(
         children: [
-          Icon(
-            getStatusIcon(),
-            size: 16,
-            color: getStatusColor(),
-          ),
+          Icon(getStatusIcon(), size: 16, color: getStatusColor()),
           const SizedBox(width: 4),
           Expanded(
             child: Text(
@@ -102,9 +98,7 @@ class MaterialCard extends StatelessWidget {
             Text(
               '${material.cost.toStringAsFixed(2)} ₽',
               style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.textTheme.bodySmall?.color?.withValues(
-                  alpha: 0.6,
-                ),
+                color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6),
               ),
             ),
             const SizedBox(width: 16),
@@ -117,9 +111,7 @@ class MaterialCard extends StatelessWidget {
             Text(
               'Мин: ${material.minQuantity.toStringAsFixed(1)} ${material.unit.displayName}',
               style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.textTheme.bodySmall?.color?.withValues(
-                  alpha: 0.6,
-                ),
+                color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6),
               ),
             ),
           ],

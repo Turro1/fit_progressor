@@ -64,29 +64,62 @@ class DashboardPage extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 20),
-        GridView.count(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: 2,
-          crossAxisSpacing: 15,
-          mainAxisSpacing: 15,
-          childAspectRatio: 1.8,
-          children: [
-            StatCard(
-              label: 'Активные ремонты',
-              value: state.stats.activeRepairs.toString(),
-              icon: Icons.build,
-              valueColor: theme.colorScheme.secondary,
-            ),
-            StatCard(
-              label: 'Низкий остаток',
-              value: state.stats.lowStockMaterials.toString(),
-              icon: Icons.warning_amber,
-              valueColor: state.stats.lowStockMaterials > 0
-                  ? theme.colorScheme.primary
-                  : theme.colorScheme.onSurface,
-            ),
-          ],
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final cardWidth = (constraints.maxWidth - 15) / 2;
+            final cardHeight = cardWidth * 0.65;
+
+            return GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 2,
+              crossAxisSpacing: 15,
+              mainAxisSpacing: 15,
+              childAspectRatio: cardWidth / cardHeight,
+              children: [
+                StatCard(
+                  label: 'Активные ремонты',
+                  value: state.stats.activeRepairs.toString(),
+                  icon: Icons.build,
+                  valueColor: theme.colorScheme.secondary,
+                ),
+                StatCard(
+                  label: 'Просрочено',
+                  value: state.stats.overdueRepairs.toString(),
+                  icon: Icons.schedule,
+                  valueColor: state.stats.overdueRepairs > 0
+                      ? theme.colorScheme.error
+                      : Colors.green,
+                ),
+                StatCard(
+                  label: 'Месячная выручка',
+                  value: '${_formatMoney(state.stats.monthlyRevenue)} ₽',
+                  icon: Icons.attach_money,
+                  valueColor: theme.colorScheme.tertiary,
+                ),
+                StatCard(
+                  label: 'Выполнено за месяц',
+                  value: state.stats.completedRepairsThisMonth.toString(),
+                  icon: Icons.check_circle,
+                  valueColor: Colors.green,
+                ),
+                StatCard(
+                  label: 'Средний чек',
+                  value: '${_formatMoney(state.stats.averageRepairCost)} ₽',
+                  icon: Icons.receipt_long,
+                  valueColor: theme.colorScheme.primary,
+                ),
+                StatCard(
+                  label: 'Низкий остаток',
+                  value: state.stats.lowStockMaterials.toString(),
+                  icon: Icons.warning_amber,
+                  valueColor: state.stats.lowStockMaterials > 0
+                      ? theme.colorScheme.error
+                      : theme.colorScheme.onSurface,
+                ),
+              ],
+            );
+          },
         ),
         const SizedBox(height: 25),
         Text('Предстоящие ремонты', style: theme.textTheme.titleLarge),
@@ -115,7 +148,9 @@ class DashboardPage extends StatelessWidget {
                     style: theme.textTheme.titleMedium,
                   ),
                 ),
-                ...repairs.map((repair) => DashboardRepairCard(repairWithDetails: repair)),
+                ...repairs.map(
+                  (repair) => DashboardRepairCard(repairWithDetails: repair),
+                ),
               ],
             );
           }),
@@ -134,5 +169,15 @@ class DashboardPage extends StatelessWidget {
     } else {
       return DateFormat('d MMMM y', 'ru').format(date);
     }
+  }
+
+  String _formatMoney(double value) {
+    if (value >= 1000000) {
+      return '${(value / 1000000).toStringAsFixed(1)}М';
+    } else if (value >= 1000) {
+      final formatted = NumberFormat('#,##0', 'ru').format(value.round());
+      return formatted;
+    }
+    return value.toStringAsFixed(0);
   }
 }

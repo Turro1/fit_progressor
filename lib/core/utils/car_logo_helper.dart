@@ -10,7 +10,10 @@ class CarLogoHelper {
     final normalizedMake = make.toLowerCase().trim().replaceAll(' ', '-');
     final path = '$_basePath$normalizedMake.png';
 
-    developer.log('CarLogoHelper: make="$make" -> path="$path"', name: 'CarLogoHelper');
+    developer.log(
+      'CarLogoHelper: make="$make" -> path="$path"',
+      name: 'CarLogoHelper',
+    );
 
     return path;
   }

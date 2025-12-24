@@ -59,7 +59,9 @@ class _MaterialsPageState extends State<MaterialsPage> {
               child: AppSearchBar(
                 hintText: 'Поиск по названию материала...',
                 onSearch: (query) {
-                  context.read<MaterialBloc>().add(SearchMaterialsEvent(query: query));
+                  context.read<MaterialBloc>().add(
+                    SearchMaterialsEvent(query: query),
+                  );
                 },
               ),
             ),
@@ -83,6 +85,8 @@ class _MaterialsPageState extends State<MaterialsPage> {
                         backgroundColor: theme.colorScheme.secondary,
                       ),
                     );
+                    // Перезагружаем список после успешной операции
+                    context.read<MaterialBloc>().add(LoadMaterials());
                   }
                 },
                 builder: (context, state) {
@@ -167,7 +171,9 @@ class _MaterialsPageState extends State<MaterialsPage> {
           ),
           TextButton(
             onPressed: () {
-              context.read<MaterialBloc>().add(DeleteMaterialEvent(materialId: material.id));
+              context.read<MaterialBloc>().add(
+                DeleteMaterialEvent(materialId: material.id),
+              );
               Navigator.pop(context);
             },
             child: Text(

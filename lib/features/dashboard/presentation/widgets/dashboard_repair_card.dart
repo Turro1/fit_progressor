@@ -7,10 +7,8 @@ import 'package:intl/intl.dart';
 class DashboardRepairCard extends StatelessWidget {
   final RepairWithDetails repairWithDetails;
 
-  const DashboardRepairCard({
-    Key? key,
-    required this.repairWithDetails,
-  }) : super(key: key);
+  const DashboardRepairCard({Key? key, required this.repairWithDetails})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -58,16 +56,18 @@ class DashboardRepairCard extends StatelessWidget {
                                   Icon(
                                     Icons.build_outlined,
                                     size: 16,
-                                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                                    color: theme.colorScheme.onSurface
+                                        .withValues(alpha: 0.6),
                                   ),
                                   const SizedBox(width: 4),
                                   Expanded(
                                     child: Text(
                                       repair.partPosition,
-                                      style: theme.textTheme.bodyMedium?.copyWith(
-                                        color: theme.colorScheme.onSurface
-                                            .withValues(alpha: 0.8),
-                                      ),
+                                      style: theme.textTheme.bodyMedium
+                                          ?.copyWith(
+                                            color: theme.colorScheme.onSurface
+                                                .withValues(alpha: 0.8),
+                                          ),
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
@@ -79,7 +79,9 @@ class DashboardRepairCard extends StatelessWidget {
                                 Icon(
                                   Icons.directions_car_outlined,
                                   size: 16,
-                                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                                  color: theme.colorScheme.onSurface.withValues(
+                                    alpha: 0.6,
+                                  ),
                                 ),
                                 const SizedBox(width: 4),
                                 Expanded(
@@ -126,15 +128,19 @@ class DashboardRepairCard extends StatelessWidget {
                                   const SizedBox(width: 4),
                                   Text(
                                     '${DateFormat('dd.MM.yyyy').format(repair.date)} - ${DateFormat('HH:mm').format(repair.date)}',
-                                    style: theme.textTheme.labelMedium?.copyWith(
-                                      color: theme.colorScheme.onPrimaryContainer,
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                    style: theme.textTheme.labelMedium
+                                        ?.copyWith(
+                                          color: theme
+                                              .colorScheme
+                                              .onPrimaryContainer,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                   ),
                                 ],
                               ),
                             ),
-                          if (_shouldShowTime(repair.date)) const SizedBox(height: 4),
+                          if (_shouldShowTime(repair.date))
+                            const SizedBox(height: 4),
                           // Стоимость
                           Container(
                             padding: const EdgeInsets.symmetric(
@@ -172,31 +178,29 @@ class DashboardRepairCard extends StatelessWidget {
     // Приоритет: логотип автомобиля, затем фото, затем иконка
     if (repair.carMake.isNotEmpty) {
       return CircleAvatar(
-        radius: 42,
+        radius: 28,
         backgroundColor: Colors.white,
         child: Image.asset(
-                  CarLogoHelper.getLogoPath(repair.carMake),
-                  fit: BoxFit.none,
-                  scale: 22,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Icon(
-                      Icons.directions_car_rounded,
-                      size: 164,
-                      color: theme.colorScheme.primary,
-                    );
-                  },
-            )
+          CarLogoHelper.getLogoPath(repair.carMake),
+          fit: BoxFit.contain,
+          width: 40,
+          height: 40,
+          errorBuilder: (context, error, stackTrace) {
+            return Icon(
+              Icons.directions_car_rounded,
+              size: 32,
+              color: theme.colorScheme.primary,
+            );
+          },
+        ),
       );
     }
 
     if (repair.photoPaths.isNotEmpty) {
       return CircleAvatar(
-        radius: 50,
+        radius: 28,
         backgroundImage: FileImage(File(repair.photoPaths.first)),
-        onBackgroundImageError: (error, stackTrace) {
-          // Обработка ошибки загрузки изображения
-        },
-        child: null,
+        onBackgroundImageError: (error, stackTrace) {},
       );
     }
 
@@ -204,10 +208,16 @@ class DashboardRepairCard extends StatelessWidget {
   }
 
   Widget _buildDefaultIcon(ThemeData theme) {
-    return Icon(
-      Icons.build_circle_rounded,
-      color: theme.colorScheme.primary,
-      size: 64,
+    return CircleAvatar(
+      radius: 28,
+      backgroundColor: theme.colorScheme.surfaceContainerHighest.withValues(
+        alpha: 0.3,
+      ),
+      child: Icon(
+        Icons.build_circle_rounded,
+        color: theme.colorScheme.primary,
+        size: 32,
+      ),
     );
   }
 

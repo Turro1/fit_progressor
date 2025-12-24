@@ -15,21 +15,26 @@ class ClientLoading extends ClientState {}
 class ClientLoaded extends ClientState {
   final List<Client> clients;
   final String? searchQuery;
+  final Map<String, int> carsCountByClient;
 
-  const ClientLoaded({required this.clients, this.searchQuery});
+  const ClientLoaded({
+    required this.clients,
+    this.searchQuery,
+    this.carsCountByClient = const {},
+  });
 
   @override
-  List<Object?> get props => [clients, searchQuery];
+  List<Object?> get props => [clients, searchQuery, carsCountByClient];
 
   ClientLoaded copyWith({
     List<Client>? clients,
     String? searchQuery,
-    List<String>? availableMakes,
-    List<String>? availableModels,
+    Map<String, int>? carsCountByClient,
   }) {
     return ClientLoaded(
       clients: clients ?? this.clients,
       searchQuery: searchQuery ?? this.searchQuery,
+      carsCountByClient: carsCountByClient ?? this.carsCountByClient,
     );
   }
 }

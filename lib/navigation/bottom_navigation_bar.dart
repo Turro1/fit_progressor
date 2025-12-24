@@ -18,13 +18,11 @@ class CustomBottomNavigationBar extends StatelessWidget {
         border: Border(
           top: BorderSide(color: theme.dividerColor),
         ), // Changed from AppColors.borderColor
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: const Color(
-              0x33000000,
-            ), // Using a standard subtle shadow color
+            color: Color(0x33000000), // Using a standard subtle shadow color
             blurRadius: 15,
-            offset: const Offset(0, -5),
+            offset: Offset(0, -5),
           ),
         ],
       ),

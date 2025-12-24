@@ -69,8 +69,8 @@ class _RepairsPageState extends State<RepairsPage> {
                 hintText: 'Поиск по ремонтам...',
                 onSearch: (query) {
                   context.read<RepairsBloc>().add(
-                        SearchRepairsEvent(query: query),
-                      );
+                    SearchRepairsEvent(query: query),
+                  );
                 },
               ),
             ),
@@ -94,6 +94,8 @@ class _RepairsPageState extends State<RepairsPage> {
                         backgroundColor: theme.colorScheme.secondary,
                       ),
                     );
+                    // Перезагружаем список после успешной операции
+                    context.read<RepairsBloc>().add(const LoadRepairs());
                   }
                 },
                 builder: (context, state) {

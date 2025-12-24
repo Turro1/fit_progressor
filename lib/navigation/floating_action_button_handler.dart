@@ -54,6 +54,4 @@ class FloatingActionButtonHandler extends StatelessWidget {
       builder: (context) => const CarFormModal(),
     );
   }
-
-
 }

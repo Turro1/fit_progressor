@@ -1,4 +1,7 @@
 import 'package:fit_progressor/features/clients/domain/entities/client.dart';
+import 'package:fit_progressor/features/cars/presentation/bloc/car_bloc.dart';
+import 'package:fit_progressor/features/cars/presentation/bloc/car_event.dart';
+import 'package:fit_progressor/features/cars/presentation/bloc/car_state.dart';
 import 'package:fit_progressor/shared/widgets/empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -21,8 +24,9 @@ class _ClientsPageState extends State<ClientsPage> {
   @override
   void initState() {
     super.initState();
-    // Load clients on init
+    // Load clients and cars on init
     context.read<ClientBloc>().add(LoadClients());
+    context.read<CarBloc>().add(LoadCars());
   }
 
   @override
@@ -86,15 +90,17 @@ class _ClientsPageState extends State<ClientsPage> {
                         backgroundColor: theme.colorScheme.secondary,
                       ),
                     );
+                    // Перезагружаем список после успешной операции
+                    context.read<ClientBloc>().add(LoadClients());
                   }
                 },
-                builder: (context, state) {
-                  if (state is ClientLoading) {
+                builder: (context, clientState) {
+                  if (clientState is ClientLoading) {
                     return const Center(child: CircularProgressIndicator());
                   }
 
-                  if (state is ClientLoaded) {
-                    if (state.clients.isEmpty) {
+                  if (clientState is ClientLoaded) {
+                    if (clientState.clients.isEmpty) {
                       return RefreshIndicator(
                         onRefresh: () async {
                           context.read<ClientBloc>().add(LoadClients());
@@ -103,7 +109,7 @@ class _ClientsPageState extends State<ClientsPage> {
                           children: [
                             SizedBox(
                               height: MediaQuery.of(context).size.height * 0.5,
-                              child: EmptyState(
+                              child: const EmptyState(
                                 icon: Icons.people_outline,
                                 title: 'Нет клиентов',
                                 message:
@@ -115,23 +121,39 @@ class _ClientsPageState extends State<ClientsPage> {
                       );
                     }
 
-                    return RefreshIndicator(
-                      onRefresh: () async {
-                        context.read<ClientBloc>().add(LoadClients());
+                    return BlocBuilder<CarBloc, CarState>(
+                      builder: (context, carState) {
+                        // Подсчет автомобилей для каждого клиента
+                        Map<String, int> carsCountByClient = {};
+                        if (carState is CarLoaded) {
+                          for (final car in carState.cars) {
+                            carsCountByClient[car.clientId] =
+                                (carsCountByClient[car.clientId] ?? 0) + 1;
+                          }
+                        }
+
+                        return RefreshIndicator(
+                          onRefresh: () async {
+                            context.read<ClientBloc>().add(LoadClients());
+                            context.read<CarBloc>().add(LoadCars());
+                          },
+                          child: ListView.builder(
+                            padding: const EdgeInsets.symmetric(horizontal: 15),
+                            itemCount: clientState.clients.length,
+                            itemBuilder: (context, index) {
+                              final client = clientState.clients[index];
+                              return ClientCard(
+                                client: client,
+                                carsCount: carsCountByClient[client.id] ?? 0,
+                                onEdit: () => _showClientModal(context, client),
+                                onDelete: () => _confirmDelete(context, client),
+                                onTap: () =>
+                                    _showClientCarsModal(context, client),
+                              );
+                            },
+                          ),
+                        );
                       },
-                      child: ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 15),
-                        itemCount: state.clients.length,
-                        itemBuilder: (context, index) {
-                          final client = state.clients[index];
-                          return ClientCard(
-                            client: client,
-                            onEdit: () => _showClientModal(context, client),
-                            onDelete: () => _confirmDelete(context, client),
-                            onTap: () => _showClientCarsModal(context, client),
-                          );
-                        },
-                      ),
                     );
                   }
 

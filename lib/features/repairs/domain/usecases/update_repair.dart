@@ -7,9 +7,7 @@ import '../repositories/repair_repository.dart';
 class UpdateRepair implements UseCase<Repair, Repair> {
   final RepairRepository repairRepository;
 
-  UpdateRepair({
-    required this.repairRepository,
-  });
+  UpdateRepair({required this.repairRepository});
 
   @override
   Future<Either<Failure, Repair>> call(Repair newRepair) async {

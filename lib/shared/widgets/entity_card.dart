@@ -83,7 +83,10 @@ class EntityCard extends StatelessWidget {
                         const EdgeInsets.all(0),
                       ), // Keep padding as is
                     ),
-                    child: const Icon(Icons.edit, size: 24),
+                    child: const Tooltip(
+                      message: 'Редактировать',
+                      child: Icon(Icons.edit, size: 24),
+                    ),
                   ),
                 ),
               ],
@@ -120,7 +123,10 @@ class EntityCard extends StatelessWidget {
                         const EdgeInsets.all(0),
                       ), // Keep padding as is
                     ),
-                    child: const Icon(Icons.delete, size: 24),
+                    child: const Tooltip(
+                      message: 'Удалить',
+                      child: Icon(Icons.delete, size: 24),
+                    ),
                   ),
                 ),
               ],

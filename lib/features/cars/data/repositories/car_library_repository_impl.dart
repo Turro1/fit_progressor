@@ -19,13 +19,13 @@ class CarLibraryRepositoryImpl implements CarLibraryRepository {
       return Right(library);
     } on CacheException {
       return Left(
-        const CacheFailure(
+         CacheFailure(
           message: 'Cache error occurred while retrieving car library',
         ),
       );
     } catch (e) {
       return Left(
-        CacheFailure(
+         CacheFailure(
           message: 'Unexpected error occurred while retrieving car library: $e',
         ),
       );
@@ -45,7 +45,7 @@ class CarLibraryRepositoryImpl implements CarLibraryRepository {
       );
     } catch (e) {
       return Left(
-        CacheFailure(
+         CacheFailure(
           message: 'Unexpected error occurred while retrieving car makes: $e',
         ),
       );

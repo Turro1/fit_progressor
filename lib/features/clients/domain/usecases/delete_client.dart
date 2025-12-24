@@ -26,16 +26,15 @@ class DeleteClient implements UseCase<void, String> {
       (cars) async {
         // Delete all repairs for each car
         for (final car in cars) {
-          final repairsResult = await repairRepository.getRepairs(carId: car.id);
-          await repairsResult.fold(
-            (failure) async {},
-            (repairs) async {
-              // Delete each repair
-              for (final repair in repairs) {
-                await repairRepository.deleteRepair(repair.id);
-              }
-            },
+          final repairsResult = await repairRepository.getRepairs(
+            carId: car.id,
           );
+          await repairsResult.fold((failure) async {}, (repairs) async {
+            // Delete each repair
+            for (final repair in repairs) {
+              await repairRepository.deleteRepair(repair.id);
+            }
+          });
           // Delete the car
           await carRepository.deleteCar(car.id);
         }

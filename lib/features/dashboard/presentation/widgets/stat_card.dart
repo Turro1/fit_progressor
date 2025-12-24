@@ -20,22 +20,39 @@ class StatCard extends StatelessWidget {
     final theme = Theme.of(context);
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(15),
+        padding: const EdgeInsets.all(12),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Flexible(child: Text(label, style: theme.textTheme.bodyMedium)),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: theme.textTheme.bodyMedium,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 8),
                 Icon(icon, color: theme.colorScheme.primary, size: 20),
               ],
             ),
             const SizedBox(height: 8),
-            Text(
-              value,
-              style: theme.textTheme.headlineSmall?.copyWith(color: valueColor),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                value,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  color: valueColor,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ],
         ),

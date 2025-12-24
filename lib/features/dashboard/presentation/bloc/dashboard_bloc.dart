@@ -60,7 +60,11 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
                   (cars) {
                     // Фильтруем будущие ремонты (включая сегодняшние)
                     final today = DateTime.now();
-                    final todayOnly = DateTime(today.year, today.month, today.day);
+                    final todayOnly = DateTime(
+                      today.year,
+                      today.month,
+                      today.day,
+                    );
                     final futureRepairs = repairs.where((repair) {
                       final repairDateOnly = DateTime(
                         repair.date.year,
@@ -95,15 +99,15 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
                     }).toList();
 
                     if (kDebugMode) {
-                      debugPrint(
-                        'Upcoming repairs: ${enrichedRepairs.length}',
-                      );
+                      debugPrint('Upcoming repairs: ${enrichedRepairs.length}');
                     }
 
-                    emit(DashboardLoaded(
-                      stats: stats,
-                      recentRepairs: enrichedRepairs,
-                    ));
+                    emit(
+                      DashboardLoaded(
+                        stats: stats,
+                        recentRepairs: enrichedRepairs,
+                      ),
+                    );
                   },
                 );
               },

@@ -115,7 +115,9 @@ class _MaterialFormModalState extends State<MaterialFormModal> {
                       helperText: 'Текущее количество',
                       prefixIcon: Icon(Icons.numbers),
                     ),
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
                     ],
@@ -166,7 +168,9 @@ class _MaterialFormModalState extends State<MaterialFormModal> {
                 helperText: 'Уровень для предупреждения о низком запасе',
                 prefixIcon: Icon(Icons.low_priority),
               ),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
               ],
@@ -191,7 +195,9 @@ class _MaterialFormModalState extends State<MaterialFormModal> {
                 prefixIcon: Icon(Icons.attach_money),
                 suffixText: '₽',
               ),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
               ],

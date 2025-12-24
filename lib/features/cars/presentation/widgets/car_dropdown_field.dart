@@ -51,7 +51,7 @@ class _CarDropdownFieldState extends State<CarDropdownField> {
             .where((item) => item.toLowerCase().contains(query.toLowerCase()))
             .toList();
       }
-      _isDropdownVisible = query.isNotEmpty && _filteredItems.isNotEmpty;
+      _isDropdownVisible = query.isNotEmpty;
     });
   }
 
@@ -67,7 +67,10 @@ class _CarDropdownFieldState extends State<CarDropdownField> {
           decoration: InputDecoration(
             labelText: widget.label,
             hintText: widget.hint,
-            suffixIcon: const Icon(Icons.arrow_drop_down),
+            suffixIcon: const Tooltip(
+              message: 'Показать список',
+              child: Icon(Icons.arrow_drop_down),
+            ),
           ),
           onChanged: (value) {
             _filterItems(value);
@@ -83,44 +86,60 @@ class _CarDropdownFieldState extends State<CarDropdownField> {
         if (_isDropdownVisible)
           Container(
             margin: const EdgeInsets.only(top: 4),
-            constraints: const BoxConstraints(maxHeight: 200),
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.3,
+            ),
             decoration: BoxDecoration(
               color: theme.colorScheme.surface,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: theme.colorScheme.outline),
             ),
-            child: ListView.builder(
-              shrinkWrap: true,
-              padding: EdgeInsets.zero,
-              itemCount: _filteredItems.length,
-              itemBuilder: (context, index) {
-                final item = _filteredItems[index];
-                return InkWell(
-                  onTap: () {
-                    _controller.text = item;
-                    widget.onChanged(item);
-                    setState(() {
-                      _isDropdownVisible = false;
-                    });
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(
-                          color: theme.colorScheme.outline,
-                          width: index < _filteredItems.length - 1 ? 1 : 0,
+            child: _filteredItems.isEmpty
+                ? Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(
+                      'Ничего не найдено',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.6,
                         ),
                       ),
                     ),
-                    child: Text(item, style: theme.textTheme.bodyMedium),
+                  )
+                : ListView.builder(
+                    shrinkWrap: true,
+                    padding: EdgeInsets.zero,
+                    itemCount: _filteredItems.length,
+                    itemBuilder: (context, index) {
+                      final item = _filteredItems[index];
+                      return InkWell(
+                        onTap: () {
+                          _controller.text = item;
+                          widget.onChanged(item);
+                          setState(() {
+                            _isDropdownVisible = false;
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            border: Border(
+                              bottom: BorderSide(
+                                color: theme.colorScheme.outline,
+                                width: index < _filteredItems.length - 1
+                                    ? 1
+                                    : 0,
+                              ),
+                            ),
+                          ),
+                          child: Text(item, style: theme.textTheme.bodyMedium),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
           ),
       ],
     );

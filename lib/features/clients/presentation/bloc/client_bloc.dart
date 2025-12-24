@@ -38,7 +38,7 @@ class ClientBloc extends Bloc<ClientEvent, ClientState> {
     final result = await getClients(NoParams());
     result.fold(
       (failure) =>
-          emit(const ClientError(message: 'Не удалось загрузить автомобили')),
+          emit(const ClientError(message: 'Не удалось загрузить клиентов')),
       (clients) => emit(ClientLoaded(clients: clients)),
     );
   }
@@ -60,7 +60,7 @@ class ClientBloc extends Bloc<ClientEvent, ClientState> {
       },
       (client) async {
         emit(const ClientOperationSuccess(message: 'Клиент добавлен'));
-        add(LoadClients());
+        // Не вызываем LoadClients здесь - это будет сделано в UI после закрытия модала
       },
     );
   }
@@ -81,7 +81,7 @@ class ClientBloc extends Bloc<ClientEvent, ClientState> {
       },
       (client) async {
         emit(const ClientOperationSuccess(message: 'Клиент обновлен'));
-        add(LoadClients());
+        // Не вызываем LoadClients здесь - это будет сделано в UI после закрытия модала
       },
     );
   }
@@ -95,10 +95,10 @@ class ClientBloc extends Bloc<ClientEvent, ClientState> {
 
     await result.fold(
       (failure) async {
-        emit(const ClientError(message: 'Не удалось удалить автомобиль'));
+        emit(const ClientError(message: 'Не удалось удалить клиента'));
       },
       (_) async {
-        emit(const ClientOperationSuccess(message: 'Автомобиль удален'));
+        emit(const ClientOperationSuccess(message: 'Клиент удален'));
         add(LoadClients());
       },
     );

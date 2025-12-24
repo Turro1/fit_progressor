@@ -61,7 +61,7 @@ class MaterialBloc extends Bloc<MaterialEvent, MaterialState> {
           emit(const MaterialError(message: 'Не удалось добавить материал')),
       (_) async {
         emit(const MaterialOperationSuccess(message: 'Материал добавлен'));
-        add(LoadMaterials());
+        // Не вызываем LoadMaterials здесь - это будет сделано в UI после закрытия модала
       },
     );
   }
@@ -78,7 +78,7 @@ class MaterialBloc extends Bloc<MaterialEvent, MaterialState> {
           emit(const MaterialError(message: 'Не удалось обновить материал')),
       (_) async {
         emit(const MaterialOperationSuccess(message: 'Материал обновлен'));
-        add(LoadMaterials());
+        // Не вызываем LoadMaterials здесь - это будет сделано в UI после закрытия модала
       },
     );
   }

@@ -68,6 +68,8 @@ class _CarsPageState extends State<CarsPage> {
             // Content
             Expanded(
               child: BlocConsumer<CarBloc, CarState>(
+                listenWhen: (previous, current) =>
+                    current is CarError || current is CarOperationSuccess,
                 listener: (context, state) {
                   if (state is CarError) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -84,8 +86,11 @@ class _CarsPageState extends State<CarsPage> {
                         backgroundColor: theme.colorScheme.secondary,
                       ),
                     );
+                    context.read<CarBloc>().add(LoadCars());
                   }
                 },
+                buildWhen: (previous, current) =>
+                    current is CarLoading || current is CarLoaded,
                 builder: (context, state) {
                   if (state is CarLoading) {
                     return const Center(child: CircularProgressIndicator());
@@ -101,7 +106,7 @@ class _CarsPageState extends State<CarsPage> {
                           children: [
                             SizedBox(
                               height: MediaQuery.of(context).size.height * 0.5,
-                              child: EmptyState(
+                              child: const EmptyState(
                                 icon: Icons.directions_car_outlined,
                                 title: 'Нет автомобилей',
                                 message:

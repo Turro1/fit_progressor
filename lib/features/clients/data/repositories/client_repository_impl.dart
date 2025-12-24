@@ -13,9 +13,7 @@ import 'package:fit_progressor/features/clients/domain/repositories/client_repos
 class ClientRepositoryImpl implements ClientRepository {
   final ClientLocalDataSource localDataSource;
 
-  ClientRepositoryImpl({
-    required this.localDataSource,
-  });
+  ClientRepositoryImpl({required this.localDataSource});
 
   @override
   Future<Either<Failure, Client>> addClient(Client client) async {

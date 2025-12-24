@@ -33,26 +33,27 @@ class CarCard extends StatelessWidget {
       compact: false,
       elevation: 2.0,
       leading: CircleAvatar(
-        radius: 38,
+        radius: 28,
         backgroundColor: Colors.white,
         child: Image.asset(
-            CarLogoHelper.getLogoPath(car.make),
-            fit: BoxFit.none,
-            scale: 24,
-            errorBuilder: (context, error, stackTrace) {
-              developer.log(
-                'Failed to load logo for ${car.make}: $error',
-                name: 'CarCard',
-                error: error,
-                stackTrace: stackTrace,
-              );
-              return Icon(
-                Icons.directions_car_rounded,
-                size: 32,
-                color: theme.colorScheme.primary,
-              );
-            },
-          ),
+          CarLogoHelper.getLogoPath(car.make),
+          fit: BoxFit.contain,
+          width: 40,
+          height: 40,
+          errorBuilder: (context, error, stackTrace) {
+            developer.log(
+              'Failed to load logo for ${car.make}: $error',
+              name: 'CarCard',
+              error: error,
+              stackTrace: stackTrace,
+            );
+            return Icon(
+              Icons.directions_car_rounded,
+              size: 32,
+              color: theme.colorScheme.primary,
+            );
+          },
+        ),
       ),
       title: Text(
         '${car.make} ${car.model}',

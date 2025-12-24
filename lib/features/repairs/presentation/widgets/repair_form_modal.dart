@@ -36,7 +36,8 @@ class RepairFormModal extends StatefulWidget {
 
 class _RepairFormModalState extends State<RepairFormModal> {
   int _currentStep = 0;
-  final int _totalSteps = 3;
+  int get _totalSteps =>
+      widget.repair != null ? 2 : 3; // При редактировании только 2 шага
 
   // Form keys for each step
   final _step1FormKey = GlobalKey<FormState>();
@@ -103,21 +104,34 @@ class _RepairFormModalState extends State<RepairFormModal> {
   }
 
   bool _validateCurrentStep() {
+    // При редактировании пропускаем шаг с клиентом/авто
+    if (widget.repair != null) {
+      switch (_currentStep) {
+        case 0: // Детали ремонта
+          return _step2FormKey.currentState!.validate();
+        case 1: // Фото
+          return true; // Photos are optional
+        default:
+          return false;
+      }
+    }
+
+    // При добавлении нового ремонта все 3 шага
     switch (_currentStep) {
       case 0: // Step 1: Client & Car
         if (!_step1FormKey.currentState!.validate()) {
           return false;
         }
         if (_selectedClientId.isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Выберите клиента')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Выберите клиента')));
           return false;
         }
         if (_selectedCarId.isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Выберите автомобиль')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Выберите автомобиль')));
           return false;
         }
         return true;
@@ -164,20 +178,50 @@ class _RepairFormModalState extends State<RepairFormModal> {
         carModel = car.model;
       }
 
-      context.read<RepairsBloc>().add(
-            AddRepairEvent(
+      // Объединить дату и время
+      final combinedDateTime = DateTime(
+        _selectedDate.year,
+        _selectedDate.month,
+        _selectedDate.day,
+        _selectedTime.hour,
+        _selectedTime.minute,
+      );
+
+      if (widget.repair != null) {
+        // Редактирование существующего ремонта
+        context.read<RepairsBloc>().add(
+          UpdateRepairEvent(
+            repair: widget.repair!.copyWith(
               partType: _selectedPartType,
               partPosition: _selectedPartPosition,
               photoPaths: _selectedPhotoPaths,
               description: _descriptionController.text,
-              date: _selectedDate,
+              date: combinedDateTime,
               cost: double.parse(_costController.text),
               clientId: _selectedClientId,
               carId: _selectedCarId,
               carMake: carMake,
               carModel: carModel,
             ),
-          );
+          ),
+        );
+      } else {
+        // Добавление нового ремонта
+        context.read<RepairsBloc>().add(
+          AddRepairEvent(
+            partType: _selectedPartType,
+            partPosition: _selectedPartPosition,
+            photoPaths: _selectedPhotoPaths,
+            description: _descriptionController.text,
+            date: combinedDateTime,
+            cost: double.parse(_costController.text),
+            clientId: _selectedClientId,
+            carId: _selectedCarId,
+            carMake: carMake,
+            carModel: carModel,
+          ),
+        );
+      }
     }
   }
 
@@ -221,6 +265,19 @@ class _RepairFormModalState extends State<RepairFormModal> {
   }
 
   Widget _buildStepContent() {
+    // При редактировании пропускаем шаг с клиентом/авто
+    if (widget.repair != null) {
+      switch (_currentStep) {
+        case 0:
+          return _buildStep2RepairDetails();
+        case 1:
+          return _buildStep3Photos();
+        default:
+          return const SizedBox();
+      }
+    }
+
+    // При добавлении нового ремонта все 3 шага
     switch (_currentStep) {
       case 0:
         return _buildStep1ClientAndCar();
@@ -276,6 +333,8 @@ class _RepairFormModalState extends State<RepairFormModal> {
                     _selectedCarName = '';
                   });
                 },
+                enabled:
+                    widget.repair == null, // Заблокировано при редактировании
               );
             },
           ),
@@ -304,8 +363,8 @@ class _RepairFormModalState extends State<RepairFormModal> {
               }
               final filteredCars = _selectedClientId.isNotEmpty
                   ? _availableCars
-                      .where((car) => car.clientId == _selectedClientId)
-                      .toList()
+                        .where((car) => car.clientId == _selectedClientId)
+                        .toList()
                   : _availableCars;
               return CarDropdownField(
                 label: 'Автомобиль',
@@ -321,7 +380,10 @@ class _RepairFormModalState extends State<RepairFormModal> {
                     _selectedCarId = car.id;
                   });
                 },
-                enabled: _selectedClientId.isNotEmpty,
+                enabled:
+                    widget.repair == null &&
+                    _selectedClientId
+                        .isNotEmpty, // Заблокировано при редактировании
               );
             },
           ),
@@ -493,19 +555,15 @@ class _RepairFormModalState extends State<RepairFormModal> {
               StepIndicator(
                 currentStep: _currentStep,
                 totalSteps: _totalSteps,
-                stepLabels: const [
-                  'Клиент/Авто',
-                  'Детали',
-                  'Фото',
-                ],
+                stepLabels: widget.repair != null
+                    ? const ['Детали', 'Фото']
+                    : const ['Клиент/Авто', 'Детали', 'Фото'],
               ),
               const SizedBox(height: 24),
 
               // Step Content
               Flexible(
-                child: SingleChildScrollView(
-                  child: _buildStepContent(),
-                ),
+                child: SingleChildScrollView(child: _buildStepContent()),
               ),
               const SizedBox(height: 24),
 
@@ -525,8 +583,8 @@ class _RepairFormModalState extends State<RepairFormModal> {
                       onPressed: isLoading
                           ? null
                           : (_currentStep < _totalSteps - 1
-                              ? _nextStep
-                              : _submitForm),
+                                ? _nextStep
+                                : _submitForm),
                       child: isLoading
                           ? const SizedBox(
                               height: 20,
@@ -537,8 +595,8 @@ class _RepairFormModalState extends State<RepairFormModal> {
                               _currentStep < _totalSteps - 1
                                   ? 'Далее'
                                   : (widget.repair == null
-                                      ? 'Добавить'
-                                      : 'Сохранить'),
+                                        ? 'Добавить'
+                                        : 'Сохранить'),
                             ),
                     ),
                   ),

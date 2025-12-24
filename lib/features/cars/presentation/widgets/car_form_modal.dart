@@ -254,6 +254,6 @@ class _CarFormModalState extends State<CarFormModal> {
         ),
       );
     }
-    Navigator.pop(context);
+    // Don't pop here - let the BLoC listener handle it when CarOperationSuccess is received
   }
 }

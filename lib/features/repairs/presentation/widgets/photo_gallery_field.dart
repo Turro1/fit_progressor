@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'photo_viewer.dart';
 
 class PhotoGalleryField extends StatefulWidget {
   final List<String> initialPhotoPaths;
@@ -77,10 +78,7 @@ class _PhotoGalleryFieldState extends State<PhotoGalleryField> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Фотографии',
-          style: Theme.of(context).textTheme.labelLarge,
-        ),
+        Text('Фотографии', style: Theme.of(context).textTheme.labelLarge),
         const SizedBox(height: 8),
         GridView.builder(
           shrinkWrap: true,
@@ -96,6 +94,16 @@ class _PhotoGalleryFieldState extends State<PhotoGalleryField> {
               return PhotoThumbnail(
                 photoPath: _photoPaths[index],
                 onDelete: () => _removePhoto(index),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => PhotoViewer(
+                        photoPaths: _photoPaths,
+                        initialIndex: index,
+                      ),
+                    ),
+                  );
+                },
               );
             } else {
               return AddPhotoButton(onAdd: _showSourceSelector);
@@ -110,39 +118,41 @@ class _PhotoGalleryFieldState extends State<PhotoGalleryField> {
 class PhotoThumbnail extends StatelessWidget {
   final String photoPath;
   final VoidCallback onDelete;
+  final VoidCallback? onTap;
 
   const PhotoThumbnail({
     Key? key,
     required this.photoPath,
     required this.onDelete,
+    this.onTap,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: Image.file(
-            File(photoPath),
-            fit: BoxFit.cover,
+    return GestureDetector(
+      onTap: onTap,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.file(File(photoPath), fit: BoxFit.cover),
           ),
-        ),
-        Positioned(
-          top: 4,
-          right: 4,
-          child: IconButton(
-            icon: const Icon(Icons.close, size: 20, color: Colors.white),
-            style: IconButton.styleFrom(
-              backgroundColor: Colors.black54,
-              padding: const EdgeInsets.all(4),
-              minimumSize: const Size(28, 28),
+          Positioned(
+            top: 4,
+            right: 4,
+            child: IconButton(
+              icon: const Icon(Icons.close, size: 20, color: Colors.white),
+              style: IconButton.styleFrom(
+                backgroundColor: Colors.black54,
+                padding: const EdgeInsets.all(4),
+                minimumSize: const Size(28, 28),
+              ),
+              onPressed: onDelete,
             ),
-            onPressed: onDelete,
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -150,10 +160,7 @@ class PhotoThumbnail extends StatelessWidget {
 class AddPhotoButton extends StatelessWidget {
   final VoidCallback onAdd;
 
-  const AddPhotoButton({
-    Key? key,
-    required this.onAdd,
-  }) : super(key: key);
+  const AddPhotoButton({Key? key, required this.onAdd}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

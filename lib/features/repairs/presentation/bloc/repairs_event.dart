@@ -44,17 +44,17 @@ class AddRepairEvent extends RepairsEvent {
 
   @override
   List<Object?> get props => [
-        partType,
-        partPosition,
-        photoPaths,
-        description,
-        date,
-        cost,
-        clientId,
-        carId,
-        carMake,
-        carModel,
-      ];
+    partType,
+    partPosition,
+    photoPaths,
+    description,
+    date,
+    cost,
+    clientId,
+    carId,
+    carMake,
+    carModel,
+  ];
 }
 
 class UpdateRepairEvent extends RepairsEvent {

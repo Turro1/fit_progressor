@@ -10,9 +10,7 @@ import 'package:fit_progressor/features/repairs/domain/repositories/repair_repos
 class RepairRepositoryImpl implements RepairRepository {
   final RepairLocalDataSource localDataSource;
 
-  RepairRepositoryImpl({
-    required this.localDataSource,
-  });
+  RepairRepositoryImpl({required this.localDataSource});
 
   @override
   Future<Either<Failure, List<Repair>>> getRepairs({String? carId}) async {

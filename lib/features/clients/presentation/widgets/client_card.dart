@@ -4,6 +4,7 @@ import '../../domain/entities/client.dart';
 
 class ClientCard extends StatelessWidget {
   final Client client;
+  final int carsCount;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
   final VoidCallback? onTap;
@@ -11,6 +12,7 @@ class ClientCard extends StatelessWidget {
   const ClientCard({
     Key? key,
     required this.client,
+    this.carsCount = 0,
     this.onEdit,
     this.onDelete,
     this.onTap,
@@ -25,7 +27,7 @@ class ClientCard extends StatelessWidget {
 
     if (digits.length >= 11 && digits.startsWith('7')) {
       // Российский номер
-      return '+373 (${digits.substring(1, 3)}) ${digits.substring(3, 6)}-${digits.substring(6, 9)}-${digits.substring(9, 11)}';
+      return '+7 (${digits.substring(1, 4)}) ${digits.substring(4, 7)}-${digits.substring(7, 9)}-${digits.substring(9, 11)}';
     } else if (digits.length >= 10) {
       // Другой формат
       return '+${digits.substring(0, 3)} (${digits.substring(3, 6)}) ${digits.substring(6, 9)}-${digits.substring(9, 11)}';
@@ -34,10 +36,11 @@ class ClientCard extends StatelessWidget {
     return phone; // Возвращаем как есть, если не можем отформатировать
   }
 
-  int _getCarsCount() {
-    // TODO: Получить реальное количество автомобилей из репозитория
-    // Пока возвращаем 0, так как в entity Client нет этого поля
-    return 0;
+  String _getCarsCountText() {
+    if (carsCount == 0) return '';
+    if (carsCount == 1) return '1 автомобиль';
+    if (carsCount >= 2 && carsCount <= 4) return '$carsCount автомобиля';
+    return '$carsCount автомобилей';
   }
 
   @override
@@ -96,11 +99,18 @@ class ClientCard extends StatelessWidget {
         ],
       ),
       metadata: [
-        if (_getCarsCount() > 0)
-          Text(
-            '${_getCarsCount()} автомобилей',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6),
+        if (carsCount > 0)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.secondaryContainer,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              _getCarsCountText(),
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.onSecondaryContainer,
+              ),
             ),
           ),
       ],

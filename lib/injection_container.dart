@@ -89,8 +89,11 @@ Future<void> init() async {
     () => DashboardRepositoryImpl(
       repairRepository: sl(),
       materialRepository: sl(),
+      clientRepository: sl(),
+      carRepository: sl(),
     ),
   );
+
   // ============================================
   // Features - Clients
   // ============================================
@@ -115,9 +118,7 @@ Future<void> init() async {
 
   // Repository (with lazy dependency resolution to avoid circular dependency)
   sl.registerLazySingleton<ClientRepository>(
-    () => ClientRepositoryImpl(
-      localDataSource: sl(),
-    ),
+    () => ClientRepositoryImpl(localDataSource: sl()),
   );
 
   // Data sources
@@ -154,9 +155,7 @@ Future<void> init() async {
 
   // Repository (with lazy dependency resolution to avoid circular dependency)
   sl.registerLazySingleton<CarRepository>(
-    () => CarRepositoryImpl(
-      localDataSource: sl(),
-    ),
+    () => CarRepositoryImpl(localDataSource: sl()),
   );
   sl.registerLazySingleton<CarLibraryRepository>(
     () => CarLibraryRepositoryImpl(localDataSource: sl()),
@@ -206,9 +205,7 @@ Future<void> init() async {
 
   // Repository
   sl.registerLazySingleton<RepairRepository>(
-    () => RepairRepositoryImpl(
-      localDataSource: sl(),
-    ),
+    () => RepairRepositoryImpl(localDataSource: sl()),
   );
 
   // Data sources

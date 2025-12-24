@@ -40,10 +40,8 @@ class RepairsBloc extends Bloc<RepairsEvent, RepairsState> {
     result.fold(
       (failure) =>
           emit(const RepairsError(message: 'Не удалось загрузить ремонты')),
-      (repairs) => emit(RepairsLoaded(
-        repairs: repairs,
-        filterCarId: event.carId,
-      )),
+      (repairs) =>
+          emit(RepairsLoaded(repairs: repairs, filterCarId: event.carId)),
     );
   }
 
@@ -88,7 +86,7 @@ class RepairsBloc extends Bloc<RepairsEvent, RepairsState> {
       },
       (repair) async {
         emit(const RepairsOperationSuccess(message: 'Ремонт добавлен'));
-        add(const LoadRepairs());
+        // Не вызываем LoadRepairs здесь - это будет сделано в UI после закрытия модала
       },
     );
   }
@@ -106,7 +104,7 @@ class RepairsBloc extends Bloc<RepairsEvent, RepairsState> {
       },
       (repair) async {
         emit(const RepairsOperationSuccess(message: 'Ремонт обновлен'));
-        add(const LoadRepairs());
+        // Не вызываем LoadRepairs здесь - это будет сделано в UI после закрытия модала
       },
     );
   }
@@ -144,11 +142,13 @@ class RepairsBloc extends Bloc<RepairsEvent, RepairsState> {
     );
     result.fold(
       (failure) => emit(const RepairsError(message: 'Ошибка поиска')),
-      (repairs) => emit(RepairsLoaded(
-        repairs: repairs,
-        searchQuery: event.query,
-        filterCarId: event.carId,
-      )),
+      (repairs) => emit(
+        RepairsLoaded(
+          repairs: repairs,
+          searchQuery: event.query,
+          filterCarId: event.carId,
+        ),
+      ),
     );
   }
 }

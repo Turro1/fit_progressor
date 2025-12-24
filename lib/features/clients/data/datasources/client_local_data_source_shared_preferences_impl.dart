@@ -4,7 +4,6 @@ import 'package:fit_progressor/core/error/exceptions/duplicate_exception.dart';
 import 'package:fit_progressor/features/clients/data/datasources/client_local_data_source.dart';
 import 'package:fit_progressor/features/clients/data/models/client_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter/foundation.dart'; // Import for debugPrint
 
 class ClientLocalDataSourceSharedPreferencesImpl
     implements ClientLocalDataSource {
@@ -20,7 +19,6 @@ class ClientLocalDataSourceSharedPreferencesImpl
       clients.removeWhere((c) => c.id == id);
       await _saveClients(clients);
     } catch (e) {
-      debugPrint('DEBUG: Error deleting client: $e'); // Added debugPrint
       throw CacheException(message: 'Failed to delete client from cache: $e');
     }
   }
@@ -29,24 +27,12 @@ class ClientLocalDataSourceSharedPreferencesImpl
   Future<List<ClientModel>> getAllClients() async {
     try {
       final jsonString = sharedPreferences.getString(clientsKey);
-      debugPrint(
-        'DEBUG: getAllClients - Retrieved jsonString: $jsonString',
-      ); // Added debugPrint
       if (jsonString == null) {
-        debugPrint(
-          'DEBUG: getAllClients - No cached clients, returning empty list.',
-        ); // Added debugPrint
         return [];
       }
       final List<dynamic> jsonList = json.decode(jsonString);
-      debugPrint(
-        'DEBUG: getAllClients - Decoded JSON list: ${jsonList.length} clients.',
-      ); // Added debugPrint
       return jsonList.map((json) => ClientModel.fromJson(json)).toList();
     } catch (e) {
-      debugPrint(
-        'DEBUG: Error loading clients from cache: $e',
-      ); // Added debugPrint
       throw CacheException(message: 'Failed to load clients from cache: $e');
     }
   }
@@ -57,9 +43,6 @@ class ClientLocalDataSourceSharedPreferencesImpl
       final clients = await getAllClients();
       return clients.where((client) => client.id == id).first;
     } catch (e) {
-      debugPrint(
-        'DEBUG: Error loading client by ID from cache: $e',
-      ); // Added debugPrint
       throw CacheException(message: 'Failed to load client from cache: $e');
     }
   }
@@ -67,9 +50,6 @@ class ClientLocalDataSourceSharedPreferencesImpl
   @override
   Future<ClientModel> saveClient(ClientModel client) async {
     try {
-      debugPrint(
-        'DEBUG: saveClient - Attempting to save client: ${client.id}',
-      ); // Added debugPrint
       final clients = await getAllClients();
 
       // Проверка уникальности телефона
@@ -80,20 +60,10 @@ class ClientLocalDataSourceSharedPreferencesImpl
         );
       }
 
-      debugPrint(
-        'DEBUG: saveClient - Clients before adding: ${clients.length}',
-      ); // Added debugPrint
       clients.add(client);
-      debugPrint(
-        'DEBUG: saveClient - Clients after adding: ${clients.length}',
-      ); // Added debugPrint
       await _saveClients(clients);
-      debugPrint(
-        'DEBUG: saveClient - Client saved successfully: ${client.id}',
-      ); // Added debugPrint
       return client;
     } catch (e) {
-      debugPrint('DEBUG: Error saving client to cache: $e'); // Added debugPrint
       if (e is DuplicateException) {
         rethrow;
       }
@@ -106,14 +76,11 @@ class ClientLocalDataSourceSharedPreferencesImpl
     try {
       final clients = await getAllClients();
       final lowercaseQuery = query.toLowerCase();
-      return clients.where((car) {
-        return car.phone.toLowerCase().contains(lowercaseQuery) ||
-            car.name.toLowerCase().contains(lowercaseQuery);
+      return clients.where((client) {
+        return client.phone.toLowerCase().contains(lowercaseQuery) ||
+            client.name.toLowerCase().contains(lowercaseQuery);
       }).toList();
     } catch (e) {
-      debugPrint(
-        'DEBUG: Error searching clients in cache: $e',
-      ); // Added debugPrint
       throw CacheException(message: 'Failed to search clients in cache: $e');
     }
   }
@@ -124,7 +91,7 @@ class ClientLocalDataSourceSharedPreferencesImpl
       final clients = await getAllClients();
       final index = clients.indexWhere((c) => c.id == client.id);
       if (index == -1) {
-        throw Exception('Client not found');
+        throw CacheException(message: 'Client not found');
       }
 
       // Проверка уникальности телефона (исключая текущего клиента)
@@ -141,9 +108,6 @@ class ClientLocalDataSourceSharedPreferencesImpl
       await _saveClients(clients);
       return client;
     } catch (e) {
-      debugPrint(
-        'DEBUG: Error updating client in cache: $e',
-      ); // Added debugPrint
       if (e is DuplicateException) {
         rethrow;
       }
@@ -152,21 +116,7 @@ class ClientLocalDataSourceSharedPreferencesImpl
   }
 
   Future<void> _saveClients(List<ClientModel> clients) async {
-    debugPrint(
-      'DEBUG: _saveClients - Saving ${clients.length} clients.',
-    ); // Added debugPrint
     final jsonList = clients.map((c) => c.toJson()).toList();
-    final success = await sharedPreferences.setString(
-      clientsKey,
-      json.encode(jsonList),
-    );
-    debugPrint(
-      'DEBUG: _saveClients - setString successful: $success',
-    ); // Added debugPrint
-    if (!success) {
-      debugPrint(
-        'DEBUG: _saveClients - Failed to save clients to SharedPreferences.',
-      );
-    }
+    await sharedPreferences.setString(clientsKey, json.encode(jsonList));
   }
 }
