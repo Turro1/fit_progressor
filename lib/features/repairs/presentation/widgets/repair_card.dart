@@ -6,6 +6,7 @@ import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_event.
 import 'package:fit_progressor/features/repairs/presentation/widgets/repair_form_modal.dart';
 import 'package:fit_progressor/features/repairs/presentation/widgets/photo_viewer.dart';
 import 'package:fit_progressor/shared/widgets/entity_card.dart';
+import 'package:fit_progressor/shared/widgets/delete_confirmation_dialog.dart';
 import 'package:fit_progressor/core/utils/car_logo_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,8 +14,13 @@ import 'package:intl/intl.dart';
 
 class RepairCard extends StatelessWidget {
   final Repair repair;
+  final bool compact;
 
-  const RepairCard({Key? key, required this.repair}) : super(key: key);
+  const RepairCard({
+    Key? key,
+    required this.repair,
+    this.compact = false,
+  }) : super(key: key);
 
   void _showEditModal(BuildContext context) {
     showModalBottomSheet(
@@ -27,27 +33,35 @@ class RepairCard extends StatelessWidget {
     );
   }
 
-  void _confirmDelete(BuildContext context) {
-    showDialog(
+  void _confirmDelete(BuildContext context) async {
+    final repairsBloc = context.read<RepairsBloc>();
+
+    final confirmed = await DeleteConfirmationDialog.show(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Удалить ремонт?'),
-        content: Text('Вы уверены, что хотите удалить "${repair.name}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Отмена'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              context.read<RepairsBloc>().add(
-                DeleteRepairEvent(repairId: repair.id),
-              );
-            },
-            child: const Text('Удалить'),
-          ),
+      data: DeleteConfirmationData(
+        title: 'Удалить ремонт?',
+        itemName: repair.partType,
+        itemSubtitle: '${repair.carMake} ${repair.carModel} • ${DateFormat('dd.MM.yyyy').format(repair.date)}',
+        icon: Icons.build_outlined,
+        warnings: [
+          'Стоимость: ${repair.cost.toStringAsFixed(0)} ₽',
+          'Это действие нельзя отменить',
         ],
+      ),
+    );
+
+    if (confirmed) {
+      repairsBloc.add(DeleteRepairEvent(repairId: repair.id));
+    }
+  }
+
+  void _openPhotoViewer(BuildContext context, int index) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => PhotoViewer(
+          photoPaths: repair.photoPaths,
+          initialIndex: index,
+        ),
       ),
     );
   }
@@ -55,6 +69,10 @@ class RepairCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    if (compact) {
+      return _buildCompactCard(context, theme);
+    }
 
     return EntityCard(
       groupTag: 'repairs',
@@ -203,19 +221,305 @@ class RepairCard extends StatelessWidget {
               ),
             ],
           ),
+
+          // Галерея миниатюр фото
+          if (repair.photoPaths.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            _buildPhotoThumbnails(context, theme),
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildLeading(BuildContext context, ThemeData theme) {
+  Widget _buildPhotoThumbnails(BuildContext context, ThemeData theme) {
+    const double thumbnailSize = 56.0;
+    const double spacing = 8.0;
+
+    return SizedBox(
+      height: thumbnailSize,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: repair.photoPaths.length,
+        separatorBuilder: (_, __) => const SizedBox(width: spacing),
+        itemBuilder: (context, index) {
+          final photoPath = repair.photoPaths[index];
+          final file = File(photoPath);
+
+          return GestureDetector(
+            onTap: () => _openPhotoViewer(context, index),
+            child: Container(
+              width: thumbnailSize,
+              height: thumbnailSize,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: theme.colorScheme.outlineVariant,
+                  width: 1,
+                ),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: file.existsSync()
+                  ? Image.file(
+                      file,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return _buildThumbnailPlaceholder(theme);
+                      },
+                    )
+                  : _buildThumbnailPlaceholder(theme),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildThumbnailPlaceholder(ThemeData theme) {
+    return Container(
+      color: theme.colorScheme.surfaceContainerHighest,
+      child: Icon(
+        Icons.broken_image_outlined,
+        size: 24,
+        color: theme.colorScheme.onSurfaceVariant,
+      ),
+    );
+  }
+
+  Widget _buildCompactCard(BuildContext context, ThemeData theme) {
     final hasPhotos = repair.photoPaths.isNotEmpty;
 
-    Widget avatar;
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      elevation: 0,
+      color: theme.colorScheme.surface,
+      child: InkWell(
+        onTap: () => _showEditModal(context),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  // Status indicator
+                  Container(
+                    width: 4,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: _getStatusColor(repair.status),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  // Info
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                repair.partType,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            Text(
+                              DateFormat('dd.MM.yy').format(repair.date),
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            if (repair.partPosition.isNotEmpty)
+                              Expanded(
+                                child: Text(
+                                  repair.partPosition,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            // Photo indicator
+                            if (hasPhotos) ...[
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.tertiaryContainer,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.photo_library_outlined,
+                                      size: 12,
+                                      color: theme.colorScheme.onTertiaryContainer,
+                                    ),
+                                    const SizedBox(width: 2),
+                                    Text(
+                                      '${repair.photoPaths.length}',
+                                      style: theme.textTheme.labelSmall?.copyWith(
+                                        color: theme.colorScheme.onTertiaryContainer,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                            ],
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.secondaryContainer,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                '${repair.cost.toStringAsFixed(0)} ₽',
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: theme.colorScheme.onSecondaryContainer,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(
+                    Icons.chevron_right,
+                    size: 20,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ],
+              ),
+              // Compact photo thumbnails
+              if (hasPhotos) ...[
+                const SizedBox(height: 8),
+                _buildCompactPhotoThumbnails(context, theme),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-    // Приоритет: логотип автомобиля, затем фото, затем иконка
+  Widget _buildCompactPhotoThumbnails(BuildContext context, ThemeData theme) {
+    const double thumbnailSize = 40.0;
+    const double spacing = 6.0;
+    const int maxVisible = 4;
+
+    final photosToShow = repair.photoPaths.take(maxVisible).toList();
+    final remainingCount = repair.photoPaths.length - maxVisible;
+
+    return SizedBox(
+      height: thumbnailSize,
+      child: Row(
+        children: [
+          ...photosToShow.asMap().entries.map((entry) {
+            final index = entry.key;
+            final photoPath = entry.value;
+            final file = File(photoPath);
+
+            return Padding(
+              padding: EdgeInsets.only(right: index < photosToShow.length - 1 ? spacing : 0),
+              child: GestureDetector(
+                onTap: () => _openPhotoViewer(context, index),
+                child: Container(
+                  width: thumbnailSize,
+                  height: thumbnailSize,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: theme.colorScheme.outlineVariant,
+                      width: 1,
+                    ),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: file.existsSync()
+                      ? Image.file(
+                          file,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return _buildThumbnailPlaceholder(theme);
+                          },
+                        )
+                      : _buildThumbnailPlaceholder(theme),
+                ),
+              ),
+            );
+          }),
+          // "+N" badge for remaining photos
+          if (remainingCount > 0)
+            Padding(
+              padding: const EdgeInsets.only(left: spacing),
+              child: GestureDetector(
+                onTap: () => _openPhotoViewer(context, maxVisible),
+                child: Container(
+                  width: thumbnailSize,
+                  height: thumbnailSize,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: theme.colorScheme.outlineVariant,
+                      width: 1,
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      '+$remainingCount',
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Color _getStatusColor(RepairStatus status) {
+    switch (status) {
+      case RepairStatus.pending:
+        return Colors.orange;
+      case RepairStatus.inProgress:
+        return Colors.blue;
+      case RepairStatus.completed:
+        return Colors.green;
+      case RepairStatus.cancelled:
+        return Colors.grey;
+    }
+  }
+
+  Widget _buildLeading(BuildContext context, ThemeData theme) {
+    // Показываем только логотип авто или иконку (фото теперь в галерее миниатюр)
     if (repair.carMake.isNotEmpty) {
-      avatar = CircleAvatar(
+      return CircleAvatar(
         radius: 28,
         backgroundColor: Colors.white,
         child: Image.asset(
@@ -224,24 +528,6 @@ class RepairCard extends StatelessWidget {
           width: 40,
           height: 40,
           errorBuilder: (context, error, stackTrace) {
-            // Если логотип не найден, пытаемся показать фото
-            if (hasPhotos) {
-              return ClipOval(
-                child: Image.file(
-                  File(repair.photoPaths.first),
-                  width: 56,
-                  height: 56,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Icon(
-                      Icons.build_circle,
-                      size: 32,
-                      color: theme.colorScheme.primary,
-                    );
-                  },
-                ),
-              );
-            }
             return Icon(
               Icons.directions_car_rounded,
               size: 32,
@@ -250,64 +536,19 @@ class RepairCard extends StatelessWidget {
           },
         ),
       );
-    } else if (hasPhotos) {
-      // Если нет марки, но есть фото
-      avatar = CircleAvatar(
-        radius: 28,
-        backgroundImage: FileImage(File(repair.photoPaths.first)),
-        onBackgroundImageError: (error, stackTrace) {},
-      );
-    } else {
-      // Иконка по умолчанию
-      avatar = CircleAvatar(
-        radius: 28,
-        backgroundColor: theme.colorScheme.surfaceContainerHighest.withValues(
-          alpha: 0.3,
-        ),
-        child: Icon(
-          Icons.build_circle,
-          size: 32,
-          color: theme.colorScheme.primary,
-        ),
-      );
     }
 
-    // Если есть фото, делаем аватар кликабельным
-    if (hasPhotos) {
-      return GestureDetector(
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) =>
-                  PhotoViewer(photoPaths: repair.photoPaths, initialIndex: 0),
-            ),
-          );
-        },
-        child: Stack(
-          children: [
-            avatar,
-            Positioned(
-              bottom: 0,
-              right: 0,
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.photo_library,
-                  size: 16,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return avatar;
+    return CircleAvatar(
+      radius: 28,
+      backgroundColor: theme.colorScheme.surfaceContainerHighest.withValues(
+        alpha: 0.3,
+      ),
+      child: Icon(
+        Icons.build_circle,
+        size: 32,
+        color: theme.colorScheme.primary,
+      ),
+    );
   }
 
   Widget _buildStatusBadge(BuildContext context, ThemeData theme) {

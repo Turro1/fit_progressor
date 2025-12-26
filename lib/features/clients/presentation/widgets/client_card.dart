@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fit_progressor/shared/widgets/entity_card.dart';
+import 'package:fit_progressor/core/utils/moldova_formatters.dart';
 import '../../domain/entities/client.dart';
 
 class ClientCard extends StatelessWidget {
@@ -19,21 +20,8 @@ class ClientCard extends StatelessWidget {
   }) : super(key: key);
 
   String _formatPhone(String phone) {
-    // Форматирование телефона: +7 (999) 123-45-67
-    if (phone.isEmpty) return phone;
-
-    // Убираем все кроме цифр
-    String digits = phone.replaceAll(RegExp(r'\D'), '');
-
-    if (digits.length >= 11 && digits.startsWith('7')) {
-      // Российский номер
-      return '+7 (${digits.substring(1, 4)}) ${digits.substring(4, 7)}-${digits.substring(7, 9)}-${digits.substring(9, 11)}';
-    } else if (digits.length >= 10) {
-      // Другой формат
-      return '+${digits.substring(0, 3)} (${digits.substring(3, 6)}) ${digits.substring(6, 9)}-${digits.substring(9, 11)}';
-    }
-
-    return phone; // Возвращаем как есть, если не можем отформатировать
+    if (phone.isEmpty) return 'Не указан';
+    return MoldovaValidators.formatPhoneForDisplay(phone);
   }
 
   String _getCarsCountText() {

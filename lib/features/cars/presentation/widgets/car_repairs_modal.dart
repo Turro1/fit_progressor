@@ -1,3 +1,5 @@
+import 'package:fit_progressor/features/cars/presentation/bloc/car_bloc.dart';
+import 'package:fit_progressor/features/clients/presentation/bloc/client_bloc.dart';
 import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_bloc.dart';
 import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_event.dart';
 import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_state.dart';
@@ -8,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fit_progressor/core/theme/app_spacing.dart';
 import 'package:fit_progressor/core/utils/car_logo_helper.dart';
+import 'package:fit_progressor/core/widgets/country_flag.dart';
 
 import '../../domain/entities/car.dart';
 
@@ -94,19 +97,12 @@ class _CarRepairsModalState extends State<CarRepairsModal> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.confirmation_number,
-                          size: 16,
-                          color: theme.iconTheme.color?.withValues(alpha: 0.7),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          widget.car.plate,
-                          style: theme.textTheme.bodyMedium,
-                        ),
-                      ],
+                    PlateWithFlag(
+                      plate: widget.car.plate,
+                      textStyle: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 0.5,
+                      ),
                     ),
                   ],
                 ),
@@ -116,7 +112,27 @@ class _CarRepairsModalState extends State<CarRepairsModal> {
           SizedBox(height: AppSpacing.xxl),
           // Repairs list
           Expanded(
-            child: BlocBuilder<RepairsBloc, RepairsState>(
+            child: BlocConsumer<RepairsBloc, RepairsState>(
+              listener: (context, state) {
+                if (state is RepairsError) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(state.message),
+                      backgroundColor: theme.colorScheme.error,
+                    ),
+                  );
+                }
+                if (state is RepairsOperationSuccess) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(state.message),
+                      backgroundColor: theme.colorScheme.secondary,
+                    ),
+                  );
+                  // Перезагружаем список ремонтов для этого автомобиля
+                  context.read<RepairsBloc>().add(LoadRepairs(carId: widget.car.id));
+                }
+              },
               builder: (context, state) {
                 if (state is RepairsLoading) {
                   return const Center(child: CircularProgressIndicator());
@@ -163,13 +179,23 @@ class _CarRepairsModalState extends State<CarRepairsModal> {
               SizedBox(width: AppSpacing.md),
               FilledButton.icon(
                 onPressed: () {
+                  // Сохраняем ссылку на bloc до закрытия окна
+                  final repairsBloc = context.read<RepairsBloc>();
+                  final carBloc = context.read<CarBloc>();
+                  final clientBloc = context.read<ClientBloc>();
+
                   Navigator.pop(context);
+
+                  // Используем сохраненные ссылки
                   showModalBottomSheet(
                     context: context,
                     isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    builder: (_) => BlocProvider.value(
-                      value: context.read<RepairsBloc>(),
+                    builder: (modalContext) => MultiBlocProvider(
+                      providers: [
+                        BlocProvider.value(value: repairsBloc),
+                        BlocProvider.value(value: carBloc),
+                        BlocProvider.value(value: clientBloc),
+                      ],
                       child: RepairFormModal(
                         preselectedCarId: widget.car.id,
                         preselectedClientId: widget.car.clientId,

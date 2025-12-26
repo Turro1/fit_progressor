@@ -1,3 +1,4 @@
+import 'package:fit_progressor/features/repairs/data/models/repair_material_model.dart';
 import 'package:fit_progressor/features/repairs/domain/entities/repair.dart';
 import 'package:fit_progressor/features/repairs/domain/entities/repair_status.dart';
 
@@ -16,6 +17,7 @@ class RepairModel extends Repair {
     super.carModel = '',
     super.status = RepairStatus.pending,
     required super.createdAt,
+    super.materials = const [],
   });
 
   factory RepairModel.fromJson(Map<String, dynamic> json) {
@@ -39,6 +41,11 @@ class RepairModel extends Repair {
           ? RepairStatus.fromString(json['status'] as String)
           : RepairStatus.pending,
       createdAt: DateTime.parse(json['createdAt'] as String),
+      materials: (json['materials'] as List<dynamic>?)
+              ?.map((e) =>
+                  RepairMaterialModel.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
     );
   }
 
@@ -57,6 +64,9 @@ class RepairModel extends Repair {
       'carModel': carModel,
       'status': status.value,
       'createdAt': createdAt.toIso8601String(),
+      'materials': materials
+          .map((m) => RepairMaterialModel.fromEntity(m).toJson())
+          .toList(),
     };
   }
 
@@ -75,6 +85,7 @@ class RepairModel extends Repair {
       carModel: repair.carModel,
       status: repair.status,
       createdAt: repair.createdAt,
+      materials: repair.materials,
     );
   }
 }

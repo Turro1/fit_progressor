@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:fit_progressor/shared/widgets/entity_card.dart'; // Import the generic EntityCard
+import 'package:fit_progressor/shared/widgets/entity_card.dart';
 import 'package:fit_progressor/core/utils/car_logo_helper.dart';
+import 'package:fit_progressor/core/widgets/country_flag.dart';
 import '../../domain/entities/car.dart';
 import 'dart:developer' as developer;
 
@@ -63,26 +64,13 @@ class CarCard extends StatelessWidget {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
-      subtitle: Row(
-        children: [
-          Icon(
-            Icons.confirmation_number,
-            size: 16,
-            color: theme.iconTheme.color?.withValues(alpha: 0.7),
-          ),
-          const SizedBox(width: 4),
-          Expanded(
-            child: Text(
-              car.plate,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.textTheme.bodyMedium?.color?.withValues(
-                  alpha: 0.8,
-                ),
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
+      subtitle: PlateWithFlag(
+        plate: car.plate,
+        textStyle: theme.textTheme.bodyMedium?.copyWith(
+          color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.5,
+        ),
       ),
       metadata: [
         if (car.clientName.isNotEmpty)

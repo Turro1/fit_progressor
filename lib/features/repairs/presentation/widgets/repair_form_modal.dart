@@ -9,9 +9,11 @@ import 'package:fit_progressor/features/clients/presentation/bloc/client_event.d
 import 'package:fit_progressor/features/clients/presentation/bloc/client_state.dart';
 import 'package:fit_progressor/features/repairs/domain/entities/part_types.dart';
 import 'package:fit_progressor/features/repairs/domain/entities/repair.dart';
+import 'package:fit_progressor/features/repairs/domain/entities/repair_material.dart';
 import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_bloc.dart';
 import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_event.dart';
 import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_state.dart';
+import 'package:fit_progressor/features/repairs/presentation/widgets/material_selector.dart';
 import 'package:fit_progressor/features/repairs/presentation/widgets/photo_gallery_field.dart';
 import 'package:fit_progressor/shared/widgets/step_indicator.dart';
 import 'package:flutter/material.dart';
@@ -36,8 +38,15 @@ class RepairFormModal extends StatefulWidget {
 
 class _RepairFormModalState extends State<RepairFormModal> {
   int _currentStep = 0;
-  int get _totalSteps =>
-      widget.repair != null ? 2 : 3; // При редактировании только 2 шага
+
+  // Пропускаем шаг выбора клиента/авто если:
+  // 1. Редактируем существующий ремонт
+  // 2. Или есть предварительно выбранные клиент и авто
+  bool get _shouldSkipClientCarStep =>
+      widget.repair != null ||
+      (widget.preselectedClientId != null && widget.preselectedCarId != null);
+
+  int get _totalSteps => _shouldSkipClientCarStep ? 2 : 3;
 
   // Form keys for each step
   final _step1FormKey = GlobalKey<FormState>();
@@ -64,6 +73,9 @@ class _RepairFormModalState extends State<RepairFormModal> {
   // Step 3: Photos
   List<String> _selectedPhotoPaths = [];
 
+  // Materials
+  List<RepairMaterial> _selectedMaterials = [];
+
   @override
   void initState() {
     super.initState();
@@ -82,6 +94,7 @@ class _RepairFormModalState extends State<RepairFormModal> {
       _selectedDate = widget.repair!.date;
       _selectedTime = TimeOfDay.fromDateTime(widget.repair!.date);
       _selectedPhotoPaths = List.from(widget.repair!.photoPaths);
+      _selectedMaterials = List.from(widget.repair!.materials);
     } else {
       // Set preselected values if provided
       if (widget.preselectedClientId != null) {
@@ -92,8 +105,12 @@ class _RepairFormModalState extends State<RepairFormModal> {
       }
     }
 
-    context.read<ClientBloc>().add(LoadClients());
-    context.read<CarBloc>().add(LoadCars());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<ClientBloc>().add(LoadClients());
+        context.read<CarBloc>().add(LoadCars());
+      }
+    });
   }
 
   @override
@@ -104,8 +121,8 @@ class _RepairFormModalState extends State<RepairFormModal> {
   }
 
   bool _validateCurrentStep() {
-    // При редактировании пропускаем шаг с клиентом/авто
-    if (widget.repair != null) {
+    // Если пропускаем шаг выбора клиента/авто
+    if (_shouldSkipClientCarStep) {
       switch (_currentStep) {
         case 0: // Детали ремонта
           return _step2FormKey.currentState!.validate();
@@ -116,7 +133,7 @@ class _RepairFormModalState extends State<RepairFormModal> {
       }
     }
 
-    // При добавлении нового ремонта все 3 шага
+    // Если показываем все 3 шага
     switch (_currentStep) {
       case 0: // Step 1: Client & Car
         if (!_step1FormKey.currentState!.validate()) {
@@ -202,6 +219,7 @@ class _RepairFormModalState extends State<RepairFormModal> {
               carId: _selectedCarId,
               carMake: carMake,
               carModel: carModel,
+              materials: _selectedMaterials,
             ),
           ),
         );
@@ -219,6 +237,7 @@ class _RepairFormModalState extends State<RepairFormModal> {
             carId: _selectedCarId,
             carMake: carMake,
             carModel: carModel,
+            materials: _selectedMaterials,
           ),
         );
       }
@@ -265,8 +284,8 @@ class _RepairFormModalState extends State<RepairFormModal> {
   }
 
   Widget _buildStepContent() {
-    // При редактировании пропускаем шаг с клиентом/авто
-    if (widget.repair != null) {
+    // Если пропускаем шаг выбора клиента/авто
+    if (_shouldSkipClientCarStep) {
       switch (_currentStep) {
         case 0:
           return _buildStep2RepairDetails();
@@ -277,7 +296,7 @@ class _RepairFormModalState extends State<RepairFormModal> {
       }
     }
 
-    // При добавлении нового ремонта все 3 шага
+    // Если показываем все 3 шага
     switch (_currentStep) {
       case 0:
         return _buildStep1ClientAndCar();
@@ -398,6 +417,7 @@ class _RepairFormModalState extends State<RepairFormModal> {
       child: Column(
         children: [
           DropdownButtonFormField<String>(
+            key: ValueKey('partType_$_selectedPartType'),
             initialValue: _selectedPartType,
             decoration: const InputDecoration(
               labelText: 'Тип детали',
@@ -414,6 +434,7 @@ class _RepairFormModalState extends State<RepairFormModal> {
           ),
           const SizedBox(height: 16),
           DropdownButtonFormField<String>(
+            key: ValueKey('partPosition_$_selectedPartPosition'),
             initialValue: _selectedPartPosition,
             decoration: const InputDecoration(
               labelText: 'Позиция',
@@ -491,6 +512,15 @@ class _RepairFormModalState extends State<RepairFormModal> {
             ),
             maxLines: 3,
           ),
+          const SizedBox(height: 24),
+          MaterialSelector(
+            initialMaterials: _selectedMaterials,
+            onMaterialsChanged: (materials) {
+              setState(() {
+                _selectedMaterials = materials;
+              });
+            },
+          ),
         ],
       ),
     );
@@ -510,60 +540,79 @@ class _RepairFormModalState extends State<RepairFormModal> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final screenHeight = MediaQuery.of(context).size.height;
 
     return BlocConsumer<RepairsBloc, RepairsState>(
       listener: (context, state) {
-        if (state is RepairsOperationSuccess) {
+        if (state is RepairsOperationSuccess && mounted) {
           Navigator.pop(context);
         }
       },
       builder: (context, state) {
         final isLoading = state is RepairsLoading;
 
-        return Padding(
+        return Container(
+          constraints: BoxConstraints(
+            maxHeight: screenHeight * 0.9,
+          ),
+          decoration: BoxDecoration(
+            color: theme.cardTheme.color ?? theme.colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).viewInsets.bottom,
-            left: 16,
-            right: 16,
+            left: 20,
+            right: 20,
             top: 16,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // Drag handle
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.outlineVariant,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+
               // Header
               Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
                     widget.repair == null ? Icons.build_circle : Icons.edit,
-                    color: theme.colorScheme.secondary,
+                    color: theme.colorScheme.primary,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 12),
                   Text(
                     widget.repair == null ? 'Новый ремонт' : 'Редактировать',
                     style: theme.textTheme.titleLarge,
                   ),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(context),
-                  ),
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
 
               // Step Indicator
               StepIndicator(
                 currentStep: _currentStep,
                 totalSteps: _totalSteps,
-                stepLabels: widget.repair != null
+                stepLabels: _shouldSkipClientCarStep
                     ? const ['Детали', 'Фото']
                     : const ['Клиент/Авто', 'Детали', 'Фото'],
               ),
-              const SizedBox(height: 24),
 
               // Step Content
               Flexible(
-                child: SingleChildScrollView(child: _buildStepContent()),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.only(top: 24),
+                  child: _buildStepContent(),
+                ),
               ),
               const SizedBox(height: 24),
 

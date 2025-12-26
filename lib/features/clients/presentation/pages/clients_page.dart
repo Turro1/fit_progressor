@@ -3,6 +3,8 @@ import 'package:fit_progressor/features/cars/presentation/bloc/car_bloc.dart';
 import 'package:fit_progressor/features/cars/presentation/bloc/car_event.dart';
 import 'package:fit_progressor/features/cars/presentation/bloc/car_state.dart';
 import 'package:fit_progressor/shared/widgets/empty_state.dart';
+import 'package:fit_progressor/shared/widgets/delete_confirmation_dialog.dart';
+import 'package:fit_progressor/shared/widgets/skeleton_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/client_bloc.dart';
@@ -96,7 +98,7 @@ class _ClientsPageState extends State<ClientsPage> {
                 },
                 builder: (context, clientState) {
                   if (clientState is ClientLoading) {
-                    return const Center(child: CircularProgressIndicator());
+                    return const EntityListSkeleton();
                   }
 
                   if (clientState is ClientLoaded) {
@@ -142,11 +144,12 @@ class _ClientsPageState extends State<ClientsPage> {
                             itemCount: clientState.clients.length,
                             itemBuilder: (context, index) {
                               final client = clientState.clients[index];
+                              final clientCarsCount = carsCountByClient[client.id] ?? 0;
                               return ClientCard(
                                 client: client,
-                                carsCount: carsCountByClient[client.id] ?? 0,
+                                carsCount: clientCarsCount,
                                 onEdit: () => _showClientModal(context, client),
-                                onDelete: () => _confirmDelete(context, client),
+                                onDelete: () => _confirmDelete(context, client, clientCarsCount),
                                 onTap: () =>
                                     _showClientCarsModal(context, client),
                               );
@@ -185,35 +188,33 @@ class _ClientsPageState extends State<ClientsPage> {
     );
   }
 
-  void _confirmDelete(BuildContext context, Client client) {
-    final theme = Theme.of(context);
-    showDialog(
+  void _confirmDelete(BuildContext context, Client client, int carsCount) async {
+    final confirmed = await DeleteConfirmationDialog.show(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Удалить клиента?'),
-        content: Text(
-          'Это также удалит ВСЕ его автомобили и ремонты!',
-          style: theme.textTheme.bodyMedium,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Отмена'),
-          ),
-          TextButton(
-            onPressed: () {
-              context.read<ClientBloc>().add(
-                DeleteClientEvent(clientId: client.id),
-              );
-              Navigator.pop(context);
-            },
-            child: Text(
-              'Удалить',
-              style: TextStyle(color: theme.colorScheme.error),
-            ),
-          ),
+      data: DeleteConfirmationData(
+        title: 'Удалить клиента?',
+        itemName: client.name,
+        itemSubtitle: client.phone,
+        icon: Icons.person_remove,
+        warnings: [
+          if (carsCount > 0)
+            'Будет удалено $carsCount ${_getCarsWord(carsCount)}',
+          'Все ремонты этого клиента будут удалены',
+          'Это действие нельзя отменить',
         ],
       ),
     );
+
+    if (confirmed && context.mounted) {
+      context.read<ClientBloc>().add(
+        DeleteClientEvent(clientId: client.id),
+      );
+    }
+  }
+
+  String _getCarsWord(int count) {
+    if (count == 1) return 'автомобиль';
+    if (count >= 2 && count <= 4) return 'автомобиля';
+    return 'автомобилей';
   }
 }

@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:fit_progressor/features/repairs/domain/entities/repair.dart';
+import 'package:fit_progressor/features/repairs/domain/entities/repair_filter.dart';
+import 'package:fit_progressor/features/repairs/domain/entities/repair_material.dart';
 
 abstract class RepairsEvent extends Equatable {
   const RepairsEvent();
@@ -10,11 +12,12 @@ abstract class RepairsEvent extends Equatable {
 
 class LoadRepairs extends RepairsEvent {
   final String? carId;
+  final String? clientId;
 
-  const LoadRepairs({this.carId});
+  const LoadRepairs({this.carId, this.clientId});
 
   @override
-  List<Object?> get props => [carId];
+  List<Object?> get props => [carId, clientId];
 }
 
 class AddRepairEvent extends RepairsEvent {
@@ -28,6 +31,7 @@ class AddRepairEvent extends RepairsEvent {
   final String carId;
   final String carMake;
   final String carModel;
+  final List<RepairMaterial> materials;
 
   const AddRepairEvent({
     required this.partType,
@@ -40,6 +44,7 @@ class AddRepairEvent extends RepairsEvent {
     required this.carId,
     this.carMake = '',
     this.carModel = '',
+    this.materials = const [],
   });
 
   @override
@@ -54,6 +59,7 @@ class AddRepairEvent extends RepairsEvent {
     carId,
     carMake,
     carModel,
+    materials,
   ];
 }
 
@@ -83,4 +89,17 @@ class SearchRepairsEvent extends RepairsEvent {
 
   @override
   List<Object?> get props => [query, carId];
+}
+
+class FilterRepairsEvent extends RepairsEvent {
+  final RepairFilter filter;
+
+  const FilterRepairsEvent({required this.filter});
+
+  @override
+  List<Object?> get props => [filter];
+}
+
+class ClearFiltersEvent extends RepairsEvent {
+  const ClearFiltersEvent();
 }

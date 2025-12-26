@@ -103,4 +103,34 @@ class AppColors {
   // Material 3 Outlines
   static const Color outline = Color(0xFFE0E0E0);
   static const Color outlineVariant = Color(0xFFEEEEEE);
+
+  // ========== DARK THEME COLORS ==========
+
+  // Dark Primary (оранжевый чуть приглушённый для тёмной темы)
+  static const Color darkPrimary = Color(0xFFFFB74D);
+  static const Color darkPrimaryContainer = Color(0xFF4A3000);
+  static const Color darkOnPrimaryContainer = Color(0xFFFFDDB3);
+
+  // Dark Secondary
+  static const Color darkSecondary = Color(0xFF90A4AE);
+  static const Color darkSecondaryContainer = Color(0xFF37474F);
+  static const Color darkOnSecondaryContainer = Color(0xFFCFD8DC);
+
+  // Dark Tertiary
+  static const Color darkTertiary = Color(0xFFFFD54F);
+  static const Color darkTertiaryContainer = Color(0xFF3E2723);
+  static const Color darkOnTertiaryContainer = Color(0xFFFFE082);
+
+  // Dark Surface variants
+  static const Color darkSurfaceVariant = Color(0xFF3C3C3C);
+  static const Color darkSurfaceContainer = Color(0xFF252525);
+  static const Color darkSurfaceContainerHigh = Color(0xFF353535);
+  static const Color darkSurfaceContainerHighest = Color(0xFF424242);
+
+  // Dark Outlines
+  static const Color darkOutline = Color(0xFF5C5C5C);
+  static const Color darkOutlineVariant = Color(0xFF444444);
+
+  // Dark Card border
+  static const Color darkCardBorder = Color(0xFF424242);
 }

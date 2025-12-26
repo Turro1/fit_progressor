@@ -3,6 +3,7 @@ import 'package:fit_progressor/core/error/failures/failure.dart';
 import 'package:fit_progressor/features/cars/domain/repositories/car_repository.dart';
 import 'package:fit_progressor/features/clients/domain/repositories/client_repository.dart';
 import 'package:fit_progressor/features/materials/domain/repositories/material_repository.dart';
+import 'package:fit_progressor/features/repairs/domain/entities/repair.dart';
 import 'package:fit_progressor/features/repairs/domain/entities/repair_status.dart';
 import 'package:fit_progressor/features/repairs/domain/repositories/repair_repository.dart';
 import '../../domain/entities/dashboard_stats.dart';
@@ -37,6 +38,11 @@ class DashboardRepositoryImpl implements DashboardRepository {
             final startOfMonth = DateTime(now.year, now.month, 1);
             final endOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
 
+            // Прошлый месяц
+            final startOfLastMonth = DateTime(now.year, now.month - 1, 1);
+            final endOfLastMonth =
+                DateTime(now.year, now.month, 0, 23, 59, 59);
+
             // Активные ремонты (в работе, не завершенные)
             final activeRepairs = repairs.where((repair) {
               return repair.status == RepairStatus.pending ||
@@ -58,6 +64,16 @@ class DashboardRepositoryImpl implements DashboardRepository {
                   );
             }).toList();
 
+            // Ремонты за прошлый месяц
+            final lastMonthRepairs = repairs.where((repair) {
+              return repair.date.isAfter(
+                    startOfLastMonth.subtract(const Duration(seconds: 1)),
+                  ) &&
+                  repair.date.isBefore(
+                    endOfLastMonth.add(const Duration(seconds: 1)),
+                  );
+            }).toList();
+
             // Месячная выручка (только завершенные)
             final completedMonthlyRepairs = monthlyRepairs
                 .where((r) => r.status == RepairStatus.completed)
@@ -67,8 +83,18 @@ class DashboardRepositoryImpl implements DashboardRepository {
               (sum, repair) => sum + repair.cost,
             );
 
+            // Выручка прошлого месяца
+            final completedLastMonthRepairs = lastMonthRepairs
+                .where((r) => r.status == RepairStatus.completed)
+                .toList();
+            final lastMonthRevenue = completedLastMonthRepairs.fold<double>(
+              0.0,
+              (sum, repair) => sum + repair.cost,
+            );
+
             // Количество завершенных ремонтов за месяц
             final completedRepairsThisMonth = completedMonthlyRepairs.length;
+            final lastMonthCompletedRepairs = completedLastMonthRepairs.length;
 
             // Просроченные ремонты (дата в прошлом, но не завершен и не отменен)
             final overdueRepairs = repairs.where((repair) {
@@ -82,17 +108,59 @@ class DashboardRepositoryImpl implements DashboardRepository {
                   repair.status != RepairStatus.cancelled;
             }).length;
 
-            // Средняя стоимость ремонта (за всё время)
-            final allCompletedRepairs = repairs
-                .where((r) => r.status == RepairStatus.completed)
-                .toList();
-            final averageRepairCost = allCompletedRepairs.isNotEmpty
-                ? allCompletedRepairs.fold<double>(
+            // Средняя стоимость ремонта (текущий месяц)
+            final averageRepairCost = completedMonthlyRepairs.isNotEmpty
+                ? completedMonthlyRepairs.fold<double>(
                         0.0,
                         (sum, r) => sum + r.cost,
                       ) /
-                      allCompletedRepairs.length
+                    completedMonthlyRepairs.length
                 : 0.0;
+
+            // Средняя стоимость ремонта (прошлый месяц)
+            final lastMonthAverageCost = completedLastMonthRepairs.isNotEmpty
+                ? completedLastMonthRepairs.fold<double>(
+                        0.0,
+                        (sum, r) => sum + r.cost,
+                      ) /
+                    completedLastMonthRepairs.length
+                : 0.0;
+
+            // Чистая выручка (прибыль) = выручка - стоимость материалов
+            final monthlyMaterialsCost = completedMonthlyRepairs.fold<double>(
+              0.0,
+              (sum, repair) => sum + repair.materialsCost,
+            );
+            final monthlyNetRevenue = monthlyRevenue - monthlyMaterialsCost;
+
+            // Чистая выручка прошлого месяца
+            final lastMonthMaterialsCost =
+                completedLastMonthRepairs.fold<double>(
+              0.0,
+              (sum, repair) => sum + repair.materialsCost,
+            );
+            final lastMonthNetRevenue = lastMonthRevenue - lastMonthMaterialsCost;
+
+            // Расчёт трендов
+            final revenueTrend = TrendData.fromValues(
+              monthlyRevenue,
+              lastMonthRevenue,
+            );
+            final netRevenueTrend = TrendData.fromValues(
+              monthlyNetRevenue,
+              lastMonthNetRevenue,
+            );
+            final completedRepairsTrend = TrendData.fromValues(
+              completedRepairsThisMonth.toDouble(),
+              lastMonthCompletedRepairs.toDouble(),
+            );
+            final averageCostTrend = TrendData.fromValues(
+              averageRepairCost,
+              lastMonthAverageCost,
+            );
+
+            // Данные для графика выручки по дням (последние 14 дней)
+            final revenueChart = _buildRevenueChart(repairs, now);
 
             return Right(
               DashboardStats(
@@ -104,11 +172,63 @@ class DashboardRepositoryImpl implements DashboardRepository {
                 totalCars: cars.length,
                 overdueRepairs: overdueRepairs,
                 averageRepairCost: averageRepairCost,
+                monthlyNetRevenue: monthlyNetRevenue,
+                netRevenueTrend: netRevenueTrend,
+                revenueTrend: revenueTrend,
+                completedRepairsTrend: completedRepairsTrend,
+                averageCostTrend: averageCostTrend,
+                revenueChart: revenueChart,
+                lastMonthRevenue: lastMonthRevenue,
+                lastMonthCompletedRepairs: lastMonthCompletedRepairs,
               ),
             );
           });
         });
       });
     });
+  }
+
+  /// Строит данные для графика выручки за последние 30 дней (месяц)
+  RevenueChartData _buildRevenueChart(List<Repair> repairs, DateTime now) {
+    final today = DateTime(now.year, now.month, now.day);
+    final dailyData = <DailyRevenue>[];
+    double maxValue = 0;
+    double totalRevenue = 0;
+
+    // Последние 30 дней
+    for (int i = 29; i >= 0; i--) {
+      final date = today.subtract(Duration(days: i));
+
+      final dayRepairs = repairs.where((repair) {
+        final repairDate = DateTime(
+          repair.date.year,
+          repair.date.month,
+          repair.date.day,
+        );
+        return repairDate == date && repair.status == RepairStatus.completed;
+      }).toList();
+
+      final dayRevenue = dayRepairs.fold<double>(
+        0.0,
+        (sum, r) => sum + r.cost,
+      );
+
+      if (dayRevenue > maxValue) {
+        maxValue = dayRevenue;
+      }
+      totalRevenue += dayRevenue;
+
+      dailyData.add(DailyRevenue(
+        date: date,
+        revenue: dayRevenue,
+        repairsCount: dayRepairs.length,
+      ));
+    }
+
+    return RevenueChartData(
+      dailyRevenue: dailyData,
+      maxValue: maxValue,
+      totalRevenue: totalRevenue,
+    );
   }
 }

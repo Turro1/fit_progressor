@@ -18,9 +18,10 @@ class GetRepairs implements UseCase<List<Repair>, GetRepairsParams> {
 
 class GetRepairsParams extends Equatable {
   final String? carId;
+  final String? clientId;
 
-  const GetRepairsParams({this.carId});
+  const GetRepairsParams({this.carId, this.clientId});
 
   @override
-  List<Object?> get props => [carId];
+  List<Object?> get props => [carId, clientId];
 }

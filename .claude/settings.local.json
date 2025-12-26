@@ -7,7 +7,14 @@
       "Bash(flutter clean:*)",
       "Bash(flutter pub get:*)",
       "Bash(flutter run:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(wc:*)",
+      "Bash(tree:*)",
+      "WebSearch",
+      "Bash(dir:*)",
+      "Bash(mkdir:*)",
+      "Bash(flutter test:*)",
+      "Bash(du:*)"
     ]
   }
 }

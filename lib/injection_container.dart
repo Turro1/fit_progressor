@@ -1,7 +1,7 @@
 import 'package:fit_progressor/features/cars/data/datasources/car_library_local_data_source.dart';
-import 'package:fit_progressor/features/cars/data/datasources/car_library_local_data_source_shared_preferences_impl.dart';
+import 'package:fit_progressor/features/cars/data/datasources/car_library_hive_datasource.dart';
 import 'package:fit_progressor/features/cars/data/datasources/car_local_data_source.dart';
-import 'package:fit_progressor/features/cars/data/datasources/car_local_data_source_shared_preferences_impl.dart';
+import 'package:fit_progressor/features/cars/data/datasources/car_hive_datasource.dart';
 import 'package:fit_progressor/features/cars/data/repositories/car_library_repository_impl.dart';
 import 'package:fit_progressor/features/cars/data/repositories/car_repository_impl.dart';
 import 'package:fit_progressor/features/cars/domain/repositories/car_library_repository.dart';
@@ -16,7 +16,7 @@ import 'package:fit_progressor/features/cars/domain/usecases/search_cars.dart';
 import 'package:fit_progressor/features/cars/domain/usecases/update_car.dart';
 import 'package:fit_progressor/features/cars/presentation/bloc/car_bloc.dart';
 import 'package:fit_progressor/features/clients/data/datasources/client_local_data_source.dart';
-import 'package:fit_progressor/features/clients/data/datasources/client_local_data_source_shared_preferences_impl.dart';
+import 'package:fit_progressor/features/clients/data/datasources/client_hive_datasource.dart';
 import 'package:fit_progressor/features/dashboard/data/repositories/dashboard_repository_impl.dart';
 import 'package:fit_progressor/features/dashboard/domain/repositories/dashboard_repository.dart';
 import 'package:fit_progressor/features/dashboard/domain/usecases/get_dashboard_stats.dart';
@@ -24,7 +24,7 @@ import 'package:fit_progressor/features/dashboard/presentation/bloc/dashboard_bl
 
 // REPAIRS IMPORTS START
 import 'package:fit_progressor/features/repairs/data/datasources/repair_local_datasource.dart';
-import 'package:fit_progressor/features/repairs/data/datasources/repair_local_datasource_shared_preference_impl.dart';
+import 'package:fit_progressor/features/repairs/data/datasources/repair_hive_datasource.dart';
 import 'package:fit_progressor/features/repairs/data/repositories/repair_repository_impl.dart';
 import 'package:fit_progressor/features/repairs/data/services/repair_image_service.dart';
 import 'package:fit_progressor/features/repairs/domain/repositories/repair_repository.dart';
@@ -37,12 +37,15 @@ import 'package:fit_progressor/features/repairs/domain/usecases/update_repair.da
 import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_bloc.dart';
 // REPAIRS IMPORTS END
 
+import 'package:fit_progressor/core/services/export_service.dart';
+import 'package:fit_progressor/core/services/material_stock_service.dart';
+import 'package:fit_progressor/core/storage/hive_config.dart';
+import 'package:fit_progressor/core/theme/theme_cubit.dart';
 import 'package:get_it/get_it.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 // Features - Materials
 import 'features/materials/data/datasources/material_local_data_source.dart';
-import 'features/materials/data/datasources/material_local_data_source_shared_preferences_impl.dart';
+import 'features/materials/data/datasources/material_hive_datasource.dart';
 import 'features/materials/data/repositories/material_repository_impl.dart';
 import 'features/materials/domain/repositories/material_repository.dart';
 import 'features/materials/domain/usecases/add_material.dart';
@@ -67,6 +70,12 @@ import 'features/clients/presentation/bloc/client_bloc.dart';
 final sl = GetIt.instance;
 
 Future<void> init() async {
+  // ============================================
+  // Core - Initialize Hive Storage
+  // ============================================
+
+  await HiveConfig.init();
+
   // ============================================
   // Features - Dashboard
   // ============================================
@@ -116,14 +125,14 @@ Future<void> init() async {
   sl.registerLazySingleton(() => DeleteClient(sl(), sl(), sl()));
   sl.registerLazySingleton(() => SearchClients(sl()));
 
-  // Repository (with lazy dependency resolution to avoid circular dependency)
+  // Repository
   sl.registerLazySingleton<ClientRepository>(
     () => ClientRepositoryImpl(localDataSource: sl()),
   );
 
-  // Data sources
+  // Data sources - Using Hive
   sl.registerLazySingleton<ClientLocalDataSource>(
-    () => ClientLocalDataSourceSharedPreferencesImpl(sharedPreferences: sl()),
+    () => ClientHiveDataSource(),
   );
 
   // ============================================
@@ -153,7 +162,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetCarModels(sl()));
   sl.registerLazySingleton(() => GetCarsByClient(sl()));
 
-  // Repository (with lazy dependency resolution to avoid circular dependency)
+  // Repository
   sl.registerLazySingleton<CarRepository>(
     () => CarRepositoryImpl(localDataSource: sl()),
   );
@@ -161,13 +170,12 @@ Future<void> init() async {
     () => CarLibraryRepositoryImpl(localDataSource: sl()),
   );
 
-  // Data sources
+  // Data sources - Using Hive
   sl.registerLazySingleton<CarLocalDataSource>(
-    () => CarLocalDataSourceSharedPreferencesImpl(sharedPreferences: sl()),
+    () => CarHiveDataSource(),
   );
   sl.registerLazySingleton<CarLibraryLocalDataSource>(
-    () =>
-        CarLibraryLocalDataSourceSharedPreferencesImpl(sharedPreferences: sl()),
+    () => CarLibraryHiveDataSource(),
   );
 
   // ============================================
@@ -183,6 +191,8 @@ Future<void> init() async {
       deleteRepair: sl(),
       searchRepairs: sl(),
       imageService: sl(),
+      stockService: sl(),
+      getRepairById: sl(),
     ),
   );
 
@@ -202,15 +212,18 @@ Future<void> init() async {
 
   // Services
   sl.registerLazySingleton<RepairImageService>(() => RepairImageService());
+  sl.registerLazySingleton<MaterialStockService>(
+    () => MaterialStockService(materialRepository: sl()),
+  );
 
   // Repository
   sl.registerLazySingleton<RepairRepository>(
     () => RepairRepositoryImpl(localDataSource: sl()),
   );
 
-  // Data sources
+  // Data sources - Using Hive
   sl.registerLazySingleton<RepairLocalDataSource>(
-    () => RepairLocalDataSourceImpl(sharedPreferences: sl()),
+    () => RepairHiveDataSource(),
   );
 
   // ============================================
@@ -240,16 +253,18 @@ Future<void> init() async {
     () => MaterialRepositoryImpl(localDataSource: sl()),
   );
 
-  // Data sources
+  // Data sources - Using Hive
   sl.registerLazySingleton<MaterialLocalDataSource>(
-    () => MaterialLocalDataSourceSharedPreferencesImpl(sharedPreferences: sl()),
+    () => MaterialHiveDataSource(),
   );
 
   // ============================================
-  // Core
+  // Core - Theme & Export
   // ============================================
 
-  // External
-  final sharedPreferences = await SharedPreferences.getInstance();
-  sl.registerLazySingleton(() => sharedPreferences);
+  // Theme (uses Hive settings box)
+  sl.registerLazySingleton(() => ThemeCubit());
+
+  // Export
+  sl.registerLazySingleton(() => ExportService());
 }

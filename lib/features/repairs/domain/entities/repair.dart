@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'repair_material.dart';
 import 'repair_status.dart';
 
 class Repair extends Equatable {
@@ -15,6 +16,7 @@ class Repair extends Equatable {
   final String carModel;
   final RepairStatus status;
   final DateTime createdAt;
+  final List<RepairMaterial> materials;
 
   const Repair({
     required this.id,
@@ -30,9 +32,15 @@ class Repair extends Equatable {
     this.carModel = '',
     this.status = RepairStatus.pending,
     required this.createdAt,
+    this.materials = const [],
   });
 
   String get name => '$partType $partPosition';
+
+  double get materialsCost =>
+      materials.fold(0.0, (sum, m) => sum + m.totalCost);
+
+  double get profit => cost - materialsCost;
 
   @override
   List<Object?> get props => [
@@ -49,6 +57,7 @@ class Repair extends Equatable {
     carModel,
     status,
     createdAt,
+    materials,
   ];
 
   Repair copyWith({
@@ -65,6 +74,7 @@ class Repair extends Equatable {
     String? carModel,
     RepairStatus? status,
     DateTime? createdAt,
+    List<RepairMaterial>? materials,
   }) {
     return Repair(
       id: id ?? this.id,
@@ -80,6 +90,7 @@ class Repair extends Equatable {
       carModel: carModel ?? this.carModel,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
+      materials: materials ?? this.materials,
     );
   }
 }

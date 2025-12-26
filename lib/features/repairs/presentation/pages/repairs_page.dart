@@ -1,7 +1,9 @@
+import 'package:fit_progressor/features/repairs/domain/entities/repair_filter.dart';
 import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_bloc.dart';
 import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_event.dart';
 import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_state.dart';
 import 'package:fit_progressor/features/repairs/presentation/widgets/repair_card.dart';
+import 'package:fit_progressor/features/repairs/presentation/widgets/repair_filter_sheet.dart';
 import 'package:fit_progressor/features/repairs/presentation/widgets/repair_form_modal.dart';
 import 'package:fit_progressor/shared/widgets/app_search_bar.dart';
 import 'package:fit_progressor/shared/widgets/empty_state.dart';
@@ -29,6 +31,20 @@ class _RepairsPageState extends State<RepairsPage> {
       builder: (_) => BlocProvider.value(
         value: context.read<RepairsBloc>(),
         child: const RepairFormModal(),
+      ),
+    );
+  }
+
+  void _showFilterSheet(BuildContext context, RepairFilter currentFilter) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => RepairFilterSheet(
+        initialFilter: currentFilter,
+        onApply: (filter) {
+          context.read<RepairsBloc>().add(FilterRepairsEvent(filter: filter));
+        },
       ),
     );
   }
@@ -62,17 +78,57 @@ class _RepairsPageState extends State<RepairsPage> {
                 ],
               ),
             ),
-            // Search bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15.0),
-              child: AppSearchBar(
-                hintText: 'Поиск по ремонтам...',
-                onSearch: (query) {
-                  context.read<RepairsBloc>().add(
-                    SearchRepairsEvent(query: query),
-                  );
-                },
-              ),
+            // Search bar with filter
+            BlocBuilder<RepairsBloc, RepairsState>(
+              buildWhen: (previous, current) {
+                // Перестраиваем только при изменении фильтра
+                final prevFilter = previous is RepairsLoaded
+                    ? previous.filter
+                    : const RepairFilter();
+                final currFilter = current is RepairsLoaded
+                    ? current.filter
+                    : (current is RepairsLoading
+                        ? current.currentFilter
+                        : const RepairFilter());
+                return prevFilter != currFilter;
+              },
+              builder: (context, state) {
+                final currentFilter = state is RepairsLoaded
+                    ? state.filter
+                    : (state is RepairsLoading
+                        ? state.currentFilter ?? const RepairFilter()
+                        : const RepairFilter());
+
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                  child: Column(
+                    children: [
+                      AppSearchBar(
+                        hintText: 'Поиск по ремонтам...',
+                        showFilterButton: true,
+                        onFilterTap: () => _showFilterSheet(context, currentFilter),
+                        onSearch: (query) {
+                          context.read<RepairsBloc>().add(
+                            SearchRepairsEvent(query: query),
+                          );
+                        },
+                      ),
+                      // Active filters indicator
+                      if (currentFilter.isActive) ...[
+                        const SizedBox(height: 8),
+                        _ActiveFiltersBar(
+                          filter: currentFilter,
+                          onClear: () {
+                            context.read<RepairsBloc>().add(
+                              const ClearFiltersEvent(),
+                            );
+                          },
+                        ),
+                      ],
+                    ],
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 15),
             // Content
@@ -94,8 +150,8 @@ class _RepairsPageState extends State<RepairsPage> {
                         backgroundColor: theme.colorScheme.secondary,
                       ),
                     );
-                    // Перезагружаем список после успешной операции
-                    context.read<RepairsBloc>().add(const LoadRepairs());
+                    // Bloc уже вызывает LoadRepairs в _onDeleteRepair/_onAddRepair/_onUpdateRepair
+                    // Не нужно дублировать вызов здесь
                   }
                 },
                 builder: (context, state) {
@@ -145,6 +201,120 @@ class _RepairsPageState extends State<RepairsPage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Виджет для отображения активных фильтров
+class _ActiveFiltersBar extends StatelessWidget {
+  final RepairFilter filter;
+  final VoidCallback onClear;
+
+  const _ActiveFiltersBar({
+    required this.filter,
+    required this.onClear,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final chips = <Widget>[];
+
+    // Статусы
+    if (filter.statuses.isNotEmpty) {
+      final statusText = filter.statuses.length == 1
+          ? filter.statuses.first.displayName
+          : '${filter.statuses.length} статуса';
+      chips.add(_FilterChip(label: statusText, icon: Icons.flag_outlined));
+    }
+
+    // Типы деталей
+    if (filter.partTypes.isNotEmpty) {
+      final partText = filter.partTypes.length == 1
+          ? filter.partTypes.first
+          : '${filter.partTypes.length} типа';
+      chips.add(_FilterChip(label: partText, icon: Icons.build_outlined));
+    }
+
+    // Период
+    if (filter.dateFrom != null || filter.dateTo != null) {
+      chips.add(_FilterChip(label: 'Период', icon: Icons.calendar_today));
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.filter_list,
+            size: 16,
+            color: theme.colorScheme.primary,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: chips,
+            ),
+          ),
+          InkWell(
+            onTap: onClear,
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.all(4),
+              child: Icon(
+                Icons.close,
+                size: 18,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FilterChip extends StatelessWidget {
+  final String label;
+  final IconData icon;
+
+  const _FilterChip({
+    required this.label,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: theme.colorScheme.outline.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: theme.colorScheme.primary),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
+        ],
       ),
     );
   }

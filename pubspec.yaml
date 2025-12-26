@@ -30,7 +30,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  
+  flutter_localizations:
+    sdk: flutter
+
   # State Management
   flutter_bloc: ^9.1.1
   equatable: ^2.0.5  # <-- Добавьте эту строку
@@ -40,7 +42,6 @@ dependencies:
   injectable: ^2.3.2
   
   # Local Storage
-  shared_preferences: ^2.2.2
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   
@@ -53,7 +54,7 @@ dependencies:
   
   # UI
   material_symbols_icons: ^4.2874.0  # <-- Исправленная версия
-  intl: ^0.18.1
+  intl: ^0.20.2
   flutter_slidable: ^3.0.1
   collection: ^1.18.0
 
@@ -64,6 +65,13 @@ dependencies:
   path_provider: ^2.1.1
   url_launcher: ^6.2.1
   uuid: ^4.3.3
+
+  # Export
+  pdf: ^3.11.1
+  printing: ^5.13.4
+  share_plus: ^10.1.4
+  csv: ^6.0.0
+  open_filex: ^4.5.0
 
 dev_dependencies:
   flutter_test:

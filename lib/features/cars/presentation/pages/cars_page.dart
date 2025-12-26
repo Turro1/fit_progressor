@@ -1,5 +1,7 @@
 import 'package:fit_progressor/shared/widgets/app_search_bar.dart';
 import 'package:fit_progressor/shared/widgets/empty_state.dart';
+import 'package:fit_progressor/shared/widgets/delete_confirmation_dialog.dart';
+import 'package:fit_progressor/shared/widgets/skeleton_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/car.dart';
@@ -93,7 +95,7 @@ class _CarsPageState extends State<CarsPage> {
                     current is CarLoading || current is CarLoaded,
                 builder: (context, state) {
                   if (state is CarLoading) {
-                    return const Center(child: CircularProgressIndicator());
+                    return const EntityListSkeleton();
                   }
 
                   if (state is CarLoaded) {
@@ -166,33 +168,23 @@ class _CarsPageState extends State<CarsPage> {
     );
   }
 
-  void _confirmDelete(BuildContext context, Car car) {
-    final theme = Theme.of(context);
-    showDialog(
+  void _confirmDelete(BuildContext context, Car car) async {
+    final confirmed = await DeleteConfirmationDialog.show(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Удалить автомобиль?'),
-        content: Text(
-          'Это также удалит ВСЕ его ремонты!',
-          style: theme.textTheme.bodyMedium,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Отмена'),
-          ),
-          TextButton(
-            onPressed: () {
-              context.read<CarBloc>().add(DeleteCarEvent(carId: car.id));
-              Navigator.pop(context);
-            },
-            child: Text(
-              'Удалить',
-              style: TextStyle(color: theme.colorScheme.error),
-            ),
-          ),
+      data: DeleteConfirmationData(
+        title: 'Удалить автомобиль?',
+        itemName: '${car.make} ${car.model}',
+        itemSubtitle: car.plate,
+        icon: Icons.directions_car_outlined,
+        warnings: [
+          'Все ремонты этого автомобиля будут удалены',
+          'Это действие нельзя отменить',
         ],
       ),
     );
+
+    if (confirmed && context.mounted) {
+      context.read<CarBloc>().add(DeleteCarEvent(carId: car.id));
+    }
   }
 }

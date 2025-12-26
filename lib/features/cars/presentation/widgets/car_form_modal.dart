@@ -8,7 +8,8 @@ import '../../domain/entities/car.dart';
 import '../bloc/car_bloc.dart';
 import '../bloc/car_event.dart';
 import '../bloc/car_state.dart';
-import 'package:fit_progressor/shared/widgets/base_form_modal.dart'; // Import BaseFormModal
+import 'package:fit_progressor/shared/widgets/base_form_modal.dart';
+import 'package:fit_progressor/core/utils/moldova_formatters.dart';
 import 'car_dropdown_field.dart';
 
 class CarFormModal extends StatefulWidget {
@@ -38,7 +39,13 @@ class _CarFormModalState extends State<CarFormModal> {
   void initState() {
     super.initState();
 
-    _plateController = TextEditingController(text: widget.car?.plate ?? '');
+    // Форматируем существующий гос. номер
+    final existingPlate = widget.car?.plate ?? '';
+    _plateController = TextEditingController(
+      text: existingPlate.isNotEmpty
+          ? MoldovaValidators.formatPlateForDisplay(existingPlate)
+          : '',
+    );
 
     if (widget.car != null) {
       _selectedClientId = widget.car!.clientId;
@@ -145,15 +152,16 @@ class _CarFormModalState extends State<CarFormModal> {
                 hint: 'Начните вводить марку...',
                 items: _availableMakes,
                 value: _selectedMake.isEmpty ? null : _selectedMake,
+                forceUpperCase: true,
                 onChanged: (value) {
                   setState(() {
-                    _selectedMake = value.toUpperCase();
+                    _selectedMake = value;
                     _selectedModel = '';
                     _availableModels = [];
                   });
                   if (value.isNotEmpty) {
                     context.read<CarBloc>().add(
-                      LoadCarModels(make: value.toUpperCase()),
+                      LoadCarModels(make: value),
                     );
                   }
                 },
@@ -174,27 +182,17 @@ class _CarFormModalState extends State<CarFormModal> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _plateController,
-              decoration: InputDecoration(
+              inputFormatters: [
+                MoldovaPlateFormatter(),
+              ],
+              decoration: const InputDecoration(
                 labelText: 'Гос. номер',
-                hintText: 'А123ВВ 777',
-                helperText: 'Введите регистрационный номер автомобиля',
-                prefixIcon: const Icon(Icons.badge),
-                counterText: '${_plateController.text.length}/15',
+                hintText: 'ABC 123 или T 123 AB',
+                helperText: 'MD: ABC 123 | PMR: A 123 BC',
+                prefixIcon: Icon(Icons.badge),
               ),
-              maxLength: 15,
               textCapitalization: TextCapitalization.characters,
-              onChanged: (value) {
-                setState(() {}); // Update counter
-              },
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Пожалуйста, введите номер';
-                }
-                if (value.trim().length < 3) {
-                  return 'Номер должен содержать минимум 3 символа';
-                }
-                return null;
-              },
+              validator: MoldovaValidators.validatePlate,
             ),
           ],
           onSubmit: _submitForm,

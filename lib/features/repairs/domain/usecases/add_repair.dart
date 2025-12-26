@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:fit_progressor/core/error/failures/failure.dart';
 import 'package:fit_progressor/core/usecases/usecase.dart';
 import '../entities/repair.dart';
+import '../entities/repair_material.dart';
 import '../repositories/repair_repository.dart';
 
 class AddRepair implements UseCase<Repair, AddRepairParams> {
@@ -27,6 +28,7 @@ class AddRepair implements UseCase<Repair, AddRepairParams> {
       carMake: params.carMake,
       carModel: params.carModel,
       createdAt: now,
+      materials: params.materials,
     );
 
     return await repairRepository.addRepair(repair);
@@ -44,6 +46,7 @@ class AddRepairParams extends Equatable {
   final String carId;
   final String carMake;
   final String carModel;
+  final List<RepairMaterial> materials;
 
   const AddRepairParams({
     required this.partType,
@@ -56,6 +59,7 @@ class AddRepairParams extends Equatable {
     required this.carId,
     this.carMake = '',
     this.carModel = '',
+    this.materials = const [],
   });
 
   @override
@@ -70,5 +74,6 @@ class AddRepairParams extends Equatable {
     carId,
     carMake,
     carModel,
+    materials,
   ];
 }

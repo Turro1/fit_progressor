@@ -6,6 +6,7 @@ import '../bloc/client_event.dart';
 import '../bloc/client_state.dart';
 import 'package:fit_progressor/shared/widgets/base_form_modal.dart';
 import 'package:fit_progressor/core/theme/app_spacing.dart';
+import 'package:fit_progressor/core/utils/moldova_formatters.dart';
 
 class ClientFormModal extends StatefulWidget {
   final Client? client;
@@ -26,7 +27,16 @@ class _ClientFormModalState extends State<ClientFormModal> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.client?.name ?? '');
-    _phoneController = TextEditingController(text: widget.client?.phone ?? '');
+
+    // Форматируем существующий номер телефона или устанавливаем префикс
+    final existingPhone = widget.client?.phone ?? '';
+    if (existingPhone.isNotEmpty) {
+      _phoneController = TextEditingController(
+        text: MoldovaValidators.formatPhoneForDisplay(existingPhone),
+      );
+    } else {
+      _phoneController = TextEditingController(text: '+373 ');
+    }
 
     // Слушаем изменения для обновления character counter
     _nameController.addListener(() {
@@ -91,22 +101,16 @@ class _ClientFormModalState extends State<ClientFormModal> {
           TextFormField(
             controller: _phoneController,
             keyboardType: TextInputType.phone,
+            inputFormatters: [
+              MoldovaPhoneFormatter(),
+            ],
             decoration: const InputDecoration(
               labelText: 'Телефон',
-              helperText: 'Формат: +7 (XXX) XXX-XX-XX',
-              hintText: '+7 (999) 123-45-67',
+              helperText: 'MD: +373 XX XXX XXX | PMR: +373 533 XXXXX',
+              hintText: '+373 69 123 456',
               prefixIcon: Icon(Icons.phone),
             ),
-            validator: (value) {
-              // Телефон необязателен, но если заполнен, должен быть валидным
-              if (value != null && value.isNotEmpty) {
-                final digits = value.replaceAll(RegExp(r'\D'), '');
-                if (digits.length < 10) {
-                  return 'Введите корректный номер телефона';
-                }
-              }
-              return null;
-            },
+            validator: MoldovaValidators.validatePhone,
           ),
         ],
         onSubmit: _submitForm,
