@@ -40,6 +40,28 @@ class RepairMaterialHiveModel extends HiveObject {
       unitCost: unitCost,
     );
   }
+
+  /// Serialize to JSON for sync
+  Map<String, dynamic> toJson() {
+    return {
+      'materialId': materialId,
+      'materialName': materialName,
+      'quantity': quantity,
+      'unitIndex': unitIndex,
+      'unitCost': unitCost,
+    };
+  }
+
+  /// Deserialize from JSON for sync
+  factory RepairMaterialHiveModel.fromJson(Map<String, dynamic> json) {
+    return RepairMaterialHiveModel(
+      materialId: json['materialId'] as String,
+      materialName: json['materialName'] as String,
+      quantity: (json['quantity'] as num).toDouble(),
+      unitIndex: json['unitIndex'] as int,
+      unitCost: (json['unitCost'] as num).toDouble(),
+    );
+  }
 }
 
 /// Manual adapter for RepairMaterialHiveModel

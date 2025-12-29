@@ -1,12 +1,9 @@
 import 'package:fit_progressor/features/cars/presentation/bloc/car_bloc.dart';
 import 'package:fit_progressor/features/cars/presentation/bloc/car_state.dart';
 import 'package:fit_progressor/features/cars/presentation/widgets/car_form_modal.dart';
-import 'package:fit_progressor/features/clients/presentation/bloc/client_bloc.dart';
+import 'package:fit_progressor/features/cars/presentation/widgets/car_repairs_modal.dart';
 import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_bloc.dart';
-import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_event.dart';
 import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_state.dart';
-import 'package:fit_progressor/features/repairs/presentation/widgets/repair_card.dart';
-import 'package:fit_progressor/features/repairs/presentation/widgets/repair_form_modal.dart';
 import 'package:fit_progressor/shared/widgets/empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -15,28 +12,13 @@ import 'package:fit_progressor/core/theme/app_spacing.dart';
 import 'package:fit_progressor/core/utils/car_logo_helper.dart';
 import 'package:fit_progressor/core/widgets/country_flag.dart';
 import 'package:fit_progressor/features/cars/domain/entities/car.dart';
-import 'package:fit_progressor/features/repairs/domain/entities/repair.dart';
 
 import '../../domain/entities/client.dart';
 
-class ClientCarsModal extends StatefulWidget {
+class ClientCarsModal extends StatelessWidget {
   final Client client;
 
   const ClientCarsModal({super.key, required this.client});
-
-  @override
-  State<ClientCarsModal> createState() => _ClientCarsModalState();
-}
-
-class _ClientCarsModalState extends State<ClientCarsModal> {
-  final Set<String> _expandedCars = {};
-
-  @override
-  void initState() {
-    super.initState();
-    // Загружаем все ремонты клиента
-    context.read<RepairsBloc>().add(LoadRepairs(clientId: widget.client.id));
-  }
 
   void _makePhoneCall(String phoneNumber) async {
     final Uri launchUri = Uri(scheme: 'tel', path: phoneNumber);
@@ -45,11 +27,24 @@ class _ClientCarsModalState extends State<ClientCarsModal> {
     }
   }
 
-  List<Repair> _getRepairsForCar(String carId, RepairsState state) {
+  int _getRepairsCountForCar(String carId, RepairsState state) {
     if (state is RepairsLoaded) {
-      return state.repairs.where((r) => r.carId == carId).toList();
+      return state.allRepairs.where((r) => r.carId == carId).length;
     }
-    return [];
+    return 0;
+  }
+
+  void _openCarRepairsModal(BuildContext context, Car car) {
+    Navigator.pop(context);
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => CarRepairsModal(
+        car: car,
+        sourceClient: client, // передаём клиента для кнопки "Назад"
+      ),
+    );
   }
 
   @override
@@ -91,8 +86,8 @@ class _ClientCarsModalState extends State<ClientCarsModal> {
                       foregroundColor: theme.colorScheme.onPrimaryContainer,
                       radius: 28,
                       child: Text(
-                        widget.client.name.isNotEmpty
-                            ? widget.client.name[0].toUpperCase()
+                        client.name.isNotEmpty
+                            ? client.name[0].toUpperCase()
                             : '?',
                         style: theme.textTheme.titleLarge?.copyWith(
                           color: theme.colorScheme.onPrimaryContainer,
@@ -106,24 +101,25 @@ class _ClientCarsModalState extends State<ClientCarsModal> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            widget.client.name,
+                            client.name,
                             style: theme.textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                           Text(
-                            widget.client.phone,
+                            client.phone,
                             style: theme.textTheme.bodyMedium,
                           ),
                         ],
                       ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.phone),
-                      onPressed: () => _makePhoneCall(widget.client.phone),
-                      tooltip: 'Позвонить',
-                      color: theme.colorScheme.primary,
-                    ),
+                    if (client.phone.isNotEmpty)
+                      IconButton(
+                        icon: const Icon(Icons.phone),
+                        onPressed: () => _makePhoneCall(client.phone),
+                        tooltip: 'Позвонить',
+                        color: theme.colorScheme.primary,
+                      ),
                   ],
                 ),
               ],
@@ -151,7 +147,7 @@ class _ClientCarsModalState extends State<ClientCarsModal> {
             ),
           ),
           SizedBox(height: AppSpacing.md),
-          // Cars list with expandable repairs
+          // Cars list
           Expanded(
             child: BlocBuilder<CarBloc, CarState>(
               builder: (context, carState) {
@@ -161,7 +157,7 @@ class _ClientCarsModalState extends State<ClientCarsModal> {
 
                 if (carState is CarLoaded) {
                   final clientCars = carState.cars
-                      .where((car) => car.clientId == widget.client.id)
+                      .where((car) => car.clientId == client.id)
                       .toList();
 
                   if (clientCars.isEmpty) {
@@ -179,17 +175,9 @@ class _ClientCarsModalState extends State<ClientCarsModal> {
                         itemCount: clientCars.length,
                         itemBuilder: (context, index) {
                           final car = clientCars[index];
-                          final repairs = _getRepairsForCar(car.id, repairsState);
-                          final isExpanded = _expandedCars.contains(car.id);
+                          final repairsCount = _getRepairsCountForCar(car.id, repairsState);
 
-                          return _buildExpandableCarCard(
-                            context,
-                            theme,
-                            car,
-                            repairs,
-                            isExpanded,
-                            repairsState is RepairsLoading,
-                          );
+                          return _buildCarCard(context, theme, car, repairsCount);
                         },
                       );
                     },
@@ -217,7 +205,7 @@ class _ClientCarsModalState extends State<ClientCarsModal> {
                     context: context,
                     isScrollControlled: true,
                     backgroundColor: Colors.transparent,
-                    builder: (context) => CarFormModal(client: widget.client),
+                    builder: (context) => CarFormModal(client: client),
                   );
                 },
                 icon: const Icon(Icons.add),
@@ -230,262 +218,114 @@ class _ClientCarsModalState extends State<ClientCarsModal> {
     );
   }
 
-  Widget _buildExpandableCarCard(
+  Widget _buildCarCard(
     BuildContext context,
     ThemeData theme,
     Car car,
-    List<Repair> repairs,
-    bool isExpanded,
-    bool isLoading,
+    int repairsCount,
   ) {
     return Card(
       margin: EdgeInsets.only(bottom: AppSpacing.md),
       clipBehavior: Clip.antiAlias,
-      child: Column(
-        children: [
-          // Car header (clickable)
-          InkWell(
-            onTap: () {
-              setState(() {
-                if (isExpanded) {
-                  _expandedCars.remove(car.id);
-                } else {
-                  _expandedCars.add(car.id);
-                }
-              });
-            },
-            child: Padding(
-              padding: EdgeInsets.all(AppSpacing.md),
-              child: Row(
-                children: [
-                  // Car logo
-                  Container(
+      child: InkWell(
+        onTap: () => _openCarRepairsModal(context, car),
+        child: Padding(
+          padding: EdgeInsets.all(AppSpacing.md),
+          child: Row(
+            children: [
+              // Car logo
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Image.asset(
+                    CarLogoHelper.getLogoPath(car.make),
                     width: 48,
                     height: 48,
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.secondaryContainer,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: Image.asset(
-                        CarLogoHelper.getLogoPath(car.make),
-                        width: 48,
-                        height: 48,
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Icon(
-                            Icons.directions_car_rounded,
-                            size: 28,
-                            color: theme.colorScheme.onSecondaryContainer,
-                          );
-                        },
-                      ),
-                    ),
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Icon(
+                        Icons.directions_car_rounded,
+                        size: 28,
+                        color: theme.colorScheme.primary,
+                      );
+                    },
                   ),
-                  SizedBox(width: AppSpacing.md),
-                  // Car info
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${car.make} ${car.model}',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        SizedBox(height: AppSpacing.xs),
-                        PlateWithFlag(
-                          plate: car.plate,
-                          textStyle: theme.textTheme.bodySmall?.copyWith(
-                            fontWeight: FontWeight.w500,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Repairs count badge
-                  if (repairs.isNotEmpty)
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm,
-                        vertical: AppSpacing.xs,
-                      ),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '${repairs.length}',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.onPrimaryContainer,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  SizedBox(width: AppSpacing.sm),
-                  // Expand icon
-                  AnimatedRotation(
-                    turns: isExpanded ? 0.5 : 0,
-                    duration: const Duration(milliseconds: 200),
-                    child: Icon(
-                      Icons.keyboard_arrow_down,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          // Expanded repairs section
-          AnimatedCrossFade(
-            firstChild: const SizedBox.shrink(),
-            secondChild: _buildRepairsSection(context, theme, car, repairs, isLoading),
-            crossFadeState: isExpanded
-                ? CrossFadeState.showSecond
-                : CrossFadeState.showFirst,
-            duration: const Duration(milliseconds: 200),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRepairsSection(
-    BuildContext context,
-    ThemeData theme,
-    Car car,
-    List<Repair> repairs,
-    bool isLoading,
-  ) {
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerLow,
-        border: Border(
-          top: BorderSide(
-            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
-          ),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Repairs header
-          Padding(
-            padding: EdgeInsets.only(
-              left: AppSpacing.md,
-              right: AppSpacing.md,
-              top: AppSpacing.md,
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.build_circle_outlined,
-                  size: 16,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                SizedBox(width: AppSpacing.xs),
-                Text(
-                  'Ремонты',
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Repairs list or empty state
-          if (isLoading)
-            Padding(
-              padding: EdgeInsets.all(AppSpacing.xl),
-              child: Center(
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(strokeWidth: 2),
                 ),
               ),
-            )
-          else if (repairs.isEmpty)
-            Padding(
-              padding: EdgeInsets.all(AppSpacing.lg),
-              child: Center(
+              SizedBox(width: AppSpacing.md),
+              // Car info
+              Expanded(
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      Icons.build_circle_outlined,
-                      size: 32,
-                      color: theme.colorScheme.outlineVariant,
-                    ),
-                    SizedBox(height: AppSpacing.sm),
                     Text(
-                      'Нет ремонтов',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+                      '${car.make} ${car.model}',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    SizedBox(height: AppSpacing.xs),
+                    PlateWithFlag(
+                      plate: car.plate,
+                      textStyle: theme.textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 0.5,
                       ),
                     ),
                   ],
                 ),
               ),
-            )
-          else
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              padding: EdgeInsets.symmetric(
-                horizontal: AppSpacing.sm,
-                vertical: AppSpacing.sm,
-              ),
-              itemCount: repairs.length,
-              itemBuilder: (context, index) {
-                return RepairCard(
-                  repair: repairs[index],
-                  compact: true,
-                );
-              },
-            ),
-          // Add repair button
-          Padding(
-            padding: EdgeInsets.all(AppSpacing.md),
-            child: SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () => _addRepairForCar(context, car),
-                icon: const Icon(Icons.add, size: 18),
-                label: const Text('Добавить ремонт'),
-                style: OutlinedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: AppSpacing.sm),
+              // Repairs count badge
+              if (repairsCount > 0)
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm,
+                    vertical: AppSpacing.xs,
+                  ),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.build_circle_outlined,
+                        size: 14,
+                        color: theme.colorScheme.onPrimaryContainer,
+                      ),
+                      SizedBox(width: AppSpacing.xs),
+                      Text(
+                        '$repairsCount',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onPrimaryContainer,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+              SizedBox(width: AppSpacing.sm),
+              // Arrow icon
+              Icon(
+                Icons.chevron_right,
+                color: theme.colorScheme.onSurfaceVariant,
               ),
-            ),
+            ],
           ),
-        ],
-      ),
-    );
-  }
-
-  void _addRepairForCar(BuildContext context, Car car) {
-    final repairsBloc = context.read<RepairsBloc>();
-    final carBloc = context.read<CarBloc>();
-    final clientBloc = context.read<ClientBloc>();
-
-    Navigator.pop(context);
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (modalContext) => MultiBlocProvider(
-        providers: [
-          BlocProvider.value(value: repairsBloc),
-          BlocProvider.value(value: carBloc),
-          BlocProvider.value(value: clientBloc),
-        ],
-        child: RepairFormModal(
-          preselectedCarId: car.id,
-          preselectedClientId: car.clientId,
         ),
       ),
     );

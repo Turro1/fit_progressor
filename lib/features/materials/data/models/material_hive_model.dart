@@ -12,6 +12,11 @@ class MaterialHiveModel extends HiveObject {
   double cost;
   DateTime createdAt;
 
+  // Sync fields
+  int version;
+  DateTime updatedAt;
+  String? lastSyncDeviceId;
+
   MaterialHiveModel({
     required this.id,
     required this.name,
@@ -20,7 +25,10 @@ class MaterialHiveModel extends HiveObject {
     required this.minQuantity,
     required this.cost,
     required this.createdAt,
-  });
+    this.version = 1,
+    DateTime? updatedAt,
+    this.lastSyncDeviceId,
+  }) : updatedAt = updatedAt ?? DateTime.now();
 
   /// Convert from domain entity
   factory MaterialHiveModel.fromEntity(Material entity) {
@@ -45,6 +53,40 @@ class MaterialHiveModel extends HiveObject {
       minQuantity: minQuantity,
       cost: cost,
       createdAt: createdAt,
+    );
+  }
+
+  /// Serialize to JSON for sync
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'quantity': quantity,
+      'unitIndex': unitIndex,
+      'minQuantity': minQuantity,
+      'cost': cost,
+      'createdAt': createdAt.toIso8601String(),
+      'version': version,
+      'updatedAt': updatedAt.toIso8601String(),
+      'lastSyncDeviceId': lastSyncDeviceId,
+    };
+  }
+
+  /// Deserialize from JSON for sync
+  factory MaterialHiveModel.fromJson(Map<String, dynamic> json) {
+    return MaterialHiveModel(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      quantity: (json['quantity'] as num).toDouble(),
+      unitIndex: json['unitIndex'] as int,
+      minQuantity: (json['minQuantity'] as num).toDouble(),
+      cost: (json['cost'] as num).toDouble(),
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      version: json['version'] as int? ?? 1,
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'] as String)
+          : null,
+      lastSyncDeviceId: json['lastSyncDeviceId'] as String?,
     );
   }
 }
@@ -94,13 +136,16 @@ class MaterialHiveModelAdapter extends TypeAdapter<MaterialHiveModel> {
       minQuantity: fields[4] as double,
       cost: fields[5] as double,
       createdAt: fields[6] as DateTime,
+      version: fields[7] as int? ?? 1,
+      updatedAt: fields[8] as DateTime?,
+      lastSyncDeviceId: fields[9] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, MaterialHiveModel obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(10)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -114,7 +159,13 @@ class MaterialHiveModelAdapter extends TypeAdapter<MaterialHiveModel> {
       ..writeByte(5)
       ..write(obj.cost)
       ..writeByte(6)
-      ..write(obj.createdAt);
+      ..write(obj.createdAt)
+      ..writeByte(7)
+      ..write(obj.version)
+      ..writeByte(8)
+      ..write(obj.updatedAt)
+      ..writeByte(9)
+      ..write(obj.lastSyncDeviceId);
   }
 
   @override

@@ -21,6 +21,11 @@ class RepairHiveModel extends HiveObject {
   DateTime createdAt;
   List<RepairMaterialHiveModel> materials;
 
+  // Sync fields
+  int version;
+  DateTime updatedAt;
+  String? lastSyncDeviceId;
+
   RepairHiveModel({
     required this.id,
     required this.partType,
@@ -36,7 +41,10 @@ class RepairHiveModel extends HiveObject {
     required this.statusIndex,
     required this.createdAt,
     required this.materials,
-  });
+    this.version = 1,
+    DateTime? updatedAt,
+    this.lastSyncDeviceId,
+  }) : updatedAt = updatedAt ?? DateTime.now();
 
   /// Convert from domain entity
   factory RepairHiveModel.fromEntity(Repair entity) {
@@ -77,6 +85,59 @@ class RepairHiveModel extends HiveObject {
       status: RepairStatus.values[statusIndex],
       createdAt: createdAt,
       materials: materials.map((m) => m.toEntity()).toList(),
+    );
+  }
+
+  /// Serialize to JSON for sync
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'partType': partType,
+      'partPosition': partPosition,
+      'photoPaths': photoPaths,
+      'description': description,
+      'date': date.toIso8601String(),
+      'cost': cost,
+      'clientId': clientId,
+      'carId': carId,
+      'carMake': carMake,
+      'carModel': carModel,
+      'statusIndex': statusIndex,
+      'createdAt': createdAt.toIso8601String(),
+      'materials': materials.map((m) => m.toJson()).toList(),
+      'version': version,
+      'updatedAt': updatedAt.toIso8601String(),
+      'lastSyncDeviceId': lastSyncDeviceId,
+    };
+  }
+
+  /// Deserialize from JSON for sync
+  factory RepairHiveModel.fromJson(Map<String, dynamic> json) {
+    return RepairHiveModel(
+      id: json['id'] as String,
+      partType: json['partType'] as String,
+      partPosition: json['partPosition'] as String,
+      photoPaths: (json['photoPaths'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
+      description: json['description'] as String,
+      date: DateTime.parse(json['date'] as String),
+      cost: (json['cost'] as num).toDouble(),
+      clientId: json['clientId'] as String,
+      carId: json['carId'] as String,
+      carMake: json['carMake'] as String,
+      carModel: json['carModel'] as String,
+      statusIndex: json['statusIndex'] as int,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      materials: (json['materials'] as List<dynamic>)
+          .map((m) =>
+              RepairMaterialHiveModel.fromJson(m as Map<String, dynamic>))
+          .toList(),
+      version: json['version'] as int? ?? 1,
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'] as String)
+          : null,
+      lastSyncDeviceId: json['lastSyncDeviceId'] as String?,
     );
   }
 }
@@ -133,13 +194,16 @@ class RepairHiveModelAdapter extends TypeAdapter<RepairHiveModel> {
       statusIndex: fields[11] as int,
       createdAt: fields[12] as DateTime,
       materials: (fields[13] as List).cast<RepairMaterialHiveModel>(),
+      version: fields[14] as int? ?? 1,
+      updatedAt: fields[15] as DateTime?,
+      lastSyncDeviceId: fields[16] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, RepairHiveModel obj) {
     writer
-      ..writeByte(14)
+      ..writeByte(17)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -167,7 +231,13 @@ class RepairHiveModelAdapter extends TypeAdapter<RepairHiveModel> {
       ..writeByte(12)
       ..write(obj.createdAt)
       ..writeByte(13)
-      ..write(obj.materials);
+      ..write(obj.materials)
+      ..writeByte(14)
+      ..write(obj.version)
+      ..writeByte(15)
+      ..write(obj.updatedAt)
+      ..writeByte(16)
+      ..write(obj.lastSyncDeviceId);
   }
 
   @override

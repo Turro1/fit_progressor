@@ -2,8 +2,37 @@ import 'package:fit_progressor/features/dashboard/domain/entities/dashboard_stat
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-/// Виджет графика выручки за последние 14 дней
-class RevenueChart extends StatelessWidget {
+/// Период для графика выручки
+enum ChartPeriod {
+  week,
+  month,
+  quarter;
+
+  String get label {
+    switch (this) {
+      case ChartPeriod.week:
+        return 'Неделя';
+      case ChartPeriod.month:
+        return 'Месяц';
+      case ChartPeriod.quarter:
+        return 'Квартал';
+    }
+  }
+
+  int get days {
+    switch (this) {
+      case ChartPeriod.week:
+        return 7;
+      case ChartPeriod.month:
+        return 30;
+      case ChartPeriod.quarter:
+        return 90;
+    }
+  }
+}
+
+/// Виджет графика выручки с выбором периода
+class RevenueChart extends StatefulWidget {
   final RevenueChartData data;
 
   const RevenueChart({
@@ -12,10 +41,44 @@ class RevenueChart extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<RevenueChart> createState() => _RevenueChartState();
+}
+
+class _RevenueChartState extends State<RevenueChart> {
+  ChartPeriod _selectedPeriod = ChartPeriod.month;
+
+  RevenueChartData get _filteredData {
+    if (widget.data.dailyRevenue.isEmpty) {
+      return widget.data;
+    }
+
+    final now = DateTime.now();
+    final cutoffDate = now.subtract(Duration(days: _selectedPeriod.days));
+
+    final filteredRevenue = widget.data.dailyRevenue
+        .where((r) => r.date.isAfter(cutoffDate))
+        .toList();
+
+    if (filteredRevenue.isEmpty) {
+      return const RevenueChartData.empty();
+    }
+
+    final maxValue = filteredRevenue.map((r) => r.revenue).reduce((a, b) => a > b ? a : b);
+    final totalRevenue = filteredRevenue.map((r) => r.revenue).reduce((a, b) => a + b);
+
+    return RevenueChartData(
+      dailyRevenue: filteredRevenue,
+      maxValue: maxValue,
+      totalRevenue: totalRevenue,
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final data = _filteredData;
 
-    if (data.dailyRevenue.isEmpty) {
+    if (widget.data.dailyRevenue.isEmpty) {
       return Card(
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -37,59 +100,125 @@ class RevenueChart extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Header с выбором периода
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Выручка за месяц',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  '${_formatMoney(data.totalRevenue)} ₽',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.bold,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Выручка',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${_formatMoney(data.totalRevenue)} ₽',
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
+            const SizedBox(height: 12),
+
+            // Период selector
+            _buildPeriodSelector(theme),
             const SizedBox(height: 16),
+
+            // График
             SizedBox(
               height: 120,
-              child: CustomPaint(
-                size: const Size(double.infinity, 120),
-                painter: _ChartPainter(
-                  data: data,
-                  lineColor: theme.colorScheme.primary,
-                  fillColor: theme.colorScheme.primary.withValues(alpha: 0.1),
-                  gridColor: theme.colorScheme.outlineVariant,
-                  textColor: theme.colorScheme.onSurfaceVariant,
+              child: data.dailyRevenue.isEmpty
+                  ? Center(
+                      child: Text(
+                        'Нет данных за выбранный период',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    )
+                  : CustomPaint(
+                      size: const Size(double.infinity, 120),
+                      painter: _ChartPainter(
+                        data: data,
+                        lineColor: theme.colorScheme.primary,
+                        fillColor: theme.colorScheme.primary.withValues(alpha: 0.1),
+                        gridColor: theme.colorScheme.outlineVariant,
+                        textColor: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+            ),
+            const SizedBox(height: 8),
+
+            // Легенда с датами
+            if (data.dailyRevenue.isNotEmpty)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    _formatShortDate(data.dailyRevenue.first.date),
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  Text(
+                    _formatShortDate(data.dailyRevenue.last.date),
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPeriodSelector(ThemeData theme) {
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.all(4),
+      child: Row(
+        children: ChartPeriod.values.map((period) {
+          final isSelected = _selectedPeriod == period;
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => setState(() => _selectedPeriod = period),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? theme.colorScheme.primaryContainer
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Center(
+                  child: Text(
+                    period.label,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: isSelected
+                          ? theme.colorScheme.onPrimaryContainer
+                          : theme.colorScheme.onSurfaceVariant,
+                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                    ),
+                  ),
                 ),
               ),
             ),
-            const SizedBox(height: 8),
-            // Легенда с датами
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  _formatShortDate(data.dailyRevenue.first.date),
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                Text(
-                  _formatShortDate(data.dailyRevenue.last.date),
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+          );
+        }).toList(),
       ),
     );
   }
@@ -181,7 +310,9 @@ class _ChartPainter extends CustomPainter {
     final fillPath = Path();
     final points = <Offset>[];
 
-    final step = chartWidth / (data.dailyRevenue.length - 1);
+    final step = data.dailyRevenue.length > 1
+        ? chartWidth / (data.dailyRevenue.length - 1)
+        : chartWidth;
 
     for (int i = 0; i < data.dailyRevenue.length; i++) {
       final revenue = data.dailyRevenue[i].revenue;

@@ -39,8 +39,13 @@ import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_bloc.d
 
 import 'package:fit_progressor/core/services/export_service.dart';
 import 'package:fit_progressor/core/services/material_stock_service.dart';
+import 'package:fit_progressor/core/services/data_seeder_service.dart';
+import 'package:fit_progressor/core/services/cache_cleaner_service.dart';
 import 'package:fit_progressor/core/storage/hive_config.dart';
 import 'package:fit_progressor/core/theme/theme_cubit.dart';
+import 'package:fit_progressor/core/sync/tracking/change_tracker.dart';
+import 'package:fit_progressor/core/sync/sync_engine.dart';
+import 'package:fit_progressor/core/sync/bloc/sync_bloc.dart';
 import 'package:get_it/get_it.dart';
 
 // Features - Materials
@@ -259,7 +264,7 @@ Future<void> init() async {
   );
 
   // ============================================
-  // Core - Theme & Export
+  // Core - Theme & Export & Seeder
   // ============================================
 
   // Theme (uses Hive settings box)
@@ -267,4 +272,32 @@ Future<void> init() async {
 
   // Export
   sl.registerLazySingleton(() => ExportService());
+
+  // Data Seeder (only works in debug mode)
+  sl.registerLazySingleton(
+    () => DataSeederService(
+      clientRepository: sl(),
+      carRepository: sl(),
+      repairRepository: sl(),
+      materialRepository: sl(),
+    ),
+  );
+
+  // Cache Cleaner
+  sl.registerLazySingleton(
+    () => CacheCleanerService(changeTracker: sl()),
+  );
+
+  // ============================================
+  // Core - Sync
+  // ============================================
+
+  // Change Tracker
+  sl.registerLazySingleton(() => ChangeTracker());
+
+  // Sync Engine
+  sl.registerLazySingleton(() => SyncEngine(sl<ChangeTracker>()));
+
+  // Sync Bloc
+  sl.registerFactory(() => SyncBloc(sl<SyncEngine>()));
 }

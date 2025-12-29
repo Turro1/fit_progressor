@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_bloc.dart';
-import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_state.dart';
-import 'package:fit_progressor/features/repairs/domain/entities/repair_status.dart';
 
 class CustomBottomNavigationBar extends StatelessWidget {
   final String currentPath;
@@ -60,24 +56,11 @@ class CustomBottomNavigationBar extends StatelessWidget {
             isActive: currentPath == '/cars',
             onTap: () => _navigateTo(context, '/cars'),
           ),
-          // Ремонты с badge
-          BlocBuilder<RepairsBloc, RepairsState>(
-            builder: (context, state) {
-              int inProgressCount = 0;
-              if (state is RepairsLoaded) {
-                inProgressCount = state.allRepairs
-                    .where((r) => r.status == RepairStatus.inProgress)
-                    .length;
-              }
-
-              return _NavButton(
-                icon: Icons.build_circle_rounded,
-                label: 'Ремонты',
-                isActive: currentPath == '/repairs',
-                onTap: () => _navigateTo(context, '/repairs'),
-                badgeCount: inProgressCount,
-              );
-            },
+          _NavButton(
+            icon: Icons.build_circle_rounded,
+            label: 'Ремонты',
+            isActive: currentPath == '/repairs',
+            onTap: () => _navigateTo(context, '/repairs'),
           ),
           _NavButton(
             icon: Icons.inventory_2,
@@ -96,14 +79,12 @@ class _NavButton extends StatelessWidget {
   final String label;
   final bool isActive;
   final VoidCallback onTap;
-  final int badgeCount;
 
   const _NavButton({
     required this.icon,
     required this.label,
     required this.isActive,
     required this.onTap,
-    this.badgeCount = 0,
   });
 
   @override
@@ -120,47 +101,7 @@ class _NavButton extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Icon(icon, size: 24, color: iconColor),
-                if (badgeCount > 0)
-                  Positioned(
-                    right: -8,
-                    top: -4,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 5,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.error,
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: theme.colorScheme.error.withValues(alpha: 0.3),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      constraints: const BoxConstraints(
-                        minWidth: 16,
-                        minHeight: 16,
-                      ),
-                      child: Text(
-                        badgeCount > 9 ? '9+' : badgeCount.toString(),
-                        style: TextStyle(
-                          color: theme.colorScheme.onError,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
+            Icon(icon, size: 24, color: iconColor),
             const SizedBox(height: 4),
             Text(
               label,

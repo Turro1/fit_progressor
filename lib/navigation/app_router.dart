@@ -7,6 +7,8 @@ import 'package:fit_progressor/features/materials/presentation/bloc/material_blo
 import 'package:fit_progressor/features/materials/presentation/pages/materials_page.dart';
 import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_bloc.dart';
 import 'package:fit_progressor/features/repairs/presentation/pages/repairs_page.dart';
+import 'package:fit_progressor/features/settings/presentation/pages/settings_page.dart';
+import 'package:fit_progressor/features/settings/presentation/pages/sync_settings_page.dart';
 import 'package:fit_progressor/injection_container.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -69,6 +71,24 @@ class AppRouter {
                 child: const MaterialsPage(),
               ),
             ),
+          ),
+          GoRoute(
+            path: '/settings',
+            pageBuilder: (context, state) => NoTransitionPage(
+              child: MultiBlocProvider(
+                providers: [
+                  BlocProvider(create: (context) => sl<ClientBloc>()),
+                  BlocProvider(create: (context) => sl<CarBloc>()),
+                ],
+                child: const SettingsPage(),
+              ),
+            ),
+            routes: [
+              GoRoute(
+                path: 'sync',
+                builder: (context, state) => const SyncSettingsPage(),
+              ),
+            ],
           ),
         ],
       ),

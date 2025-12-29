@@ -1,4 +1,6 @@
 import 'package:fit_progressor/core/theme/theme_cubit.dart';
+import 'package:fit_progressor/core/sync/bloc/sync_bloc.dart';
+import 'package:fit_progressor/core/sync/bloc/sync_event.dart';
 import 'package:fit_progressor/features/cars/presentation/bloc/car_bloc.dart';
 import 'package:fit_progressor/features/cars/presentation/bloc/car_event.dart';
 import 'package:fit_progressor/features/materials/presentation/bloc/material_bloc.dart';
@@ -32,6 +34,7 @@ class _FitProgressorAppState extends State<FitProgressorApp> {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => di.sl<ThemeCubit>()),
+        BlocProvider(create: (_) => di.sl<SyncBloc>()..add(const SyncInitialize())),
         BlocProvider(create: (_) => di.sl<ClientBloc>()..add(LoadClients())),
         BlocProvider(create: (_) => di.sl<CarBloc>()..add(LoadCars())),
         BlocProvider(

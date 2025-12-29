@@ -52,22 +52,31 @@ class RepairsBloc extends Bloc<RepairsEvent, RepairsState> {
     }
 
     emit(RepairsLoading(currentFilter: currentFilter));
-    final result = await getRepairs(GetRepairsParams(carId: event.carId));
+
+    // Если фильтруем по carId или clientId, всё равно загружаем ВСЕ ремонты
+    // чтобы allRepairs для badge в навигации оставался актуальным
+    final result = await getRepairs(const GetRepairsParams());
     result.fold(
       (failure) =>
           emit(const RepairsError(message: 'Не удалось загрузить ремонты')),
-      (repairs) {
+      (allRepairs) {
+        // Фильтрация по carId если указан
+        var filteredRepairs = allRepairs;
+        if (event.carId != null) {
+          filteredRepairs = allRepairs
+              .where((r) => r.carId == event.carId)
+              .toList();
+        }
         // Фильтрация по clientId если указан
-        var filteredByClient = repairs;
         if (event.clientId != null) {
-          filteredByClient = repairs
+          filteredRepairs = filteredRepairs
               .where((r) => r.clientId == event.clientId)
               .toList();
         }
-        final filteredRepairs = _applyFilter(filteredByClient, currentFilter);
+        final finalRepairs = _applyFilter(filteredRepairs, currentFilter);
         emit(RepairsLoaded(
-          repairs: filteredRepairs,
-          allRepairs: repairs,
+          repairs: finalRepairs,
+          allRepairs: allRepairs, // Всегда сохраняем ВСЕ ремонты
           filterCarId: event.carId,
           filter: currentFilter,
         ));

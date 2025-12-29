@@ -4,6 +4,9 @@ import 'package:fit_progressor/features/repairs/data/models/repair_material_hive
 import 'package:fit_progressor/features/clients/data/models/client_hive_model.dart';
 import 'package:fit_progressor/features/cars/data/models/car_hive_model.dart';
 import 'package:fit_progressor/features/materials/data/models/material_hive_model.dart';
+import 'package:fit_progressor/core/sync/tracking/hive_models/sync_metadata_hive_model.dart';
+import 'package:fit_progressor/core/sync/tracking/hive_models/pending_change_hive_model.dart';
+import 'package:fit_progressor/core/sync/tracking/hive_models/connected_device_hive_model.dart';
 
 /// Box names for Hive storage
 class HiveBoxes {
@@ -13,6 +16,10 @@ class HiveBoxes {
   static const String materials = 'materials';
   static const String settings = 'settings';
   static const String migration = 'migration';
+  // Sync boxes
+  static const String syncMetadata = 'sync_metadata';
+  static const String pendingChanges = 'pending_changes';
+  static const String connectedDevices = 'connected_devices';
 }
 
 /// Type IDs for Hive adapters
@@ -25,6 +32,10 @@ class HiveTypeIds {
   static const int car = 4;
   static const int material = 5;
   static const int materialUnit = 6;
+  // Sync type IDs
+  static const int syncMetadata = 7;
+  static const int pendingChange = 8;
+  static const int connectedDevice = 9;
 }
 
 /// Hive configuration and initialization
@@ -75,6 +86,17 @@ class HiveConfig {
     if (!Hive.isAdapterRegistered(HiveTypeIds.material)) {
       Hive.registerAdapter(MaterialHiveModelAdapter());
     }
+
+    // Sync
+    if (!Hive.isAdapterRegistered(HiveTypeIds.syncMetadata)) {
+      Hive.registerAdapter(SyncMetadataHiveModelAdapter());
+    }
+    if (!Hive.isAdapterRegistered(HiveTypeIds.pendingChange)) {
+      Hive.registerAdapter(PendingChangeHiveModelAdapter());
+    }
+    if (!Hive.isAdapterRegistered(HiveTypeIds.connectedDevice)) {
+      Hive.registerAdapter(ConnectedDeviceHiveModelAdapter());
+    }
   }
 
   static Future<void> _openBoxes() async {
@@ -85,6 +107,10 @@ class HiveConfig {
       Hive.openBox<MaterialHiveModel>(HiveBoxes.materials),
       Hive.openBox(HiveBoxes.settings),
       Hive.openBox(HiveBoxes.migration),
+      // Sync boxes
+      Hive.openBox<SyncMetadataHiveModel>(HiveBoxes.syncMetadata),
+      Hive.openBox<PendingChangeHiveModel>(HiveBoxes.pendingChanges),
+      Hive.openBox<ConnectedDeviceHiveModel>(HiveBoxes.connectedDevices),
     ]);
   }
 
