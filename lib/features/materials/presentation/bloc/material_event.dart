@@ -1,14 +1,17 @@
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/material.dart';
+import '../../domain/entities/material_filter.dart';
 
 abstract class MaterialEvent extends Equatable {
   const MaterialEvent();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
-class LoadMaterials extends MaterialEvent {}
+class LoadMaterials extends MaterialEvent {
+  const LoadMaterials();
+}
 
 class AddMaterialEvent extends MaterialEvent {
   final String name;
@@ -26,7 +29,7 @@ class AddMaterialEvent extends MaterialEvent {
   });
 
   @override
-  List<Object> get props => [name, quantity, unit, minQuantity, cost];
+  List<Object?> get props => [name, quantity, unit, minQuantity, cost];
 }
 
 class UpdateMaterialEvent extends MaterialEvent {
@@ -35,7 +38,7 @@ class UpdateMaterialEvent extends MaterialEvent {
   const UpdateMaterialEvent({required this.material});
 
   @override
-  List<Object> get props => [material];
+  List<Object?> get props => [material];
 }
 
 class DeleteMaterialEvent extends MaterialEvent {
@@ -44,7 +47,7 @@ class DeleteMaterialEvent extends MaterialEvent {
   const DeleteMaterialEvent({required this.materialId});
 
   @override
-  List<Object> get props => [materialId];
+  List<Object?> get props => [materialId];
 }
 
 class SearchMaterialsEvent extends MaterialEvent {
@@ -53,5 +56,18 @@ class SearchMaterialsEvent extends MaterialEvent {
   const SearchMaterialsEvent({required this.query});
 
   @override
-  List<Object> get props => [query];
+  List<Object?> get props => [query];
+}
+
+class FilterMaterialsEvent extends MaterialEvent {
+  final MaterialFilter filter;
+
+  const FilterMaterialsEvent({required this.filter});
+
+  @override
+  List<Object?> get props => [filter];
+}
+
+class ClearMaterialFiltersEvent extends MaterialEvent {
+  const ClearMaterialFiltersEvent();
 }

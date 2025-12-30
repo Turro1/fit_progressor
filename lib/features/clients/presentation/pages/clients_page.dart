@@ -2,6 +2,8 @@ import 'package:fit_progressor/features/clients/domain/entities/client.dart';
 import 'package:fit_progressor/features/cars/presentation/bloc/car_bloc.dart';
 import 'package:fit_progressor/features/cars/presentation/bloc/car_event.dart';
 import 'package:fit_progressor/features/cars/presentation/bloc/car_state.dart';
+import 'package:fit_progressor/shared/widgets/animated_fab.dart';
+import 'package:fit_progressor/shared/widgets/animated_list_item.dart';
 import 'package:fit_progressor/shared/widgets/empty_state.dart';
 import 'package:fit_progressor/shared/widgets/delete_confirmation_dialog.dart';
 import 'package:fit_progressor/shared/widgets/skeleton_loader.dart';
@@ -36,10 +38,11 @@ class _ClientsPageState extends State<ClientsPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: AnimatedAppearFAB(
         onPressed: () => _showClientModal(context),
         backgroundColor: theme.colorScheme.secondary,
         foregroundColor: theme.colorScheme.onSecondary,
+        tooltip: 'Добавить клиента',
         child: const Icon(Icons.add),
       ),
       body: SafeArea(
@@ -145,13 +148,17 @@ class _ClientsPageState extends State<ClientsPage> {
                             itemBuilder: (context, index) {
                               final client = clientState.clients[index];
                               final clientCarsCount = carsCountByClient[client.id] ?? 0;
-                              return ClientCard(
-                                client: client,
-                                carsCount: clientCarsCount,
-                                onEdit: () => _showClientModal(context, client),
-                                onDelete: () => _confirmDelete(context, client, clientCarsCount),
-                                onTap: () =>
-                                    _showClientCarsModal(context, client),
+                              return AnimatedListItem(
+                                key: ValueKey(client.id),
+                                index: index,
+                                child: ClientCard(
+                                  client: client,
+                                  carsCount: clientCarsCount,
+                                  onEdit: () => _showClientModal(context, client),
+                                  onDelete: () => _confirmDelete(context, client, clientCarsCount),
+                                  onTap: () =>
+                                      _showClientCarsModal(context, client),
+                                ),
                               );
                             },
                           ),

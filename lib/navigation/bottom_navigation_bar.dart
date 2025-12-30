@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 class CustomBottomNavigationBar extends StatelessWidget {
@@ -6,10 +7,21 @@ class CustomBottomNavigationBar extends StatelessWidget {
 
   const CustomBottomNavigationBar({super.key, required this.currentPath});
 
+  static const _items = [
+    _NavItem('/dashboard', Icons.query_stats, Icons.query_stats_outlined, 'Сводка'),
+    _NavItem('/clients', Icons.groups_rounded, Icons.groups_outlined, 'Клиенты'),
+    _NavItem('/cars', Icons.directions_car_rounded, Icons.directions_car_outlined, 'Авто'),
+    _NavItem('/repairs', Icons.build_circle_rounded, Icons.build_circle_outlined, 'Ремонты'),
+    _NavItem('/materials', Icons.inventory_2, Icons.inventory_2_outlined, 'Склад'),
+  ];
+
   void _navigateTo(BuildContext context, String path) {
+    if (currentPath == path) return;
+
+    HapticFeedback.lightImpact();
+
     // Close any open modal bottom sheets before navigating
     final navigator = Navigator.of(context);
-    // Pop all modal routes (bottom sheets, dialogs, etc.)
     while (navigator.canPop()) {
       navigator.pop();
     }
@@ -19,54 +31,63 @@ class CustomBottomNavigationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final currentIndex = _items.indexWhere((item) => item.path == currentPath);
 
     return Container(
-      height: 65,
+      height: 70,
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         border: Border(
-          top: BorderSide(color: theme.dividerColor),
+          top: BorderSide(
+            color: theme.dividerColor.withValues(alpha: 0.1),
+          ),
         ),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: Color(0x33000000),
-            blurRadius: 15,
-            offset: Offset(0, -5),
+            color: theme.shadowColor.withValues(alpha: 0.08),
+            blurRadius: 20,
+            offset: const Offset(0, -5),
           ),
         ],
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
+      child: Stack(
         children: [
-          _NavButton(
-            icon: Icons.query_stats,
-            label: 'Сводка',
-            isActive: currentPath == '/dashboard',
-            onTap: () => _navigateTo(context, '/dashboard'),
+          // Animated indicator
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeOutCubic,
+            left: currentIndex >= 0
+                ? (MediaQuery.of(context).size.width / _items.length) * currentIndex +
+                    (MediaQuery.of(context).size.width / _items.length - 40) / 2
+                : 0,
+            top: 0,
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 200),
+              opacity: currentIndex >= 0 ? 1.0 : 0.0,
+              child: Container(
+                width: 40,
+                height: 3,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary,
+                  borderRadius: const BorderRadius.vertical(
+                    bottom: Radius.circular(3),
+                  ),
+                ),
+              ),
+            ),
           ),
-          _NavButton(
-            icon: Icons.groups_rounded,
-            label: 'Клиенты',
-            isActive: currentPath == '/clients',
-            onTap: () => _navigateTo(context, '/clients'),
-          ),
-          _NavButton(
-            icon: Icons.directions_car_rounded,
-            label: 'Авто',
-            isActive: currentPath == '/cars',
-            onTap: () => _navigateTo(context, '/cars'),
-          ),
-          _NavButton(
-            icon: Icons.build_circle_rounded,
-            label: 'Ремонты',
-            isActive: currentPath == '/repairs',
-            onTap: () => _navigateTo(context, '/repairs'),
-          ),
-          _NavButton(
-            icon: Icons.inventory_2,
-            label: 'Склад',
-            isActive: currentPath == '/materials',
-            onTap: () => _navigateTo(context, '/materials'),
+          // Navigation items
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: _items.map((item) {
+              final isActive = currentPath == item.path;
+              return _AnimatedNavButton(
+                icon: isActive ? item.activeIcon : item.icon,
+                label: item.label,
+                isActive: isActive,
+                onTap: () => _navigateTo(context, item.path),
+              );
+            }).toList(),
           ),
         ],
       ),
@@ -74,13 +95,22 @@ class CustomBottomNavigationBar extends StatelessWidget {
   }
 }
 
-class _NavButton extends StatelessWidget {
+class _NavItem {
+  final String path;
+  final IconData activeIcon;
+  final IconData icon;
+  final String label;
+
+  const _NavItem(this.path, this.activeIcon, this.icon, this.label);
+}
+
+class _AnimatedNavButton extends StatefulWidget {
   final IconData icon;
   final String label;
   final bool isActive;
   final VoidCallback onTap;
 
-  const _NavButton({
+  const _AnimatedNavButton({
     required this.icon,
     required this.label,
     required this.isActive,
@@ -88,29 +118,120 @@ class _NavButton extends StatelessWidget {
   });
 
   @override
+  State<_AnimatedNavButton> createState() => _AnimatedNavButtonState();
+}
+
+class _AnimatedNavButtonState extends State<_AnimatedNavButton>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _bounceAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+
+
+    _bounceAnimation = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 1.0, end: 1.15)
+            .chain(CurveTween(curve: Curves.easeOut)),
+        weight: 50,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 1.15, end: 1.0)
+            .chain(CurveTween(curve: Curves.elasticOut)),
+        weight: 50,
+      ),
+    ]).animate(_controller);
+  }
+
+  @override
+  void didUpdateWidget(_AnimatedNavButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isActive && !oldWidget.isActive) {
+      _controller.forward(from: 0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final iconColor = isActive
-        ? theme.colorScheme.secondary
-        : theme.colorScheme.onSurface.withValues(alpha: 0.6);
 
-    return InkWell(
-      onTap: onTap,
+    return GestureDetector(
+      onTap: widget.onTap,
+      behavior: HitTestBehavior.opaque,
       child: SizedBox(
-        width: 60,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 24, color: iconColor),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                color: iconColor,
+        width: MediaQuery.of(context).size.width / 5,
+        height: 70,
+        child: AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            final scale = widget.isActive ? _bounceAnimation.value : 1.0;
+
+            return Transform.scale(
+              scale: scale,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Icon with animated container
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeOutCubic,
+                    padding: EdgeInsets.all(widget.isActive ? 8 : 6),
+                    decoration: BoxDecoration(
+                      color: widget.isActive
+                          ? theme.colorScheme.primary.withValues(alpha: 0.12)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 200),
+                      switchInCurve: Curves.easeOutCubic,
+                      switchOutCurve: Curves.easeInCubic,
+                      transitionBuilder: (child, animation) {
+                        return ScaleTransition(
+                          scale: animation,
+                          child: child,
+                        );
+                      },
+                      child: Icon(
+                        widget.icon,
+                        key: ValueKey(widget.isActive),
+                        size: widget.isActive ? 26 : 24,
+                        color: widget.isActive
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  // Label
+                  AnimatedDefaultTextStyle(
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeOutCubic,
+                    style: TextStyle(
+                      fontSize: widget.isActive ? 11 : 10,
+                      fontWeight: widget.isActive ? FontWeight.w600 : FontWeight.normal,
+                      color: widget.isActive
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                    ),
+                    child: Text(widget.label),
+                  ),
+                ],
               ),
-            ),
-          ],
+            );
+          },
         ),
       ),
     );

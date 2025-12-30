@@ -1,3 +1,6 @@
+import 'package:fit_progressor/features/materials/domain/entities/material_filter.dart';
+import 'package:fit_progressor/shared/widgets/animated_fab.dart';
+import 'package:fit_progressor/shared/widgets/animated_list_item.dart';
 import 'package:fit_progressor/shared/widgets/app_search_bar.dart';
 import 'package:fit_progressor/shared/widgets/empty_state.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +11,7 @@ import '../bloc/material_event.dart';
 import '../bloc/material_state.dart' as material_state;
 import '../widgets/material_card.dart';
 import '../widgets/material_form_modal.dart';
+import '../widgets/material_filter_sheet.dart';
 
 class MaterialsPage extends StatefulWidget {
   const MaterialsPage({Key? key}) : super(key: key);
@@ -20,8 +24,21 @@ class _MaterialsPageState extends State<MaterialsPage> {
   @override
   void initState() {
     super.initState();
-    // Load materials on init
-    context.read<MaterialBloc>().add(LoadMaterials());
+    context.read<MaterialBloc>().add(const LoadMaterials());
+  }
+
+  void _showFilterSheet(BuildContext context, MaterialFilter currentFilter) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => MaterialFilterSheet(
+        initialFilter: currentFilter,
+        onApply: (filter) {
+          context.read<MaterialBloc>().add(FilterMaterialsEvent(filter: filter));
+        },
+      ),
+    );
   }
 
   @override
@@ -29,10 +46,11 @@ class _MaterialsPageState extends State<MaterialsPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: AnimatedAppearFAB(
         onPressed: () => _showMaterialModal(context),
         backgroundColor: theme.colorScheme.secondary,
         foregroundColor: theme.colorScheme.onSecondary,
+        tooltip: 'Добавить материал',
         child: const Icon(Icons.add),
       ),
       body: SafeArea(
@@ -53,17 +71,56 @@ class _MaterialsPageState extends State<MaterialsPage> {
                 ],
               ),
             ),
-            // Search bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15.0),
-              child: AppSearchBar(
-                hintText: 'Поиск по названию материала...',
-                onSearch: (query) {
-                  context.read<MaterialBloc>().add(
-                    SearchMaterialsEvent(query: query),
-                  );
-                },
-              ),
+            // Search bar with filter
+            BlocBuilder<MaterialBloc, material_state.MaterialState>(
+              buildWhen: (previous, current) {
+                final prevFilter = previous is material_state.MaterialLoaded
+                    ? previous.filter
+                    : const MaterialFilter();
+                final currFilter = current is material_state.MaterialLoaded
+                    ? current.filter
+                    : (current is material_state.MaterialLoading
+                        ? current.currentFilter
+                        : const MaterialFilter());
+                return prevFilter != currFilter;
+              },
+              builder: (context, state) {
+                final currentFilter = state is material_state.MaterialLoaded
+                    ? state.filter
+                    : (state is material_state.MaterialLoading
+                        ? state.currentFilter ?? const MaterialFilter()
+                        : const MaterialFilter());
+
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                  child: Column(
+                    children: [
+                      AppSearchBar(
+                        hintText: 'Поиск по названию материала...',
+                        showFilterButton: true,
+                        onFilterTap: () => _showFilterSheet(context, currentFilter),
+                        onSearch: (query) {
+                          context.read<MaterialBloc>().add(
+                            SearchMaterialsEvent(query: query),
+                          );
+                        },
+                      ),
+                      // Active filters indicator
+                      if (currentFilter.isActive) ...[
+                        const SizedBox(height: 8),
+                        _ActiveFiltersBar(
+                          filter: currentFilter,
+                          onClear: () {
+                            context.read<MaterialBloc>().add(
+                              const ClearMaterialFiltersEvent(),
+                            );
+                          },
+                        ),
+                      ],
+                    ],
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 15),
             // Content
@@ -85,8 +142,7 @@ class _MaterialsPageState extends State<MaterialsPage> {
                         backgroundColor: theme.colorScheme.secondary,
                       ),
                     );
-                    // Перезагружаем список после успешной операции
-                    context.read<MaterialBloc>().add(LoadMaterials());
+                    context.read<MaterialBloc>().add(const LoadMaterials());
                   }
                 },
                 builder: (context, state) {
@@ -98,7 +154,7 @@ class _MaterialsPageState extends State<MaterialsPage> {
                     if (state.materials.isEmpty) {
                       return RefreshIndicator(
                         onRefresh: () async {
-                          context.read<MaterialBloc>().add(LoadMaterials());
+                          context.read<MaterialBloc>().add(const LoadMaterials());
                         },
                         child: ListView(
                           children: [
@@ -106,9 +162,12 @@ class _MaterialsPageState extends State<MaterialsPage> {
                               height: MediaQuery.of(context).size.height * 0.5,
                               child: EmptyState(
                                 icon: Icons.inventory_2_outlined,
-                                title: 'Нет материалов',
-                                message:
-                                    'Добавьте первый материал, нажав кнопку "Добавить"',
+                                title: state.filter.isActive
+                                    ? 'Ничего не найдено'
+                                    : 'Нет материалов',
+                                message: state.filter.isActive
+                                    ? 'Попробуйте изменить параметры фильтра'
+                                    : 'Добавьте первый материал, нажав кнопку "Добавить"',
                               ),
                             ),
                           ],
@@ -118,17 +177,21 @@ class _MaterialsPageState extends State<MaterialsPage> {
 
                     return RefreshIndicator(
                       onRefresh: () async {
-                        context.read<MaterialBloc>().add(LoadMaterials());
+                        context.read<MaterialBloc>().add(const LoadMaterials());
                       },
                       child: ListView.builder(
                         padding: const EdgeInsets.symmetric(horizontal: 15),
                         itemCount: state.materials.length,
                         itemBuilder: (context, index) {
                           final material = state.materials[index];
-                          return MaterialCard(
-                            material: material,
-                            onEdit: () => _showMaterialModal(context, material),
-                            onDelete: () => _confirmDelete(context, material),
+                          return AnimatedListItem(
+                            key: ValueKey(material.id),
+                            index: index,
+                            child: MaterialCard(
+                              material: material,
+                              onEdit: () => _showMaterialModal(context, material),
+                              onDelete: () => _confirmDelete(context, material),
+                            ),
                           );
                         },
                       ),
@@ -179,6 +242,115 @@ class _MaterialsPageState extends State<MaterialsPage> {
             child: Text(
               'Удалить',
               style: TextStyle(color: theme.colorScheme.error),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Виджет для отображения активных фильтров
+class _ActiveFiltersBar extends StatelessWidget {
+  final MaterialFilter filter;
+  final VoidCallback onClear;
+
+  const _ActiveFiltersBar({
+    required this.filter,
+    required this.onClear,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final chips = <Widget>[];
+
+    // Статус наличия
+    if (filter.stockStatuses.isNotEmpty) {
+      final statusText = filter.stockStatuses.length == 1
+          ? filter.stockStatuses.first.displayName
+          : '${filter.stockStatuses.length} статуса';
+      chips.add(_FilterChip(label: statusText, icon: Icons.inventory_2_outlined));
+    }
+
+    // Единицы измерения
+    if (filter.units.isNotEmpty) {
+      final unitText = filter.units.length == 1
+          ? filter.units.first.displayName
+          : '${filter.units.length} ед.';
+      chips.add(_FilterChip(label: unitText, icon: Icons.straighten_outlined));
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.filter_list,
+            size: 16,
+            color: theme.colorScheme.primary,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: chips,
+            ),
+          ),
+          InkWell(
+            onTap: onClear,
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.all(4),
+              child: Icon(
+                Icons.close,
+                size: 18,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FilterChip extends StatelessWidget {
+  final String label;
+  final IconData icon;
+
+  const _FilterChip({
+    required this.label,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: theme.colorScheme.outline.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: theme.colorScheme.primary),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurface,
             ),
           ),
         ],

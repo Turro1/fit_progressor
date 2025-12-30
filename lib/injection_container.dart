@@ -92,6 +92,7 @@ Future<void> init() async {
       getRepairs: sl(),
       getClients: sl(),
       getCars: sl(),
+      getMaterials: sl(),
     ),
   );
 

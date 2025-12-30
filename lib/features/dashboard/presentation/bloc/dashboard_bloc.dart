@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../../cars/domain/usecases/get_cars.dart';
 import '../../../clients/domain/usecases/get_clients.dart';
+import '../../../materials/domain/usecases/get_materials.dart';
 import '../../../repairs/domain/usecases/get_repairs.dart';
 import '../../domain/entities/repair_with_details.dart';
 import '../../domain/usecases/get_dashboard_stats.dart';
@@ -14,12 +15,14 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   final GetRepairs getRepairs;
   final GetClients getClients;
   final GetCars getCars;
+  final GetMaterials getMaterials;
 
   DashboardBloc({
     required this.getDashboardStats,
     required this.getRepairs,
     required this.getClients,
     required this.getCars,
+    required this.getMaterials,
   }) : super(DashboardInitial()) {
     on<LoadDashboard>(_onLoadDashboard);
   }
@@ -35,6 +38,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     final repairsEither = await getRepairs(const GetRepairsParams());
     final clientsEither = await getClients(NoParams());
     final carsEither = await getCars(NoParams());
+    final materialsEither = await getMaterials(NoParams());
 
     statsEither.fold(
       (failure) => emit(
@@ -98,14 +102,25 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
                       );
                     }).toList();
 
+                    // Получаем материалы с низким остатком
+                    final lowStockMats = materialsEither.fold(
+                      (_) => <dynamic>[],
+                      (materials) => materials
+                          .where((m) => m.isLowStock || m.isOutOfStock)
+                          .toList()
+                        ..sort((a, b) => a.quantity.compareTo(b.quantity)),
+                    );
+
                     if (kDebugMode) {
                       debugPrint('Upcoming repairs: ${enrichedRepairs.length}');
+                      debugPrint('Low stock materials: ${lowStockMats.length}');
                     }
 
                     emit(
                       DashboardLoaded(
                         stats: stats,
                         recentRepairs: enrichedRepairs,
+                        lowStockMaterials: lowStockMats.cast(),
                       ),
                     );
                   },

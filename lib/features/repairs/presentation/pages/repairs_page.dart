@@ -5,6 +5,8 @@ import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_state.
 import 'package:fit_progressor/features/repairs/presentation/widgets/repair_card.dart';
 import 'package:fit_progressor/features/repairs/presentation/widgets/repair_filter_sheet.dart';
 import 'package:fit_progressor/features/repairs/presentation/widgets/repair_form_modal.dart';
+import 'package:fit_progressor/shared/widgets/animated_fab.dart';
+import 'package:fit_progressor/shared/widgets/animated_list_item.dart';
 import 'package:fit_progressor/shared/widgets/app_search_bar.dart';
 import 'package:fit_progressor/shared/widgets/empty_state.dart';
 import 'package:flutter/material.dart';
@@ -54,10 +56,11 @@ class _RepairsPageState extends State<RepairsPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: AnimatedAppearFAB(
         onPressed: () => _showRepairModal(context),
         backgroundColor: theme.colorScheme.secondary,
         foregroundColor: theme.colorScheme.onSecondary,
+        tooltip: 'Добавить ремонт',
         child: const Icon(Icons.add),
       ),
       body: SafeArea(
@@ -189,7 +192,12 @@ class _RepairsPageState extends State<RepairsPage> {
                         padding: const EdgeInsets.symmetric(horizontal: 15.0),
                         itemCount: state.repairs.length,
                         itemBuilder: (context, index) {
-                          return RepairCard(repair: state.repairs[index]);
+                          final repair = state.repairs[index];
+                          return AnimatedListItem(
+                            key: ValueKey(repair.id),
+                            index: index,
+                            child: RepairCard(repair: repair),
+                          );
                         },
                       ),
                     );

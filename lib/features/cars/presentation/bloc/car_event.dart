@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/car.dart';
+import '../../domain/entities/car_filter.dart';
 
 abstract class CarEvent extends Equatable {
   const CarEvent();
@@ -8,7 +9,9 @@ abstract class CarEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class LoadCars extends CarEvent {}
+class LoadCars extends CarEvent {
+  const LoadCars();
+}
 
 class AddCarEvent extends CarEvent {
   final String clientId;
@@ -54,7 +57,9 @@ class SearchCarsEvent extends CarEvent {
   List<Object?> get props => [query];
 }
 
-class LoadCarMakes extends CarEvent {}
+class LoadCarMakes extends CarEvent {
+  const LoadCarMakes();
+}
 
 class LoadCarModels extends CarEvent {
   final String make;
@@ -63,4 +68,17 @@ class LoadCarModels extends CarEvent {
 
   @override
   List<Object?> get props => [make];
+}
+
+class FilterCarsEvent extends CarEvent {
+  final CarFilter filter;
+
+  const FilterCarsEvent({required this.filter});
+
+  @override
+  List<Object?> get props => [filter];
+}
+
+class ClearCarFiltersEvent extends CarEvent {
+  const ClearCarFiltersEvent();
 }

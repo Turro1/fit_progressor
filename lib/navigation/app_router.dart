@@ -10,6 +10,7 @@ import 'package:fit_progressor/features/repairs/presentation/pages/repairs_page.
 import 'package:fit_progressor/features/settings/presentation/pages/settings_page.dart';
 import 'package:fit_progressor/features/settings/presentation/pages/sync_settings_page.dart';
 import 'package:fit_progressor/injection_container.dart';
+import 'package:fit_progressor/navigation/page_transitions.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../features/clients/presentation/pages/clients_page.dart';
@@ -29,7 +30,8 @@ class AppRouter {
         routes: [
           GoRoute(
             path: '/dashboard',
-            pageBuilder: (context, state) => NoTransitionPage(
+            pageBuilder: (context, state) => FadeThroughPage(
+              key: state.pageKey,
               child: BlocProvider(
                 create: (context) => sl<DashboardBloc>(),
                 child: const DashboardPage(),
@@ -38,7 +40,8 @@ class AppRouter {
           ),
           GoRoute(
             path: '/clients',
-            pageBuilder: (context, state) => NoTransitionPage(
+            pageBuilder: (context, state) => FadeThroughPage(
+              key: state.pageKey,
               child: BlocProvider(
                 create: (context) => sl<ClientBloc>(),
                 child: const ClientsPage(),
@@ -47,7 +50,8 @@ class AppRouter {
           ),
           GoRoute(
             path: '/cars',
-            pageBuilder: (context, state) => NoTransitionPage(
+            pageBuilder: (context, state) => FadeThroughPage(
+              key: state.pageKey,
               child: BlocProvider(
                 create: (context) => sl<CarBloc>(),
                 child: const CarsPage(),
@@ -56,7 +60,8 @@ class AppRouter {
           ),
           GoRoute(
             path: '/repairs',
-            pageBuilder: (context, state) => NoTransitionPage(
+            pageBuilder: (context, state) => FadeThroughPage(
+              key: state.pageKey,
               child: BlocProvider(
                 create: (context) => sl<RepairsBloc>(),
                 child: const RepairsPage(),
@@ -65,7 +70,8 @@ class AppRouter {
           ),
           GoRoute(
             path: '/materials',
-            pageBuilder: (context, state) => NoTransitionPage(
+            pageBuilder: (context, state) => FadeThroughPage(
+              key: state.pageKey,
               child: BlocProvider(
                 create: (context) => sl<MaterialBloc>(),
                 child: const MaterialsPage(),
@@ -74,7 +80,8 @@ class AppRouter {
           ),
           GoRoute(
             path: '/settings',
-            pageBuilder: (context, state) => NoTransitionPage(
+            pageBuilder: (context, state) => FadeThroughPage(
+              key: state.pageKey,
               child: MultiBlocProvider(
                 providers: [
                   BlocProvider(create: (context) => sl<ClientBloc>()),
@@ -86,7 +93,11 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: 'sync',
-                builder: (context, state) => const SyncSettingsPage(),
+                pageBuilder: (context, state) => SharedAxisPage(
+                  key: state.pageKey,
+                  transitionType: SharedAxisTransitionType.horizontal,
+                  child: const SyncSettingsPage(),
+                ),
               ),
             ],
           ),

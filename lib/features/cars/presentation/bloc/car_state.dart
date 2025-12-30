@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/car.dart';
+import '../../domain/entities/car_filter.dart';
 
 abstract class CarState extends Equatable {
   const CarState();
@@ -10,19 +11,28 @@ abstract class CarState extends Equatable {
 
 class CarInitial extends CarState {}
 
-class CarLoading extends CarState {}
+class CarLoading extends CarState {
+  final CarFilter? currentFilter;
+
+  const CarLoading({this.currentFilter});
+
+  @override
+  List<Object?> get props => [currentFilter];
+}
 
 class CarLoaded extends CarState {
   final List<Car> cars;
   final String? searchQuery;
   final List<String>? availableMakes;
   final List<String>? availableModels;
+  final CarFilter filter;
 
   const CarLoaded({
     required this.cars,
     this.searchQuery,
     this.availableMakes,
     this.availableModels,
+    this.filter = const CarFilter(),
   });
 
   @override
@@ -31,6 +41,7 @@ class CarLoaded extends CarState {
     searchQuery,
     availableMakes,
     availableModels,
+    filter,
   ];
 
   CarLoaded copyWith({
@@ -38,12 +49,14 @@ class CarLoaded extends CarState {
     String? searchQuery,
     List<String>? availableMakes,
     List<String>? availableModels,
+    CarFilter? filter,
   }) {
     return CarLoaded(
       cars: cars ?? this.cars,
       searchQuery: searchQuery ?? this.searchQuery,
       availableMakes: availableMakes ?? this.availableMakes,
       availableModels: availableModels ?? this.availableModels,
+      filter: filter ?? this.filter,
     );
   }
 }

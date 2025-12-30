@@ -1,3 +1,5 @@
+import 'package:fit_progressor/shared/widgets/animated_fab.dart';
+import 'package:fit_progressor/shared/widgets/animated_list_item.dart';
 import 'package:fit_progressor/shared/widgets/app_search_bar.dart';
 import 'package:fit_progressor/shared/widgets/empty_state.dart';
 import 'package:fit_progressor/shared/widgets/delete_confirmation_dialog.dart';
@@ -5,10 +7,12 @@ import 'package:fit_progressor/shared/widgets/skeleton_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/car.dart';
+import '../../domain/entities/car_filter.dart';
 import '../bloc/car_bloc.dart';
 import '../bloc/car_event.dart';
 import '../bloc/car_state.dart';
 import '../widgets/car_card.dart';
+import '../widgets/car_filter_sheet.dart';
 import '../widgets/car_form_modal.dart';
 import '../widgets/car_repairs_modal.dart';
 
@@ -24,7 +28,22 @@ class _CarsPageState extends State<CarsPage> {
   void initState() {
     super.initState();
     // Load cars on init
-    context.read<CarBloc>().add(LoadCars());
+    context.read<CarBloc>().add(const LoadCars());
+  }
+
+  void _showFilterSheet(BuildContext context, CarFilter currentFilter, List<String> availableMakes) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => CarFilterSheet(
+        initialFilter: currentFilter,
+        availableMakes: availableMakes,
+        onApply: (filter) {
+          context.read<CarBloc>().add(FilterCarsEvent(filter: filter));
+        },
+      ),
+    );
   }
 
   @override
@@ -32,10 +51,11 @@ class _CarsPageState extends State<CarsPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: AnimatedAppearFAB(
         onPressed: () => _showCarModal(context),
         backgroundColor: theme.colorScheme.secondary,
         foregroundColor: theme.colorScheme.onSecondary,
+        tooltip: 'Добавить автомобиль',
         child: const Icon(Icons.add),
       ),
       body: SafeArea(
@@ -56,15 +76,57 @@ class _CarsPageState extends State<CarsPage> {
                 ],
               ),
             ),
-            // Search bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15.0),
-              child: AppSearchBar(
-                hintText: 'Поиск по марке, модели, номеру или владельцу...',
-                onSearch: (query) {
-                  context.read<CarBloc>().add(SearchCarsEvent(query: query));
-                },
-              ),
+            // Search bar with filter
+            BlocBuilder<CarBloc, CarState>(
+              buildWhen: (previous, current) {
+                final prevFilter = previous is CarLoaded
+                    ? previous.filter
+                    : const CarFilter();
+                final currFilter = current is CarLoaded
+                    ? current.filter
+                    : (current is CarLoading
+                        ? current.currentFilter
+                        : const CarFilter());
+                return prevFilter != currFilter;
+              },
+              builder: (context, state) {
+                final currentFilter = state is CarLoaded
+                    ? state.filter
+                    : (state is CarLoading
+                        ? state.currentFilter ?? const CarFilter()
+                        : const CarFilter());
+                final availableMakes = state is CarLoaded
+                    ? state.availableMakes ?? []
+                    : <String>[];
+
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                  child: Column(
+                    children: [
+                      AppSearchBar(
+                        hintText: 'Поиск по марке, модели, номеру или владельцу...',
+                        showFilterButton: true,
+                        onFilterTap: () => _showFilterSheet(context, currentFilter, availableMakes),
+                        onSearch: (query) {
+                          context.read<CarBloc>().add(SearchCarsEvent(query: query));
+                        },
+                      ),
+                      // Active filters indicator
+                      if (currentFilter.isActive) ...[
+                        const SizedBox(height: 8),
+                        _ActiveFiltersBar(
+                          filter: currentFilter,
+                          onClear: () {
+                            context.read<CarBloc>().add(
+                              const ClearCarFiltersEvent(),
+                            );
+                          },
+                        ),
+                      ],
+                    ],
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 15),
             // Content
@@ -102,17 +164,20 @@ class _CarsPageState extends State<CarsPage> {
                     if (state.cars.isEmpty) {
                       return RefreshIndicator(
                         onRefresh: () async {
-                          context.read<CarBloc>().add(LoadCars());
+                          context.read<CarBloc>().add(const LoadCars());
                         },
                         child: ListView(
                           children: [
                             SizedBox(
                               height: MediaQuery.of(context).size.height * 0.5,
-                              child: const EmptyState(
+                              child: EmptyState(
                                 icon: Icons.directions_car_outlined,
-                                title: 'Нет автомобилей',
-                                message:
-                                    'Добавьте первый автомобиль, нажав кнопку "Добавить"',
+                                title: state.filter.isActive
+                                    ? 'Ничего не найдено'
+                                    : 'Нет автомобилей',
+                                message: state.filter.isActive
+                                    ? 'Попробуйте изменить параметры фильтра'
+                                    : 'Добавьте первый автомобиль, нажав кнопку "Добавить"',
                               ),
                             ),
                           ],
@@ -122,18 +187,22 @@ class _CarsPageState extends State<CarsPage> {
 
                     return RefreshIndicator(
                       onRefresh: () async {
-                        context.read<CarBloc>().add(LoadCars());
+                        context.read<CarBloc>().add(const LoadCars());
                       },
                       child: ListView.builder(
                         padding: const EdgeInsets.symmetric(horizontal: 15),
                         itemCount: state.cars.length,
                         itemBuilder: (context, index) {
                           final car = state.cars[index];
-                          return CarCard(
-                            car: car,
-                            onTap: () => _showCarRepairsModal(context, car),
-                            onEdit: () => _showCarModal(context, car),
-                            onDelete: () => _confirmDelete(context, car),
+                          return AnimatedListItem(
+                            key: ValueKey(car.id),
+                            index: index,
+                            child: CarCard(
+                              car: car,
+                              onTap: () => _showCarRepairsModal(context, car),
+                              onEdit: () => _showCarModal(context, car),
+                              onDelete: () => _confirmDelete(context, car),
+                            ),
                           );
                         },
                       ),
@@ -186,5 +255,100 @@ class _CarsPageState extends State<CarsPage> {
     if (confirmed && context.mounted) {
       context.read<CarBloc>().add(DeleteCarEvent(carId: car.id));
     }
+  }
+}
+
+/// Виджет для отображения активных фильтров
+class _ActiveFiltersBar extends StatelessWidget {
+  final CarFilter filter;
+  final VoidCallback onClear;
+
+  const _ActiveFiltersBar({
+    required this.filter,
+    required this.onClear,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.filter_list,
+            size: 16,
+            color: theme.colorScheme.primary,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: filter.makes.map((make) => _FilterChip(
+                label: make,
+                icon: Icons.directions_car_outlined,
+              )).toList(),
+            ),
+          ),
+          InkWell(
+            onTap: onClear,
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.all(4),
+              child: Icon(
+                Icons.close,
+                size: 18,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FilterChip extends StatelessWidget {
+  final String label;
+  final IconData icon;
+
+  const _FilterChip({
+    required this.label,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: theme.colorScheme.outline.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: theme.colorScheme.primary),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

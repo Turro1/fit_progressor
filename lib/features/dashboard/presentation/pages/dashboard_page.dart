@@ -7,6 +7,7 @@ import 'package:fit_progressor/features/dashboard/presentation/widgets/revenue_c
 import 'package:fit_progressor/features/dashboard/presentation/widgets/stat_card.dart';
 import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_bloc.dart';
 import 'package:fit_progressor/features/repairs/presentation/widgets/repair_form_modal.dart';
+import 'package:fit_progressor/shared/widgets/tap_scale_wrapper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:collection/collection.dart';
@@ -96,6 +97,7 @@ class DashboardPage extends StatelessWidget {
                 StatCard(
                   label: 'Чистая прибыль',
                   value: '${_formatMoney(state.stats.monthlyNetRevenue)} ₽',
+                  numericValue: state.stats.monthlyNetRevenue,
                   icon: Icons.trending_up,
                   valueColor: state.stats.monthlyNetRevenue >= 0
                       ? Colors.green
@@ -105,6 +107,7 @@ class DashboardPage extends StatelessWidget {
                 StatCard(
                   label: 'Выполнено за месяц',
                   value: state.stats.completedRepairsThisMonth.toString(),
+                  numericValue: state.stats.completedRepairsThisMonth.toDouble(),
                   icon: Icons.check_circle,
                   valueColor: Colors.green,
                   trend: state.stats.completedRepairsTrend,
@@ -112,6 +115,7 @@ class DashboardPage extends StatelessWidget {
                 StatCard(
                   label: 'Средний чек',
                   value: '${_formatMoney(state.stats.averageRepairCost)} ₽',
+                  numericValue: state.stats.averageRepairCost,
                   icon: Icons.receipt_long,
                   valueColor: theme.colorScheme.primary,
                   trend: state.stats.averageCostTrend,
@@ -119,6 +123,7 @@ class DashboardPage extends StatelessWidget {
                 StatCard(
                   label: 'Низкий остаток',
                   value: state.stats.lowStockMaterials.toString(),
+                  numericValue: state.stats.lowStockMaterials.toDouble(),
                   icon: Icons.warning_amber,
                   valueColor: state.stats.lowStockMaterials > 0
                       ? theme.colorScheme.error
@@ -320,7 +325,7 @@ class _QuickActionsSection extends StatelessWidget {
   }
 }
 
-/// Кнопка быстрого действия
+/// Кнопка быстрого действия с bounce-анимацией
 class _QuickActionButton extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -338,11 +343,10 @@ class _QuickActionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Material(
-      color: color.withValues(alpha: 0.1),
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: onTap,
+    return BounceWrapper(
+      onTap: onTap,
+      child: Material(
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),

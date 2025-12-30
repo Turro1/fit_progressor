@@ -1,5 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/usecases/usecase.dart';
+import '../../domain/entities/material.dart';
+import '../../domain/entities/material_filter.dart';
 import '../../domain/usecases/add_material.dart';
 import '../../domain/usecases/delete_material.dart';
 import '../../domain/usecases/get_materials.dart';
@@ -15,6 +17,8 @@ class MaterialBloc extends Bloc<MaterialEvent, MaterialState> {
   final DeleteMaterial deleteMaterial;
   final SearchMaterials searchMaterials;
 
+  MaterialFilter _currentFilter = const MaterialFilter();
+
   MaterialBloc({
     required this.getMaterials,
     required this.addMaterial,
@@ -27,18 +31,23 @@ class MaterialBloc extends Bloc<MaterialEvent, MaterialState> {
     on<UpdateMaterialEvent>(_onUpdateMaterial);
     on<DeleteMaterialEvent>(_onDeleteMaterial);
     on<SearchMaterialsEvent>(_onSearchMaterials);
+    on<FilterMaterialsEvent>(_onFilterMaterials);
+    on<ClearMaterialFiltersEvent>(_onClearFilters);
   }
 
   Future<void> _onLoadMaterials(
     LoadMaterials event,
     Emitter<MaterialState> emit,
   ) async {
-    emit(MaterialLoading());
+    emit(MaterialLoading(currentFilter: _currentFilter));
     final result = await getMaterials(NoParams());
     result.fold(
       (failure) =>
           emit(const MaterialError(message: 'Не удалось загрузить материалы')),
-      (materials) => emit(MaterialLoaded(materials: materials)),
+      (materials) {
+        final filtered = _applyFilter(materials, _currentFilter);
+        emit(MaterialLoaded(materials: filtered, filter: _currentFilter));
+      },
     );
   }
 
@@ -105,16 +114,65 @@ class MaterialBloc extends Bloc<MaterialEvent, MaterialState> {
     Emitter<MaterialState> emit,
   ) async {
     if (event.query.isEmpty) {
-      add(LoadMaterials());
+      add(const LoadMaterials());
       return;
     }
 
-    emit(MaterialLoading());
+    emit(MaterialLoading(currentFilter: _currentFilter));
     final result = await searchMaterials(event.query);
     result.fold(
       (failure) => emit(const MaterialError(message: 'Ошибка поиска')),
-      (materials) =>
-          emit(MaterialLoaded(materials: materials, searchQuery: event.query)),
+      (materials) {
+        final filtered = _applyFilter(materials, _currentFilter);
+        emit(MaterialLoaded(
+          materials: filtered,
+          searchQuery: event.query,
+          filter: _currentFilter,
+        ));
+      },
     );
+  }
+
+  Future<void> _onFilterMaterials(
+    FilterMaterialsEvent event,
+    Emitter<MaterialState> emit,
+  ) async {
+    _currentFilter = event.filter;
+    add(const LoadMaterials());
+  }
+
+  Future<void> _onClearFilters(
+    ClearMaterialFiltersEvent event,
+    Emitter<MaterialState> emit,
+  ) async {
+    _currentFilter = const MaterialFilter();
+    add(const LoadMaterials());
+  }
+
+  List<Material> _applyFilter(List<Material> materials, MaterialFilter filter) {
+    if (!filter.isActive) return materials;
+
+    return materials.where((material) {
+      // Фильтр по единице измерения
+      if (filter.units.isNotEmpty && !filter.units.contains(material.unit)) {
+        return false;
+      }
+
+      // Фильтр по статусу наличия
+      if (filter.stockStatuses.isNotEmpty) {
+        final stockStatus = _getStockStatus(material);
+        if (!filter.stockStatuses.contains(stockStatus)) {
+          return false;
+        }
+      }
+
+      return true;
+    }).toList();
+  }
+
+  StockStatus _getStockStatus(Material material) {
+    if (material.isOutOfStock) return StockStatus.outOfStock;
+    if (material.isLowStock) return StockStatus.lowStock;
+    return StockStatus.inStock;
   }
 }

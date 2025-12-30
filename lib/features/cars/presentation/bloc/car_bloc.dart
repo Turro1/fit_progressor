@@ -1,6 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fit_progressor/core/error/failures/duplicate_failure.dart';
 import '../../../../core/usecases/usecase.dart';
+import '../../domain/entities/car.dart';
+import '../../domain/entities/car_filter.dart';
 import '../../domain/usecases/add_car.dart';
 import '../../domain/usecases/delete_car.dart';
 import '../../domain/usecases/get_car_makes.dart';
@@ -20,6 +22,9 @@ class CarBloc extends Bloc<CarEvent, CarState> {
   final GetCarMakes getCarMakes;
   final GetCarModels getCarModels;
 
+  CarFilter _currentFilter = const CarFilter();
+  List<String> _availableMakes = [];
+
   CarBloc({
     required this.getCars,
     required this.addCar,
@@ -36,16 +41,27 @@ class CarBloc extends Bloc<CarEvent, CarState> {
     on<SearchCarsEvent>(_onSearchCars);
     on<LoadCarMakes>(_onLoadCarMakes);
     on<LoadCarModels>(_onLoadCarModels);
+    on<FilterCarsEvent>(_onFilterCars);
+    on<ClearCarFiltersEvent>(_onClearFilters);
   }
 
   Future<void> _onLoadCars(LoadCars event, Emitter<CarState> emit) async {
-    emit(CarLoading());
+    emit(CarLoading(currentFilter: _currentFilter));
     try {
       final result = await getCars(NoParams());
       result.fold(
         (failure) =>
             emit(const CarError(message: 'Не удалось загрузить автомобили')),
-        (cars) => emit(CarLoaded(cars: cars)),
+        (cars) {
+          // Собираем уникальные марки для фильтра
+          _availableMakes = cars.map((c) => c.make).toSet().toList()..sort();
+          final filtered = _applyFilter(cars, _currentFilter);
+          emit(CarLoaded(
+            cars: filtered,
+            filter: _currentFilter,
+            availableMakes: _availableMakes,
+          ));
+        },
       );
     } catch (e) {
       emit(CarError(message: 'Произошла ошибка при загрузке автомобилей: $e'));
@@ -120,15 +136,23 @@ class CarBloc extends Bloc<CarEvent, CarState> {
     Emitter<CarState> emit,
   ) async {
     if (event.query.isEmpty) {
-      add(LoadCars());
+      add(const LoadCars());
       return;
     }
 
-    emit(CarLoading());
+    emit(CarLoading(currentFilter: _currentFilter));
     final result = await searchCars(event.query);
     result.fold(
       (failure) => emit(const CarError(message: 'Ошибка поиска')),
-      (cars) => emit(CarLoaded(cars: cars, searchQuery: event.query)),
+      (cars) {
+        final filtered = _applyFilter(cars, _currentFilter);
+        emit(CarLoaded(
+          cars: filtered,
+          searchQuery: event.query,
+          filter: _currentFilter,
+          availableMakes: _availableMakes,
+        ));
+      },
     );
   }
 
@@ -152,5 +176,33 @@ class CarBloc extends Bloc<CarEvent, CarState> {
       (failure) => emit(const CarError(message: 'Не удалось загрузить модели')),
       (models) => emit(CarModelsLoaded(models: models)),
     );
+  }
+
+  Future<void> _onFilterCars(
+    FilterCarsEvent event,
+    Emitter<CarState> emit,
+  ) async {
+    _currentFilter = event.filter;
+    add(const LoadCars());
+  }
+
+  Future<void> _onClearFilters(
+    ClearCarFiltersEvent event,
+    Emitter<CarState> emit,
+  ) async {
+    _currentFilter = const CarFilter();
+    add(const LoadCars());
+  }
+
+  List<Car> _applyFilter(List<Car> cars, CarFilter filter) {
+    if (!filter.isActive) return cars;
+
+    return cars.where((car) {
+      // Фильтр по марке
+      if (filter.makes.isNotEmpty && !filter.makes.contains(car.make)) {
+        return false;
+      }
+      return true;
+    }).toList();
   }
 }

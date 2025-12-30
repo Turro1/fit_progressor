@@ -1,10 +1,9 @@
-import 'dart:io';
 import 'package:fit_progressor/features/repairs/domain/entities/repair.dart';
 import 'package:fit_progressor/features/repairs/domain/entities/repair_status.dart';
 import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_bloc.dart';
 import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_event.dart';
 import 'package:fit_progressor/features/repairs/presentation/widgets/repair_form_modal.dart';
-import 'package:fit_progressor/features/repairs/presentation/widgets/photo_viewer.dart';
+import 'package:fit_progressor/features/repairs/presentation/widgets/repair_detail_sheet.dart';
 import 'package:fit_progressor/shared/widgets/entity_card.dart';
 import 'package:fit_progressor/shared/widgets/delete_confirmation_dialog.dart';
 import 'package:fit_progressor/core/utils/car_logo_helper.dart';
@@ -55,15 +54,8 @@ class RepairCard extends StatelessWidget {
     }
   }
 
-  void _openPhotoViewer(BuildContext context, int index) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => PhotoViewer(
-          photoPaths: repair.photoPaths,
-          initialIndex: index,
-        ),
-      ),
-    );
+  void _showDetailSheet(BuildContext context) {
+    RepairDetailSheet.show(context, repair);
   }
 
   @override
@@ -77,6 +69,7 @@ class RepairCard extends StatelessWidget {
     return EntityCard(
       groupTag: 'repairs',
       enableSwipeActions: true,
+      onTap: () => _showDetailSheet(context),
       onEdit: () => _showEditModal(context),
       onDelete: () => _confirmDelete(context),
       leading: _buildLeading(context, theme),
@@ -165,7 +158,7 @@ class RepairCard extends StatelessWidget {
 
               const SizedBox(width: 12),
 
-              // Правая часть: Дата-время и стоимость
+              // Правая часть: Дата-время, фото и стоимость
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -199,89 +192,66 @@ class RepairCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  // Стоимость
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.secondaryContainer,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      '${repair.cost.toStringAsFixed(0)} ₽',
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        color: theme.colorScheme.onSecondaryContainer,
-                        fontWeight: FontWeight.w600,
+                  // Фото индикатор и стоимость
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Индикатор фото
+                      if (repair.photoPaths.isNotEmpty)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 4,
+                          ),
+                          margin: const EdgeInsets.only(right: 6),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.tertiaryContainer,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.photo_library_outlined,
+                                size: 14,
+                                color: theme.colorScheme.onTertiaryContainer,
+                              ),
+                              const SizedBox(width: 3),
+                              Text(
+                                '${repair.photoPaths.length}',
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: theme.colorScheme.onTertiaryContainer,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      // Стоимость
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.secondaryContainer,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          '${repair.cost.toStringAsFixed(0)} ₽',
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: theme.colorScheme.onSecondaryContainer,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ],
               ),
             ],
           ),
-
-          // Галерея миниатюр фото
-          if (repair.photoPaths.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            _buildPhotoThumbnails(context, theme),
-          ],
         ],
-      ),
-    );
-  }
-
-  Widget _buildPhotoThumbnails(BuildContext context, ThemeData theme) {
-    const double thumbnailSize = 56.0;
-    const double spacing = 8.0;
-
-    return SizedBox(
-      height: thumbnailSize,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: repair.photoPaths.length,
-        separatorBuilder: (_, __) => const SizedBox(width: spacing),
-        itemBuilder: (context, index) {
-          final photoPath = repair.photoPaths[index];
-          final file = File(photoPath);
-
-          return GestureDetector(
-            onTap: () => _openPhotoViewer(context, index),
-            child: Container(
-              width: thumbnailSize,
-              height: thumbnailSize,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: theme.colorScheme.outlineVariant,
-                  width: 1,
-                ),
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: file.existsSync()
-                  ? Image.file(
-                      file,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return _buildThumbnailPlaceholder(theme);
-                      },
-                    )
-                  : _buildThumbnailPlaceholder(theme),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildThumbnailPlaceholder(ThemeData theme) {
-    return Container(
-      color: theme.colorScheme.surfaceContainerHighest,
-      child: Icon(
-        Icons.broken_image_outlined,
-        size: 24,
-        color: theme.colorScheme.onSurfaceVariant,
       ),
     );
   }
@@ -294,7 +264,7 @@ class RepairCard extends StatelessWidget {
       elevation: 0,
       color: theme.colorScheme.surface,
       child: InkWell(
-        onTap: () => _showEditModal(context),
+        onTap: () => _showDetailSheet(context),
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(12),
@@ -412,93 +382,9 @@ class RepairCard extends StatelessWidget {
                   ),
                 ],
               ),
-              // Compact photo thumbnails
-              if (hasPhotos) ...[
-                const SizedBox(height: 8),
-                _buildCompactPhotoThumbnails(context, theme),
-              ],
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildCompactPhotoThumbnails(BuildContext context, ThemeData theme) {
-    const double thumbnailSize = 40.0;
-    const double spacing = 6.0;
-    const int maxVisible = 4;
-
-    final photosToShow = repair.photoPaths.take(maxVisible).toList();
-    final remainingCount = repair.photoPaths.length - maxVisible;
-
-    return SizedBox(
-      height: thumbnailSize,
-      child: Row(
-        children: [
-          ...photosToShow.asMap().entries.map((entry) {
-            final index = entry.key;
-            final photoPath = entry.value;
-            final file = File(photoPath);
-
-            return Padding(
-              padding: EdgeInsets.only(right: index < photosToShow.length - 1 ? spacing : 0),
-              child: GestureDetector(
-                onTap: () => _openPhotoViewer(context, index),
-                child: Container(
-                  width: thumbnailSize,
-                  height: thumbnailSize,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                      color: theme.colorScheme.outlineVariant,
-                      width: 1,
-                    ),
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: file.existsSync()
-                      ? Image.file(
-                          file,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return _buildThumbnailPlaceholder(theme);
-                          },
-                        )
-                      : _buildThumbnailPlaceholder(theme),
-                ),
-              ),
-            );
-          }),
-          // "+N" badge for remaining photos
-          if (remainingCount > 0)
-            Padding(
-              padding: const EdgeInsets.only(left: spacing),
-              child: GestureDetector(
-                onTap: () => _openPhotoViewer(context, maxVisible),
-                child: Container(
-                  width: thumbnailSize,
-                  height: thumbnailSize,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                      color: theme.colorScheme.outlineVariant,
-                      width: 1,
-                    ),
-                  ),
-                  child: Center(
-                    child: Text(
-                      '+$remainingCount',
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-        ],
       ),
     );
   }
