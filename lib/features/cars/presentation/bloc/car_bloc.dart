@@ -23,7 +23,9 @@ class CarBloc extends Bloc<CarEvent, CarState> {
   final GetCarModels getCarModels;
 
   CarFilter _currentFilter = const CarFilter();
+  String _currentSearchQuery = '';
   List<String> _availableMakes = [];
+  List<Car> _allCars = []; // Кэш всех автомобилей для локальной фильтрации
 
   CarBloc({
     required this.getCars,
@@ -53,11 +55,15 @@ class CarBloc extends Bloc<CarEvent, CarState> {
         (failure) =>
             emit(const CarError(message: 'Не удалось загрузить автомобили')),
         (cars) {
+          _allCars = cars;
           // Собираем уникальные марки для фильтра
           _availableMakes = cars.map((c) => c.make).toSet().toList()..sort();
-          final filtered = _applyFilter(cars, _currentFilter);
+
+          // Применяем и поиск и фильтр
+          final filtered = _applySearchAndFilter(cars);
           emit(CarLoaded(
             cars: filtered,
+            searchQuery: _currentSearchQuery,
             filter: _currentFilter,
             availableMakes: _availableMakes,
           ));
@@ -87,7 +93,6 @@ class CarBloc extends Bloc<CarEvent, CarState> {
       },
       (car) async {
         emit(const CarOperationSuccess(message: 'Автомобиль добавлен'));
-        // Не вызываем LoadCars здесь - это будет сделано в UI после закрытия модала
       },
     );
   }
@@ -108,7 +113,6 @@ class CarBloc extends Bloc<CarEvent, CarState> {
       },
       (car) async {
         emit(const CarOperationSuccess(message: 'Автомобиль обновлен'));
-        // Не вызываем LoadCars здесь - это будет сделано в UI после закрытия модала
       },
     );
   }
@@ -135,25 +139,30 @@ class CarBloc extends Bloc<CarEvent, CarState> {
     SearchCarsEvent event,
     Emitter<CarState> emit,
   ) async {
+    _currentSearchQuery = event.query;
+
+    // Если поисковый запрос пустой, показываем все данные с учетом фильтра
     if (event.query.isEmpty) {
-      add(const LoadCars());
+      final filtered = _applySearchAndFilter(_allCars);
+      emit(CarLoaded(
+        cars: filtered,
+        searchQuery: '',
+        filter: _currentFilter,
+        availableMakes: _availableMakes,
+      ));
       return;
     }
 
     emit(CarLoading(currentFilter: _currentFilter));
-    final result = await searchCars(event.query);
-    result.fold(
-      (failure) => emit(const CarError(message: 'Ошибка поиска')),
-      (cars) {
-        final filtered = _applyFilter(cars, _currentFilter);
-        emit(CarLoaded(
-          cars: filtered,
-          searchQuery: event.query,
-          filter: _currentFilter,
-          availableMakes: _availableMakes,
-        ));
-      },
-    );
+
+    // Локальный поиск по кэшированным данным
+    final filtered = _applySearchAndFilter(_allCars);
+    emit(CarLoaded(
+      cars: filtered,
+      searchQuery: event.query,
+      filter: _currentFilter,
+      availableMakes: _availableMakes,
+    ));
   }
 
   Future<void> _onLoadCarMakes(
@@ -183,7 +192,15 @@ class CarBloc extends Bloc<CarEvent, CarState> {
     Emitter<CarState> emit,
   ) async {
     _currentFilter = event.filter;
-    add(const LoadCars());
+
+    // Применяем фильтр к кэшированным данным с учетом поиска
+    final filtered = _applySearchAndFilter(_allCars);
+    emit(CarLoaded(
+      cars: filtered,
+      searchQuery: _currentSearchQuery,
+      filter: _currentFilter,
+      availableMakes: _availableMakes,
+    ));
   }
 
   Future<void> _onClearFilters(
@@ -191,18 +208,39 @@ class CarBloc extends Bloc<CarEvent, CarState> {
     Emitter<CarState> emit,
   ) async {
     _currentFilter = const CarFilter();
-    add(const LoadCars());
+    _currentSearchQuery = '';
+
+    // Показываем все данные
+    emit(CarLoaded(
+      cars: _allCars,
+      searchQuery: '',
+      filter: _currentFilter,
+      availableMakes: _availableMakes,
+    ));
   }
 
-  List<Car> _applyFilter(List<Car> cars, CarFilter filter) {
-    if (!filter.isActive) return cars;
+  /// Применяет поиск и фильтр к списку автомобилей
+  List<Car> _applySearchAndFilter(List<Car> cars) {
+    var result = cars;
 
-    return cars.where((car) {
-      // Фильтр по марке
-      if (filter.makes.isNotEmpty && !filter.makes.contains(car.make)) {
-        return false;
-      }
-      return true;
-    }).toList();
+    // Сначала применяем поиск
+    if (_currentSearchQuery.isNotEmpty) {
+      final query = _currentSearchQuery.toLowerCase();
+      result = result.where((car) {
+        return car.make.toLowerCase().contains(query) ||
+               car.model.toLowerCase().contains(query) ||
+               car.plate.toLowerCase().contains(query) ||
+               car.clientName.toLowerCase().contains(query);
+      }).toList();
+    }
+
+    // Затем применяем фильтр по маркам
+    if (_currentFilter.isActive && _currentFilter.makes.isNotEmpty) {
+      result = result.where((car) {
+        return _currentFilter.makes.contains(car.make);
+      }).toList();
+    }
+
+    return result;
   }
 }

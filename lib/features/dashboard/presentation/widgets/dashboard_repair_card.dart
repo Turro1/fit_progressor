@@ -11,6 +11,7 @@ import 'package:fit_progressor/features/repairs/presentation/widgets/repair_form
 import 'package:fit_progressor/shared/widgets/entity_card.dart';
 import 'package:fit_progressor/shared/widgets/delete_confirmation_dialog.dart';
 import 'package:fit_progressor/core/utils/car_logo_helper.dart';
+import 'package:fit_progressor/core/utils/date_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -183,6 +184,7 @@ class DashboardRepairCard extends StatelessWidget {
                                 color: theme.colorScheme.onSurface
                                     .withValues(alpha: 0.8),
                               ),
+                              maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
@@ -206,6 +208,7 @@ class DashboardRepairCard extends StatelessWidget {
                               color: theme.colorScheme.onSurface
                                   .withValues(alpha: 0.8),
                             ),
+                            maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
@@ -221,37 +224,36 @@ class DashboardRepairCard extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  // Date and time together (if today or tomorrow)
-                  if (_shouldShowTime(repair.date))
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.event,
-                            size: 14,
-                            color: theme.colorScheme.onPrimaryContainer,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${DateFormat('dd.MM.yyyy').format(repair.date)} - ${DateFormat('HH:mm').format(repair.date)}',
-                            style: theme.textTheme.labelMedium?.copyWith(
-                              color: theme.colorScheme.onPrimaryContainer,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
+                  // Date in relative format (Сегодня, Завтра, etc.)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
                     ),
-                  if (_shouldShowTime(repair.date)) const SizedBox(height: 4),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.event,
+                          size: 14,
+                          color: theme.colorScheme.onPrimaryContainer,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          DateFormatter.formatRelativeWithFuture(repair.date),
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: theme.colorScheme.onPrimaryContainer,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 4),
                   // Cost
                   Container(
                     padding: const EdgeInsets.symmetric(
@@ -387,14 +389,5 @@ class DashboardRepairCard extends StatelessWidget {
         size: 32,
       ),
     );
-  }
-
-  bool _shouldShowTime(DateTime date) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final tomorrow = DateTime(now.year, now.month, now.day + 1);
-    final dateOnly = DateTime(date.year, date.month, date.day);
-
-    return dateOnly == today || dateOnly == tomorrow;
   }
 }

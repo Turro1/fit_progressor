@@ -11,17 +11,48 @@ import 'package:fit_progressor/core/services/export_service.dart';
 import 'package:fit_progressor/core/services/data_seeder_service.dart';
 import 'package:fit_progressor/core/services/cache_cleaner_service.dart';
 import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_bloc.dart';
+import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_event.dart';
 import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_state.dart';
 import 'package:fit_progressor/features/clients/presentation/bloc/client_bloc.dart';
+import 'package:fit_progressor/features/clients/presentation/bloc/client_event.dart';
 import 'package:fit_progressor/features/clients/presentation/bloc/client_state.dart';
 import 'package:fit_progressor/features/cars/presentation/bloc/car_bloc.dart';
+import 'package:fit_progressor/features/cars/presentation/bloc/car_event.dart';
 import 'package:fit_progressor/features/cars/presentation/bloc/car_state.dart';
+import 'package:fit_progressor/features/materials/presentation/bloc/material_bloc.dart';
+import 'package:fit_progressor/features/materials/presentation/bloc/material_event.dart';
+import 'package:fit_progressor/features/dashboard/presentation/bloc/dashboard_bloc.dart';
+import 'package:fit_progressor/features/dashboard/presentation/bloc/dashboard_event.dart';
 import 'package:fit_progressor/shared/widgets/export_sheet.dart';
 import 'package:fit_progressor/injection_container.dart' as di;
 
 /// Страница настроек
-class SettingsPage extends StatelessWidget {
+class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
+
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+  // Ключ для перестроения карточки очистки
+  int _clearCardKey = 0;
+
+  void _refreshClearCard() {
+    setState(() {
+      _clearCardKey++;
+    });
+  }
+
+  /// Перезагружает все BLOCs после очистки данных
+  void _reloadAllBlocs() {
+    // Перезагружаем все данные
+    context.read<RepairsBloc>().add(LoadRepairs());
+    context.read<ClientBloc>().add(LoadClients());
+    context.read<CarBloc>().add(const LoadCars());
+    context.read<MaterialBloc>().add(LoadMaterials());
+    context.read<DashboardBloc>().add(LoadDashboard());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -94,6 +125,7 @@ class SettingsPage extends StatelessWidget {
     final cleaner = di.sl<CacheCleanerService>();
 
     return FutureBuilder<CacheStats>(
+      key: ValueKey(_clearCardKey), // Ключ для перестроения
       future: cleaner.getStats(),
       builder: (context, snapshot) {
         final stats = snapshot.data;
@@ -354,7 +386,13 @@ class SettingsPage extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (sheetContext) => _ClearCacheSheet(stats: stats),
+      builder: (sheetContext) => _ClearCacheSheet(
+        stats: stats,
+        onCleared: () {
+          _refreshClearCard();
+          _reloadAllBlocs();
+        },
+      ),
     );
   }
 
@@ -391,22 +429,39 @@ class SettingsPage extends StatelessWidget {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const AlertDialog(
-        content: Row(
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(width: 24),
-            Text('Создание данных...'),
-          ],
+      builder: (dialogContext) => const PopScope(
+        canPop: false,
+        child: AlertDialog(
+          content: Row(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: 24),
+              Text('Создание данных...'),
+            ],
+          ),
         ),
       ),
     );
 
-    final result = await seeder.seedAll();
+    SeederResult result;
+    try {
+      result = await seeder.seedAll();
+    } catch (e) {
+      result = SeederResult(
+        success: false,
+        message: 'Ошибка: $e',
+      );
+    }
 
-    // Закрываем индикатор
+    // Закрываем индикатор - используем Navigator.of с rootNavigator
     if (context.mounted) {
-      Navigator.pop(context);
+      Navigator.of(context, rootNavigator: true).pop();
+    }
+
+    // Обновляем все данные
+    if (context.mounted) {
+      _reloadAllBlocs();
+      _refreshClearCard();
     }
 
     // Показываем результат
@@ -425,8 +480,12 @@ class SettingsPage extends StatelessWidget {
 /// Диалог выбора типа очистки
 class _ClearCacheSheet extends StatefulWidget {
   final CacheStats? stats;
+  final VoidCallback onCleared;
 
-  const _ClearCacheSheet({this.stats});
+  const _ClearCacheSheet({
+    this.stats,
+    required this.onCleared,
+  });
 
   @override
   State<_ClearCacheSheet> createState() => _ClearCacheSheetState();
@@ -495,6 +554,35 @@ class _ClearCacheSheetState extends State<_ClearCacheSheet> {
               const SizedBox(height: 16),
             ],
 
+            // Информация о синхронизации
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    color: theme.colorScheme.primary,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Данные удаляются только на этом устройстве. '
+                      'При следующей синхронизации они будут восстановлены с сервера.',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
             // Опции очистки
             _buildClearOption(
               context,
@@ -514,8 +602,8 @@ class _ClearCacheSheetState extends State<_ClearCacheSheet> {
             const SizedBox(height: 8),
             _buildClearOption(
               context,
-              icon: Icons.delete_forever,
-              title: 'Удалить все данные',
+              icon: Icons.delete_outline,
+              title: 'Удалить все данные на этом устройстве',
               subtitle: 'Ремонты, клиенты, авто, материалы',
               isDestructive: true,
               onTap: _isLoading ? null : () => _clearAllData(context),
@@ -695,8 +783,8 @@ class _ClearCacheSheetState extends State<_ClearCacheSheet> {
     final confirmed = await _showConfirmDialog(
       context,
       title: 'Удалить все данные?',
-      message: 'Все ремонты, клиенты, автомобили и материалы будут удалены. '
-          'Это действие нельзя отменить.',
+      message: 'Все ремонты, клиенты, автомобили и материалы будут удалены на этом устройстве. '
+          'При синхронизации данные могут быть восстановлены с сервера.',
       isDestructive: true,
     );
 
@@ -712,7 +800,7 @@ class _ClearCacheSheetState extends State<_ClearCacheSheet> {
     final confirmed = await _showConfirmDialog(
       context,
       title: 'Полный сброс?',
-      message: 'ВСЕ данные и настройки синхронизации будут удалены. '
+      message: 'ВСЕ данные и настройки синхронизации будут удалены на этом устройстве. '
           'Приложение вернётся к начальному состоянию. '
           'Это действие нельзя отменить!',
       isDestructive: true,
@@ -766,7 +854,13 @@ class _ClearCacheSheetState extends State<_ClearCacheSheet> {
       final result = await clearAction();
 
       if (context.mounted) {
+        // Закрываем sheet
         Navigator.pop(context);
+
+        // Уведомляем родителя об очистке
+        widget.onCleared();
+
+        // Показываем результат
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(result.message),

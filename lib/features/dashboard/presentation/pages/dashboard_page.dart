@@ -5,8 +5,10 @@ import 'package:fit_progressor/features/clients/presentation/widgets/client_form
 import 'package:fit_progressor/features/dashboard/presentation/widgets/dashboard_repair_card.dart';
 import 'package:fit_progressor/features/dashboard/presentation/widgets/revenue_chart.dart';
 import 'package:fit_progressor/features/dashboard/presentation/widgets/stat_card.dart';
+import 'package:fit_progressor/features/materials/domain/entities/material.dart' show MaterialUnitExtension;
 import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_bloc.dart';
 import 'package:fit_progressor/features/repairs/presentation/widgets/repair_form_modal.dart';
+import 'package:fit_progressor/shared/widgets/empty_state.dart';
 import 'package:fit_progressor/shared/widgets/tap_scale_wrapper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -58,121 +60,176 @@ class DashboardPage extends StatelessWidget {
       (repair) => DateUtils.dateOnly(repair.repair.date),
     );
 
-    return ListView(
-      padding: const EdgeInsets.all(15),
-      children: [
-        Row(
-          children: [
-            Icon(
-              Icons.query_stats,
-              color: theme.colorScheme.onSurface,
-              size: 28,
+    return CustomScrollView(
+      slivers: [
+        // Header
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(15, 15, 15, 20),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.query_stats,
+                  color: theme.colorScheme.onSurface,
+                  size: 28,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text('Сводка', style: theme.textTheme.headlineMedium),
+                ),
+                _ActionButton(
+                  icon: Icons.settings,
+                  onPressed: () => context.push('/settings'),
+                  tooltip: 'Настройки',
+                ),
+              ],
             ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text('Сводка', style: theme.textTheme.headlineMedium),
-            ),
-            // Settings button
-            _ActionButton(
-              icon: Icons.settings,
-              onPressed: () => context.push('/settings'),
-              tooltip: 'Настройки',
-            ),
-          ],
+          ),
         ),
-        const SizedBox(height: 20),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final cardWidth = (constraints.maxWidth - 15) / 2;
-            final cardHeight = cardWidth * 0.65;
 
-            return GridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
+        // Статистические карточки (Grid)
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 15),
+          sliver: SliverGrid(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               crossAxisSpacing: 15,
               mainAxisSpacing: 15,
-              childAspectRatio: cardWidth / cardHeight,
-              children: [
-                StatCard(
-                  label: 'Чистая прибыль',
-                  value: '${_formatMoney(state.stats.monthlyNetRevenue)} ₽',
-                  numericValue: state.stats.monthlyNetRevenue,
-                  icon: Icons.trending_up,
-                  valueColor: state.stats.monthlyNetRevenue >= 0
-                      ? Colors.green
-                      : theme.colorScheme.error,
-                  trend: state.stats.netRevenueTrend,
+              childAspectRatio: 1.5,
+            ),
+            delegate: SliverChildListDelegate([
+              StatCard(
+                label: 'Чистая прибыль',
+                value: '${_formatMoney(state.stats.monthlyNetRevenue)} ₽',
+                numericValue: state.stats.monthlyNetRevenue,
+                icon: Icons.trending_up,
+                valueColor: state.stats.monthlyNetRevenue >= 0
+                    ? Colors.green
+                    : theme.colorScheme.error,
+                trend: state.stats.netRevenueTrend,
+                isHighlighted: true,
+                tooltipContent: TrendTooltipContent(
+                  currentValue: '${_formatMoney(state.stats.monthlyNetRevenue)} ₽',
+                  previousValue: '${_formatMoney(state.stats.netRevenueTrend.previousValue)} ₽',
+                  periodLabel: 'Прошлый месяц',
+                  isPositive: state.stats.monthlyNetRevenue >= state.stats.netRevenueTrend.previousValue,
                 ),
-                StatCard(
-                  label: 'Выполнено за месяц',
-                  value: state.stats.completedRepairsThisMonth.toString(),
-                  numericValue: state.stats.completedRepairsThisMonth.toDouble(),
-                  icon: Icons.check_circle,
-                  valueColor: Colors.green,
-                  trend: state.stats.completedRepairsTrend,
-                ),
-                StatCard(
-                  label: 'Средний чек',
-                  value: '${_formatMoney(state.stats.averageRepairCost)} ₽',
-                  numericValue: state.stats.averageRepairCost,
-                  icon: Icons.receipt_long,
-                  valueColor: theme.colorScheme.primary,
-                  trend: state.stats.averageCostTrend,
-                ),
-                StatCard(
-                  label: 'Низкий остаток',
-                  value: state.stats.lowStockMaterials.toString(),
-                  numericValue: state.stats.lowStockMaterials.toDouble(),
-                  icon: Icons.warning_amber,
-                  valueColor: state.stats.lowStockMaterials > 0
-                      ? theme.colorScheme.error
-                      : theme.colorScheme.onSurface,
-                  invertTrendColors: true,
-                ),
-              ],
-            );
-          },
-        ),
-        const SizedBox(height: 20),
-        // Быстрые действия
-        _QuickActionsSection(),
-        const SizedBox(height: 20),
-        // График выручки
-        RevenueChart(data: state.stats.revenueChart),
-        const SizedBox(height: 25),
-        Text('Предстоящие ремонты', style: theme.textTheme.titleLarge),
-        const SizedBox(height: 15),
-        if (state.recentRepairs.isEmpty)
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Text(
-                'Нет предстоящих ремонтов',
-                style: theme.textTheme.bodyMedium,
               ),
+              StatCard(
+                label: 'Выполнено за месяц',
+                value: state.stats.completedRepairsThisMonth.toString(),
+                numericValue: state.stats.completedRepairsThisMonth.toDouble(),
+                icon: Icons.check_circle,
+                valueColor: Colors.green,
+                trend: state.stats.completedRepairsTrend,
+                tooltipContent: TrendTooltipContent(
+                  currentValue: '${state.stats.completedRepairsThisMonth} ремонтов',
+                  previousValue: '${state.stats.lastMonthCompletedRepairs} ремонтов',
+                  periodLabel: 'Прошлый месяц',
+                  isPositive: state.stats.completedRepairsThisMonth >= state.stats.lastMonthCompletedRepairs,
+                ),
+              ),
+              StatCard(
+                label: 'Средний чек',
+                value: '${_formatMoney(state.stats.averageRepairCost)} ₽',
+                numericValue: state.stats.averageRepairCost,
+                icon: Icons.receipt_long,
+                valueColor: theme.colorScheme.primary,
+                trend: state.stats.averageCostTrend,
+                tooltipContent: TrendTooltipContent(
+                  currentValue: '${_formatMoney(state.stats.averageRepairCost)} ₽',
+                  previousValue: '${_formatMoney(state.stats.averageCostTrend.previousValue)} ₽',
+                  periodLabel: 'Прошлый месяц',
+                  isPositive: state.stats.averageRepairCost >= state.stats.averageCostTrend.previousValue,
+                ),
+              ),
+              StatCard(
+                label: 'Низкий остаток',
+                value: state.stats.lowStockMaterials.toString(),
+                numericValue: state.stats.lowStockMaterials.toDouble(),
+                icon: Icons.warning_amber,
+                valueColor: state.stats.lowStockMaterials > 0
+                    ? theme.colorScheme.error
+                    : theme.colorScheme.onSurface,
+                invertTrendColors: true,
+                tooltipContent: LowStockTooltipContent(
+                  items: state.lowStockMaterials.map((m) => LowStockItem(
+                    name: m.name,
+                    quantity: m.quantity.toStringAsFixed(
+                      m.quantity.truncateToDouble() == m.quantity ? 0 : 1,
+                    ),
+                    unit: m.unit.displayName,
+                    isOutOfStock: m.isOutOfStock,
+                  )).toList(),
+                ),
+              ),
+            ]),
+          ),
+        ),
+
+        // Быстрые действия
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(15, 20, 15, 0),
+            child: _QuickActionsSection(),
+          ),
+        ),
+
+        // График выручки
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(15, 20, 15, 0),
+            child: RevenueChart(
+              data: state.stats.revenueChart,
+              previousPeriodData: state.stats.previousPeriodChart,
+            ),
+          ),
+        ),
+
+        // Заголовок "Предстоящие ремонты"
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(15, 25, 15, 15),
+            child: Text('Предстоящие ремонты', style: theme.textTheme.titleLarge),
+          ),
+        ),
+
+        // Список ремонтов или EmptyState
+        if (state.recentRepairs.isEmpty)
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: EmptyState(
+              icon: Icons.build_circle_outlined,
+              title: 'Нет предстоящих ремонтов',
+              message: 'Запланированные ремонты будут отображаться здесь',
+              onPrimaryAction: () => _showRepairForm(context),
             ),
           )
         else
-          ...groupedRepairs.entries.map((entry) {
-            final date = entry.key;
-            final repairs = entry.value;
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
-                  child: Text(
-                    _formatDate(date),
-                    style: theme.textTheme.titleMedium,
-                  ),
-                ),
-                ...repairs.map(
-                  (repair) => DashboardRepairCard(repairWithDetails: repair),
-                ),
-              ],
-            );
-          }),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                ...groupedRepairs.entries.expand((entry) {
+                  final date = entry.key;
+                  final repairs = entry.value;
+                  return [
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
+                      child: Text(
+                        _formatDate(date),
+                        style: theme.textTheme.titleMedium,
+                      ),
+                    ),
+                    ...repairs.map(
+                      (repair) => DashboardRepairCard(repairWithDetails: repair),
+                    ),
+                  ];
+                }),
+                const SizedBox(height: 20), // Отступ снизу
+              ]),
+            ),
+          ),
       ],
     );
   }
@@ -198,6 +255,21 @@ class DashboardPage extends StatelessWidget {
       return formatted;
     }
     return value.toStringAsFixed(0);
+  }
+
+  void _showRepairForm(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: context.read<RepairsBloc>()),
+          BlocProvider.value(value: context.read<CarBloc>()),
+          BlocProvider.value(value: context.read<ClientBloc>()),
+        ],
+        child: const RepairFormModal(),
+      ),
+    );
   }
 }
 

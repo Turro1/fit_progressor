@@ -79,6 +79,7 @@ class _CarsPageState extends State<CarsPage> {
             // Search bar with filter
             BlocBuilder<CarBloc, CarState>(
               buildWhen: (previous, current) {
+                // Перестраиваем при изменении фильтра или поискового запроса
                 final prevFilter = previous is CarLoaded
                     ? previous.filter
                     : const CarFilter();
@@ -87,7 +88,9 @@ class _CarsPageState extends State<CarsPage> {
                     : (current is CarLoading
                         ? current.currentFilter
                         : const CarFilter());
-                return prevFilter != currFilter;
+                final prevQuery = previous is CarLoaded ? previous.searchQuery : '';
+                final currQuery = current is CarLoaded ? current.searchQuery : '';
+                return prevFilter != currFilter || prevQuery != currQuery;
               },
               builder: (context, state) {
                 final currentFilter = state is CarLoaded
@@ -98,6 +101,8 @@ class _CarsPageState extends State<CarsPage> {
                 final availableMakes = state is CarLoaded
                     ? state.availableMakes ?? []
                     : <String>[];
+                final searchQuery = state is CarLoaded ? state.searchQuery ?? '' : '';
+                final hasActiveSearch = searchQuery.isNotEmpty;
 
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 15.0),
@@ -106,16 +111,18 @@ class _CarsPageState extends State<CarsPage> {
                       AppSearchBar(
                         hintText: 'Поиск по марке, модели, номеру или владельцу...',
                         showFilterButton: true,
+                        initialValue: searchQuery,
                         onFilterTap: () => _showFilterSheet(context, currentFilter, availableMakes),
                         onSearch: (query) {
                           context.read<CarBloc>().add(SearchCarsEvent(query: query));
                         },
                       ),
                       // Active filters indicator
-                      if (currentFilter.isActive) ...[
+                      if (currentFilter.isActive || hasActiveSearch) ...[
                         const SizedBox(height: 8),
                         _ActiveFiltersBar(
                           filter: currentFilter,
+                          searchQuery: searchQuery,
                           onClear: () {
                             context.read<CarBloc>().add(
                               const ClearCarFiltersEvent(),
@@ -261,16 +268,19 @@ class _CarsPageState extends State<CarsPage> {
 /// Виджет для отображения активных фильтров
 class _ActiveFiltersBar extends StatelessWidget {
   final CarFilter filter;
+  final String searchQuery;
   final VoidCallback onClear;
 
   const _ActiveFiltersBar({
     required this.filter,
+    this.searchQuery = '',
     required this.onClear,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final hasSearch = searchQuery.isNotEmpty;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -281,7 +291,7 @@ class _ActiveFiltersBar extends StatelessWidget {
       child: Row(
         children: [
           Icon(
-            Icons.filter_list,
+            hasSearch ? Icons.search : Icons.filter_list,
             size: 16,
             color: theme.colorScheme.primary,
           ),
@@ -290,10 +300,19 @@ class _ActiveFiltersBar extends StatelessWidget {
             child: Wrap(
               spacing: 6,
               runSpacing: 4,
-              children: filter.makes.map((make) => _FilterChip(
-                label: make,
-                icon: Icons.directions_car_outlined,
-              )).toList(),
+              children: [
+                // Поисковый запрос
+                if (hasSearch)
+                  _FilterChip(
+                    label: '"$searchQuery"',
+                    icon: Icons.search,
+                  ),
+                // Марки
+                ...filter.makes.map((make) => _FilterChip(
+                  label: make,
+                  icon: Icons.directions_car_outlined,
+                )),
+              ],
             ),
           ),
           InkWell(

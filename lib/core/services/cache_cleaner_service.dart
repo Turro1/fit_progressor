@@ -71,7 +71,14 @@ class CacheCleanerService {
     final pendingChangesBox =
         Hive.box<PendingChangeHiveModel>(HiveBoxes.pendingChanges);
 
-    final pendingChanges = _changeTracker.getPendingChanges();
+    // Безопасно получаем pending changes (трекер может быть не инициализирован)
+    int pendingCount = 0;
+    if (_changeTracker.isInitialized) {
+      pendingCount = _changeTracker.getPendingChanges().length;
+    } else {
+      // Считаем напрямую из box если трекер не инициализирован
+      pendingCount = pendingChangesBox.values.where((c) => !c.isSent).length;
+    }
     final syncedChanges =
         pendingChangesBox.values.where((c) => c.isSent).length;
 
@@ -80,7 +87,7 @@ class CacheCleanerService {
       clientsCount: clientsBox.length,
       carsCount: carsBox.length,
       materialsCount: materialsBox.length,
-      pendingChangesCount: pendingChanges.length,
+      pendingChangesCount: pendingCount,
       syncedChangesCount: syncedChanges,
     );
   }
@@ -88,9 +95,26 @@ class CacheCleanerService {
   /// Очистить только старые синхронизированные изменения (безопасно)
   Future<ClearResult> clearSyncedChanges({Duration maxAge = const Duration(days: 7)}) async {
     try {
-      final before = Hive.box<PendingChangeHiveModel>(HiveBoxes.pendingChanges).length;
-      await _changeTracker.cleanupOldChanges(maxAge: maxAge);
-      final after = Hive.box<PendingChangeHiveModel>(HiveBoxes.pendingChanges).length;
+      final pendingBox = Hive.box<PendingChangeHiveModel>(HiveBoxes.pendingChanges);
+      final before = pendingBox.length;
+
+      if (_changeTracker.isInitialized) {
+        await _changeTracker.cleanupOldChanges(maxAge: maxAge);
+      } else {
+        // Очищаем напрямую если трекер не инициализирован
+        final cutoff = DateTime.now().subtract(maxAge);
+        final toDelete = <dynamic>[];
+        for (final entry in pendingBox.toMap().entries) {
+          if (entry.value.isSent && entry.value.createdAt.isBefore(cutoff)) {
+            toDelete.add(entry.key);
+          }
+        }
+        for (final key in toDelete) {
+          await pendingBox.delete(key);
+        }
+      }
+
+      final after = pendingBox.length;
       final cleared = before - after;
 
       return ClearResult.success(

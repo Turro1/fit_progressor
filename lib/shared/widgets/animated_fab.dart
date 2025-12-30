@@ -98,9 +98,9 @@ class _AnimatedFABState extends State<AnimatedFAB>
             child: FloatingActionButton(
               onPressed: _isVisible ? widget.onPressed : null,
               backgroundColor:
-                  widget.backgroundColor ?? theme.colorScheme.secondary,
+                  widget.backgroundColor ?? theme.colorScheme.primary,
               foregroundColor:
-                  widget.foregroundColor ?? theme.colorScheme.onSecondary,
+                  widget.foregroundColor ?? theme.colorScheme.onPrimary,
               tooltip: widget.tooltip,
               child: widget.child,
             ),
@@ -318,9 +318,9 @@ class _AnimatedAppearFABState extends State<AnimatedAppearFAB>
             child: FloatingActionButton(
               onPressed: widget.onPressed,
               backgroundColor:
-                  widget.backgroundColor ?? theme.colorScheme.secondary,
+                  widget.backgroundColor ?? theme.colorScheme.primary,
               foregroundColor:
-                  widget.foregroundColor ?? theme.colorScheme.onSecondary,
+                  widget.foregroundColor ?? theme.colorScheme.onPrimary,
               tooltip: widget.tooltip,
               child: widget.child,
             ),

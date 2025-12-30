@@ -159,8 +159,10 @@ class DashboardRepositoryImpl implements DashboardRepository {
               lastMonthAverageCost,
             );
 
-            // Данные для графика выручки по дням (последние 14 дней)
-            final revenueChart = _buildRevenueChart(repairs, now);
+            // Данные для графика выручки по дням (последние 30 дней)
+            final revenueChart = _buildRevenueChart(repairs, now, 0);
+            // Данные за предыдущий период (30-60 дней назад)
+            final previousPeriodChart = _buildRevenueChart(repairs, now, 30);
 
             return Right(
               DashboardStats(
@@ -178,6 +180,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
                 completedRepairsTrend: completedRepairsTrend,
                 averageCostTrend: averageCostTrend,
                 revenueChart: revenueChart,
+                previousPeriodChart: previousPeriodChart,
                 lastMonthRevenue: lastMonthRevenue,
                 lastMonthCompletedRepairs: lastMonthCompletedRepairs,
               ),
@@ -188,15 +191,20 @@ class DashboardRepositoryImpl implements DashboardRepository {
     });
   }
 
-  /// Строит данные для графика выручки за последние 30 дней (месяц)
-  RevenueChartData _buildRevenueChart(List<Repair> repairs, DateTime now) {
+  /// Строит данные для графика выручки за 30 дней
+  /// [daysOffset] - смещение от сегодня (0 = последние 30 дней, 30 = 30-60 дней назад)
+  RevenueChartData _buildRevenueChart(
+    List<Repair> repairs,
+    DateTime now,
+    int daysOffset,
+  ) {
     final today = DateTime(now.year, now.month, now.day);
     final dailyData = <DailyRevenue>[];
     double maxValue = 0;
     double totalRevenue = 0;
 
-    // Последние 30 дней
-    for (int i = 29; i >= 0; i--) {
+    // 30 дней с учетом смещения
+    for (int i = 29 + daysOffset; i >= daysOffset; i--) {
       final date = today.subtract(Duration(days: i));
 
       final dayRepairs = repairs.where((repair) {

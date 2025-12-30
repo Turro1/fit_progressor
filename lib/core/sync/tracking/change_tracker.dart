@@ -21,6 +21,9 @@ class ChangeTracker {
   /// Проверить включено ли отслеживание
   bool get isEnabled => _isEnabled;
 
+  /// Проверить инициализирован ли трекер
+  bool get isInitialized => _box != null && _box!.isOpen;
+
   /// Инициализация трекера
   Future<void> init() async {
     if (!Hive.isBoxOpen(_pendingChangesBoxName)) {

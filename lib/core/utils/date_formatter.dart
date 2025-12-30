@@ -64,13 +64,37 @@ class DateFormatter {
   }
 
   static String _getDaysWord(int days) {
-    if (days % 10 == 1 && days % 100 != 11) {
+    final absDays = days.abs();
+    if (absDays % 10 == 1 && absDays % 100 != 11) {
       return 'день';
-    } else if ([2, 3, 4].contains(days % 10) &&
-        ![12, 13, 14].contains(days % 100)) {
+    } else if ([2, 3, 4].contains(absDays % 10) &&
+        ![12, 13, 14].contains(absDays % 100)) {
       return 'дня';
     } else {
       return 'дней';
+    }
+  }
+
+  /// Возвращает относительное время с поддержкой будущих дат
+  /// Пример: "Сегодня 14:30", "Завтра 10:00", "Через 2 дня 15:00"
+  static String formatRelativeWithFuture(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final dateOnly = DateTime(date.year, date.month, date.day);
+    final difference = dateOnly.difference(today).inDays;
+
+    if (difference == 0) {
+      return 'Сегодня ${formatTime(date)}';
+    } else if (difference == 1) {
+      return 'Завтра ${formatTime(date)}';
+    } else if (difference == -1) {
+      return 'Вчера ${formatTime(date)}';
+    } else if (difference > 1 && difference < 7) {
+      return 'Через $difference ${_getDaysWord(difference)} ${formatTime(date)}';
+    } else if (difference < -1 && difference > -7) {
+      return '${-difference} ${_getDaysWord(-difference)} назад';
+    } else {
+      return formatDateTime(date);
     }
   }
 }

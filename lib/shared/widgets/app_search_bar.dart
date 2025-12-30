@@ -10,6 +10,12 @@ class AppSearchBar extends StatefulWidget {
   final bool isLoading;
   final int debounceMs;
 
+  /// Внешний контроллер для управления текстом (опционально)
+  final TextEditingController? controller;
+
+  /// Начальное значение текста (если нет controller)
+  final String? initialValue;
+
   const AppSearchBar({
     Key? key,
     required this.onSearch,
@@ -18,6 +24,8 @@ class AppSearchBar extends StatefulWidget {
     this.showFilterButton = false,
     this.isLoading = false,
     this.debounceMs = 300,
+    this.controller,
+    this.initialValue,
   }) : super(key: key);
 
   @override
@@ -25,13 +33,50 @@ class AppSearchBar extends StatefulWidget {
 }
 
 class _AppSearchBarState extends State<AppSearchBar> {
-  final TextEditingController _controller = TextEditingController();
+  late TextEditingController _controller;
   Timer? _debounce;
+  bool _isInternalController = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initController();
+  }
+
+  void _initController() {
+    if (widget.controller != null) {
+      _controller = widget.controller!;
+      _isInternalController = false;
+    } else {
+      _controller = TextEditingController(text: widget.initialValue);
+      _isInternalController = true;
+    }
+  }
+
+  @override
+  void didUpdateWidget(AppSearchBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Если внешний контроллер изменился
+    if (widget.controller != oldWidget.controller) {
+      if (_isInternalController) {
+        _controller.dispose();
+      }
+      _initController();
+    }
+    // Если initialValue изменилось и используем внутренний контроллер
+    if (_isInternalController &&
+        widget.initialValue != oldWidget.initialValue &&
+        widget.initialValue != _controller.text) {
+      _controller.text = widget.initialValue ?? '';
+    }
+  }
 
   @override
   void dispose() {
     _debounce?.cancel();
-    _controller.dispose();
+    if (_isInternalController) {
+      _controller.dispose();
+    }
     super.dispose();
   }
 

@@ -116,6 +116,7 @@ class DashboardStats extends Equatable {
 
   // Данные для графика
   final RevenueChartData revenueChart;
+  final RevenueChartData previousPeriodChart;
 
   // Прошлый месяц
   final double lastMonthRevenue;
@@ -136,6 +137,7 @@ class DashboardStats extends Equatable {
     this.completedRepairsTrend = const TrendData.neutral(),
     this.averageCostTrend = const TrendData.neutral(),
     this.revenueChart = const RevenueChartData.empty(),
+    this.previousPeriodChart = const RevenueChartData.empty(),
     this.lastMonthRevenue = 0,
     this.lastMonthCompletedRepairs = 0,
   });
@@ -156,6 +158,7 @@ class DashboardStats extends Equatable {
     completedRepairsTrend,
     averageCostTrend,
     revenueChart,
+    previousPeriodChart,
     lastMonthRevenue,
     lastMonthCompletedRepairs,
   ];

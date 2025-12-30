@@ -121,6 +121,7 @@ class RepairCard extends StatelessWidget {
                                   alpha: 0.8,
                                 ),
                               ),
+                              maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
@@ -147,6 +148,7 @@ class RepairCard extends StatelessWidget {
                                   alpha: 0.8,
                                 ),
                               ),
+                              maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
@@ -317,6 +319,7 @@ class RepairCard extends StatelessWidget {
                                   style: theme.textTheme.bodySmall?.copyWith(
                                     color: theme.colorScheme.onSurfaceVariant,
                                   ),
+                                  maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),

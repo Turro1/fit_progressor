@@ -25,52 +25,44 @@ class MaterialRepositoryImpl implements MaterialRepository {
   @override
   Future<Either<Failure, Material>> getMaterialById(String id) async {
     try {
-      final localMaterials = await localDataSource.getMaterials();
-      final material = localMaterials.firstWhere((m) => m.id == id);
+      final material = await localDataSource.getMaterialById(id);
       return Right(material);
-    } on CacheException {
-      return Left(const CacheFailure(message: ''));
+    } on CacheException catch (e) {
+      return Left(CacheFailure(message: e.message));
     }
   }
 
   @override
   Future<Either<Failure, Material>> addMaterial(Material material) async {
     try {
-      final localMaterials = await localDataSource.getMaterials();
-      localMaterials.add(MaterialModel.fromEntity(material));
-      await localDataSource.cacheMaterials(localMaterials);
-      return Right(material);
-    } on CacheException {
-      return Left(const CacheFailure(message: ''));
+      final result = await localDataSource.addMaterial(
+        MaterialModel.fromEntity(material),
+      );
+      return Right(result);
+    } on CacheException catch (e) {
+      return Left(CacheFailure(message: e.message));
     }
   }
 
   @override
   Future<Either<Failure, Material>> updateMaterial(Material material) async {
     try {
-      final localMaterials = await localDataSource.getMaterials();
-      final index = localMaterials.indexWhere((m) => m.id == material.id);
-      if (index != -1) {
-        localMaterials[index] = MaterialModel.fromEntity(material);
-        await localDataSource.cacheMaterials(localMaterials);
-        return Right(material);
-      } else {
-        return Left(const CacheFailure(message: ''));
-      }
-    } on CacheException {
-      return Left(const CacheFailure(message: ''));
+      final result = await localDataSource.updateMaterial(
+        MaterialModel.fromEntity(material),
+      );
+      return Right(result);
+    } on CacheException catch (e) {
+      return Left(CacheFailure(message: e.message));
     }
   }
 
   @override
   Future<Either<Failure, void>> deleteMaterial(String id) async {
     try {
-      final localMaterials = await localDataSource.getMaterials();
-      localMaterials.removeWhere((m) => m.id == id);
-      await localDataSource.cacheMaterials(localMaterials);
+      await localDataSource.deleteMaterial(id);
       return const Right(null);
-    } on CacheException {
-      return Left(const CacheFailure(message: ''));
+    } on CacheException catch (e) {
+      return Left(CacheFailure(message: e.message));
     }
   }
 }
