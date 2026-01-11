@@ -22,36 +22,57 @@ class RepairsLoading extends RepairsState {
 }
 
 class RepairsLoaded extends RepairsState {
-  final List<Repair> repairs;
+  final List<Repair> repairs; // Отображаемые ремонты (с пагинацией)
   final List<Repair> allRepairs; // Все ремонты до фильтрации
+  final List<Repair> filteredRepairs; // Все ремонты после фильтрации (для пагинации)
   final String? searchQuery;
   final String? filterCarId;
   final RepairFilter filter;
+  final bool hasMore; // Есть ли ещё элементы для подгрузки
+  final bool isLoadingMore; // Идёт ли подгрузка
 
   const RepairsLoaded({
     required this.repairs,
     this.allRepairs = const [],
+    this.filteredRepairs = const [],
     this.searchQuery,
     this.filterCarId,
     this.filter = const RepairFilter(),
+    this.hasMore = false,
+    this.isLoadingMore = false,
   });
 
   @override
-  List<Object?> get props => [repairs, allRepairs, searchQuery, filterCarId, filter];
+  List<Object?> get props => [
+        repairs,
+        allRepairs,
+        filteredRepairs,
+        searchQuery,
+        filterCarId,
+        filter,
+        hasMore,
+        isLoadingMore,
+      ];
 
   RepairsLoaded copyWith({
     List<Repair>? repairs,
     List<Repair>? allRepairs,
+    List<Repair>? filteredRepairs,
     String? searchQuery,
     String? filterCarId,
     RepairFilter? filter,
+    bool? hasMore,
+    bool? isLoadingMore,
   }) {
     return RepairsLoaded(
       repairs: repairs ?? this.repairs,
       allRepairs: allRepairs ?? this.allRepairs,
+      filteredRepairs: filteredRepairs ?? this.filteredRepairs,
       searchQuery: searchQuery ?? this.searchQuery,
       filterCarId: filterCarId ?? this.filterCarId,
       filter: filter ?? this.filter,
+      hasMore: hasMore ?? this.hasMore,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
     );
   }
 }

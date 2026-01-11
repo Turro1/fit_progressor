@@ -1,7 +1,16 @@
 import 'dart:io';
+import 'dart:isolate';
+import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
 
 class RepairImageService {
+  /// Максимальная ширина изображения после сжатия
+  static const int maxWidth = 1920;
+  /// Максимальная высота изображения после сжатия
+  static const int maxHeight = 1920;
+  /// Качество JPEG сжатия (0-100)
+  static const int jpegQuality = 85;
+
   Future<String> saveImage(String sourcePath, String repairId) async {
     try {
       // 1. Получить documents directory
@@ -11,20 +20,60 @@ class RepairImageService {
       final repairDir = Directory('${docsDir.path}/repairs/$repairId');
       await repairDir.create(recursive: true);
 
-      // 3. Сгенерировать имя файла
+      // 3. Сгенерировать имя файла (всегда сохраняем как jpg после сжатия)
       final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final extension = sourcePath.split('.').last;
-      final fileName = 'photo_$timestamp.$extension';
-
-      // 4. Скопировать файл
-      final sourceFile = File(sourcePath);
+      final fileName = 'photo_$timestamp.jpg';
       final targetPath = '${repairDir.path}/$fileName';
-      await sourceFile.copy(targetPath);
+
+      // 4. Сжать и сохранить изображение
+      await _compressAndSaveImage(sourcePath, targetPath);
 
       return targetPath;
     } catch (e) {
       throw Exception('Ошибка сохранения изображения: $e');
     }
+  }
+
+  /// Сжимает изображение и сохраняет в указанный путь.
+  /// Выполняется в отдельном изоляте для избежания блокировки UI.
+  Future<void> _compressAndSaveImage(String sourcePath, String targetPath) async {
+    await Isolate.run(() {
+      // Читаем исходное изображение
+      final sourceFile = File(sourcePath);
+      final bytes = sourceFile.readAsBytesSync();
+      final image = img.decodeImage(bytes);
+
+      if (image == null) {
+        // Если не удалось декодировать, просто копируем файл
+        sourceFile.copySync(targetPath);
+        return;
+      }
+
+      // Вычисляем новые размеры с сохранением пропорций
+      img.Image resizedImage;
+      if (image.width > maxWidth || image.height > maxHeight) {
+        // Определяем соотношение для масштабирования
+        final widthRatio = maxWidth / image.width;
+        final heightRatio = maxHeight / image.height;
+        final ratio = widthRatio < heightRatio ? widthRatio : heightRatio;
+
+        final newWidth = (image.width * ratio).round();
+        final newHeight = (image.height * ratio).round();
+
+        resizedImage = img.copyResize(
+          image,
+          width: newWidth,
+          height: newHeight,
+          interpolation: img.Interpolation.linear,
+        );
+      } else {
+        resizedImage = image;
+      }
+
+      // Сохраняем как JPEG с заданным качеством
+      final compressedBytes = img.encodeJpg(resizedImage, quality: jpegQuality);
+      File(targetPath).writeAsBytesSync(compressedBytes);
+    });
   }
 
   Future<void> deleteImages(List<String> photoPaths) async {

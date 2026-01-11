@@ -103,3 +103,18 @@ class FilterRepairsEvent extends RepairsEvent {
 class ClearFiltersEvent extends RepairsEvent {
   const ClearFiltersEvent();
 }
+
+/// Событие для подгрузки следующей порции ремонтов
+class LoadMoreRepairs extends RepairsEvent {
+  const LoadMoreRepairs();
+}
+
+/// Событие для восстановления удалённого ремонта (Undo)
+class RestoreRepairEvent extends RepairsEvent {
+  final Repair repair;
+
+  const RestoreRepairEvent({required this.repair});
+
+  @override
+  List<Object?> get props => [repair];
+}

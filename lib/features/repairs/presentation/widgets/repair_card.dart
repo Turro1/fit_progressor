@@ -5,7 +5,9 @@ import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_event.
 import 'package:fit_progressor/features/repairs/presentation/widgets/repair_form_modal.dart';
 import 'package:fit_progressor/features/repairs/presentation/widgets/repair_detail_sheet.dart';
 import 'package:fit_progressor/shared/widgets/entity_card.dart';
+import 'package:fit_progressor/shared/widgets/highlighted_text.dart';
 import 'package:fit_progressor/shared/widgets/delete_confirmation_dialog.dart';
+import 'package:fit_progressor/shared/services/undo_service.dart';
 import 'package:fit_progressor/core/utils/car_logo_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -14,11 +16,14 @@ import 'package:intl/intl.dart';
 class RepairCard extends StatelessWidget {
   final Repair repair;
   final bool compact;
+  /// Поисковый запрос для подсветки
+  final String? searchQuery;
 
   const RepairCard({
     Key? key,
     required this.repair,
     this.compact = false,
+    this.searchQuery,
   }) : super(key: key);
 
   void _showEditModal(BuildContext context) {
@@ -35,6 +40,7 @@ class RepairCard extends StatelessWidget {
   void _confirmDelete(BuildContext context) async {
     final repairsBloc = context.read<RepairsBloc>();
 
+    // Показываем диалог подтверждения
     final confirmed = await DeleteConfirmationDialog.show(
       context: context,
       data: DeleteConfirmationData(
@@ -44,13 +50,28 @@ class RepairCard extends StatelessWidget {
         icon: Icons.build_outlined,
         warnings: [
           'Стоимость: ${repair.cost.toStringAsFixed(0)} ₽',
-          'Это действие нельзя отменить',
+          if (repair.materials.isNotEmpty)
+            'Материалы будут возвращены на склад',
         ],
       ),
     );
 
-    if (confirmed) {
+    if (confirmed && context.mounted) {
+      // Сохраняем копию ремонта для возможности восстановления
+      final deletedRepair = repair;
+
+      // Удаляем ремонт
       repairsBloc.add(DeleteRepairEvent(repairId: repair.id));
+
+      // Показываем SnackBar с возможностью отмены
+      UndoService.showUndoSnackBar(
+        context: context,
+        message: '${repair.partType} удалён',
+        onUndo: () {
+          // Восстанавливаем ремонт
+          repairsBloc.add(RestoreRepairEvent(repair: deletedRepair));
+        },
+      );
     }
   }
 
@@ -76,8 +97,9 @@ class RepairCard extends StatelessWidget {
       title: Row(
         children: [
           Expanded(
-            child: Text(
-              repair.partType,
+            child: HighlightedText(
+              text: repair.partType,
+              query: searchQuery,
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
@@ -114,8 +136,9 @@ class RepairCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 4),
                           Expanded(
-                            child: Text(
-                              repair.partPosition,
+                            child: HighlightedText(
+                              text: repair.partPosition,
+                              query: searchQuery,
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 color: theme.colorScheme.onSurface.withValues(
                                   alpha: 0.8,
@@ -141,8 +164,9 @@ class RepairCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 4),
                           Expanded(
-                            child: Text(
-                              '${repair.carMake} ${repair.carModel}',
+                            child: HighlightedText(
+                              text: '${repair.carMake} ${repair.carModel}',
+                              query: searchQuery,
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 color: theme.colorScheme.onSurface.withValues(
                                   alpha: 0.8,

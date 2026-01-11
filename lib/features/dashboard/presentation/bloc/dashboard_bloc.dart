@@ -98,6 +98,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
                       return RepairWithDetails(
                         repair: repair,
                         clientName: client.name,
+                        clientPhone: client.phone,
                         carFullName: car.fullName,
                       );
                     }).toList();

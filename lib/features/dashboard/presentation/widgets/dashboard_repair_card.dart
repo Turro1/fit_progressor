@@ -1,15 +1,13 @@
 import 'dart:io';
-import 'package:fit_progressor/features/cars/domain/entities/car.dart';
-import 'package:fit_progressor/features/cars/presentation/bloc/car_bloc.dart';
-import 'package:fit_progressor/features/cars/presentation/bloc/car_state.dart';
-import 'package:fit_progressor/features/cars/presentation/widgets/car_repairs_modal.dart';
 import 'package:fit_progressor/features/dashboard/domain/entities/repair_with_details.dart';
 import 'package:fit_progressor/features/repairs/domain/entities/repair_status.dart';
 import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_bloc.dart';
 import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_event.dart';
+import 'package:fit_progressor/features/repairs/presentation/widgets/repair_detail_sheet.dart';
 import 'package:fit_progressor/features/repairs/presentation/widgets/repair_form_modal.dart';
 import 'package:fit_progressor/shared/widgets/entity_card.dart';
 import 'package:fit_progressor/shared/widgets/delete_confirmation_dialog.dart';
+import 'package:fit_progressor/shared/services/undo_service.dart';
 import 'package:fit_progressor/core/utils/car_logo_helper.dart';
 import 'package:fit_progressor/core/utils/date_formatter.dart';
 import 'package:flutter/material.dart';
@@ -22,36 +20,13 @@ class DashboardRepairCard extends StatelessWidget {
   const DashboardRepairCard({Key? key, required this.repairWithDetails})
     : super(key: key);
 
-  Car? _getCar(BuildContext context) {
-    final carState = context.read<CarBloc>().state;
-    if (carState is CarLoaded) {
-      try {
-        return carState.cars.firstWhere(
-          (car) => car.id == repairWithDetails.repair.carId,
-        );
-      } catch (_) {
-        // Создаём временный объект Car из данных ремонта
-        return Car(
-          id: repairWithDetails.repair.carId,
-          make: repairWithDetails.repair.carMake,
-          model: repairWithDetails.repair.carModel,
-          plate: '',
-          clientId: repairWithDetails.repair.clientId,
-        );
-      }
-    }
-    return null;
-  }
-
-  void _openCarRepairsModal(BuildContext context) {
-    final car = _getCar(context);
-    if (car == null) return;
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => CarRepairsModal(car: car),
+  /// Открыть детальный просмотр ремонта с информацией о клиенте
+  void _openRepairDetailSheet(BuildContext context) {
+    RepairDetailSheet.show(
+      context,
+      repairWithDetails.repair,
+      clientName: repairWithDetails.clientName,
+      clientPhone: repairWithDetails.clientPhone,
     );
   }
 
@@ -80,13 +55,26 @@ class DashboardRepairCard extends StatelessWidget {
         icon: Icons.build_outlined,
         warnings: [
           'Стоимость: ${repair.cost.toStringAsFixed(0)} ₽',
-          'Это действие нельзя отменить',
+          if (repair.materials.isNotEmpty)
+            'Материалы будут возвращены на склад',
         ],
       ),
     );
 
-    if (confirmed) {
+    if (confirmed && context.mounted) {
+      // Сохраняем копию для Undo
+      final deletedRepair = repair;
+
       repairsBloc.add(DeleteRepairEvent(repairId: repair.id));
+
+      // Показываем SnackBar с возможностью отмены
+      UndoService.showUndoSnackBar(
+        context: context,
+        message: '${repair.partType} удалён',
+        onUndo: () {
+          repairsBloc.add(RestoreRepairEvent(repair: deletedRepair));
+        },
+      );
     }
   }
 
@@ -139,7 +127,7 @@ class DashboardRepairCard extends StatelessWidget {
       enableSwipeActions: true,
       onEdit: () => _showEditModal(context),
       onDelete: () => _confirmDelete(context),
-      onTap: () => _openCarRepairsModal(context),
+      onTap: () => _openRepairDetailSheet(context),
       leading: _buildLeading(theme),
       title: Row(
         children: [

@@ -26,6 +26,8 @@ class AppTheme {
       onTertiaryContainer: AppColors.onTertiaryContainer,
       surfaceContainerHighest: AppColors.surfaceContainerHigh,
       outlineVariant: AppColors.outlineVariant,
+      errorContainer: AppColors.errorContainer,
+      onErrorContainer: AppColors.onErrorContainer,
     ),
     appBarTheme: const AppBarTheme(
       backgroundColor: AppColors.primary, // Changed from darkBackground
@@ -126,6 +128,8 @@ class AppTheme {
       onTertiaryContainer: AppColors.darkOnTertiaryContainer,
       surfaceContainerHighest: AppColors.darkSurfaceContainerHighest,
       outlineVariant: AppColors.darkOutlineVariant,
+      errorContainer: AppColors.darkErrorContainer,
+      onErrorContainer: AppColors.darkOnErrorContainer,
     ),
     appBarTheme: const AppBarTheme(
       backgroundColor: AppColors.darkSurface,

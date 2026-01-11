@@ -4,6 +4,7 @@ import 'package:fit_progressor/core/error/failures/failure.dart';
 import 'package:fit_progressor/core/usecases/usecase.dart';
 import '../entities/repair.dart';
 import '../entities/repair_material.dart';
+import '../entities/repair_status.dart';
 import '../repositories/repair_repository.dart';
 
 class AddRepair implements UseCase<Repair, AddRepairParams> {
@@ -16,7 +17,7 @@ class AddRepair implements UseCase<Repair, AddRepairParams> {
     final now = DateTime.now();
 
     final repair = Repair(
-      id: 'repair_${now.millisecondsSinceEpoch}',
+      id: params.existingId ?? 'repair_${now.millisecondsSinceEpoch}',
       partType: params.partType,
       partPosition: params.partPosition,
       photoPaths: params.photoPaths,
@@ -29,6 +30,7 @@ class AddRepair implements UseCase<Repair, AddRepairParams> {
       carModel: params.carModel,
       createdAt: now,
       materials: params.materials,
+      status: params.status,
     );
 
     return await repairRepository.addRepair(repair);
@@ -47,6 +49,9 @@ class AddRepairParams extends Equatable {
   final String carMake;
   final String carModel;
   final List<RepairMaterial> materials;
+  final RepairStatus status;
+  /// Существующий ID для восстановления удалённого ремонта
+  final String? existingId;
 
   const AddRepairParams({
     required this.partType,
@@ -60,6 +65,8 @@ class AddRepairParams extends Equatable {
     this.carMake = '',
     this.carModel = '',
     this.materials = const [],
+    this.status = RepairStatus.pending,
+    this.existingId,
   });
 
   @override
@@ -75,5 +82,7 @@ class AddRepairParams extends Equatable {
     carMake,
     carModel,
     materials,
+    status,
+    existingId,
   ];
 }

@@ -106,35 +106,28 @@ class _EntityCardState extends State<EntityCard>
         enabled: widget.enableSwipeActions,
         startActionPane: widget.onEdit != null
             ? ActionPane(
-                motion: const ScrollMotion(),
+                motion: const BehindMotion(),
+                extentRatio: 0.18,
                 children: [
                   CustomSlidableAction(
-                    flex: 1,
-                    onPressed: (context) => widget.onEdit!(),
+                    onPressed: (context) {
+                      HapticFeedback.lightImpact();
+                      Slidable.of(context)?.close();
+                      widget.onEdit!();
+                    },
                     backgroundColor: Colors.transparent,
-                    child: ElevatedButton(
-                      onPressed: widget.onEdit,
-                      style: theme.elevatedButtonTheme.style?.copyWith(
-                        backgroundColor: WidgetStateProperty.all(
-                          theme.colorScheme.secondary,
-                        ),
-                        foregroundColor: WidgetStateProperty.all(
-                          theme.colorScheme.onSecondary,
-                        ),
-                        shape: WidgetStateProperty.all(
-                          const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.horizontal(
-                              right: Radius.circular(12),
-                            ),
-                          ),
-                        ),
-                        padding: WidgetStateProperty.all(
-                          const EdgeInsets.all(0),
-                        ),
+                    padding: EdgeInsets.zero,
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.secondaryContainer,
+                        shape: BoxShape.circle,
                       ),
-                      child: const Tooltip(
-                        message: 'Редактировать',
-                        child: Icon(Icons.edit, size: 24),
+                      child: Icon(
+                        Icons.edit_outlined,
+                        size: 22,
+                        color: theme.colorScheme.onSecondaryContainer,
                       ),
                     ),
                   ),
@@ -143,35 +136,28 @@ class _EntityCardState extends State<EntityCard>
             : null,
         endActionPane: widget.onDelete != null
             ? ActionPane(
-                motion: const ScrollMotion(),
+                motion: const BehindMotion(),
+                extentRatio: 0.18,
                 children: [
                   CustomSlidableAction(
-                    flex: 1,
-                    onPressed: (context) => widget.onDelete!(),
+                    onPressed: (context) {
+                      HapticFeedback.lightImpact();
+                      Slidable.of(context)?.close();
+                      widget.onDelete!();
+                    },
                     backgroundColor: Colors.transparent,
-                    child: ElevatedButton(
-                      onPressed: widget.onDelete,
-                      style: theme.elevatedButtonTheme.style?.copyWith(
-                        backgroundColor: WidgetStateProperty.all(
-                          theme.colorScheme.error,
-                        ),
-                        foregroundColor: WidgetStateProperty.all(
-                          theme.colorScheme.onError,
-                        ),
-                        shape: WidgetStateProperty.all(
-                          const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.horizontal(
-                              left: Radius.circular(12),
-                            ),
-                          ),
-                        ),
-                        padding: WidgetStateProperty.all(
-                          const EdgeInsets.all(0),
-                        ),
+                    padding: EdgeInsets.zero,
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.errorContainer,
+                        shape: BoxShape.circle,
                       ),
-                      child: const Tooltip(
-                        message: 'Удалить',
-                        child: Icon(Icons.delete, size: 24),
+                      child: Icon(
+                        Icons.delete_outline,
+                        size: 22,
+                        color: theme.colorScheme.onErrorContainer,
                       ),
                     ),
                   ),

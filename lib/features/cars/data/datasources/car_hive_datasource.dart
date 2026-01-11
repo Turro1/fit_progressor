@@ -14,12 +14,8 @@ class CarHiveDataSource implements CarLocalDataSource {
   Future<List<CarModel>> getCars() async {
     try {
       final cars = _box.values.toList();
-      // Sort by make and model
-      cars.sort((a, b) {
-        final makeCompare = a.make.compareTo(b.make);
-        if (makeCompare != 0) return makeCompare;
-        return a.model.compareTo(b.model);
-      });
+      // Sort by createdAt descending (newest first)
+      cars.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       return cars.map((hiveModel) {
         final entity = hiveModel.toEntity();
         return CarModel.fromEntity(entity);
@@ -129,11 +125,8 @@ class CarHiveDataSource implements CarLocalDataSource {
             car.clientName.toLowerCase().contains(queryLower);
       }).toList();
 
-      cars.sort((a, b) {
-        final makeCompare = a.make.compareTo(b.make);
-        if (makeCompare != 0) return makeCompare;
-        return a.model.compareTo(b.model);
-      });
+      // Sort by createdAt descending (newest first)
+      cars.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       return cars.map((hiveModel) {
         final entity = hiveModel.toEntity();
         return CarModel.fromEntity(entity);
@@ -147,11 +140,8 @@ class CarHiveDataSource implements CarLocalDataSource {
   Future<List<CarModel>> getCarsByClient(String clientId) async {
     try {
       final cars = _box.values.where((car) => car.clientId == clientId).toList();
-      cars.sort((a, b) {
-        final makeCompare = a.make.compareTo(b.make);
-        if (makeCompare != 0) return makeCompare;
-        return a.model.compareTo(b.model);
-      });
+      // Sort by createdAt descending (newest first)
+      cars.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       return cars.map((hiveModel) {
         final entity = hiveModel.toEntity();
         return CarModel.fromEntity(entity);

@@ -20,10 +20,34 @@ class RepairsPage extends StatefulWidget {
 }
 
 class _RepairsPageState extends State<RepairsPage> {
+  final ScrollController _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
     context.read<RepairsBloc>().add(const LoadRepairs());
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_isBottom) {
+      context.read<RepairsBloc>().add(const LoadMoreRepairs());
+    }
+  }
+
+  bool get _isBottom {
+    if (!_scrollController.hasClients) return false;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.offset;
+    // Загружаем ещё когда до конца осталось 200 пикселей
+    return currentScroll >= (maxScroll - 200);
   }
 
   void _showRepairModal(BuildContext context) {
@@ -147,14 +171,15 @@ class _RepairsPageState extends State<RepairsPage> {
                     );
                   }
                   if (state is RepairsOperationSuccess) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(state.message),
-                        backgroundColor: theme.colorScheme.secondary,
-                      ),
-                    );
-                    // Bloc уже вызывает LoadRepairs в _onDeleteRepair/_onAddRepair/_onUpdateRepair
-                    // Не нужно дублировать вызов здесь
+                    // Не показываем SnackBar для удаления - он показывается через UndoService
+                    if (!state.message.contains('удален')) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(state.message),
+                          backgroundColor: theme.colorScheme.secondary,
+                        ),
+                      );
+                    }
                   }
                 },
                 builder: (context, state) {
@@ -189,14 +214,33 @@ class _RepairsPageState extends State<RepairsPage> {
                         context.read<RepairsBloc>().add(const LoadRepairs());
                       },
                       child: ListView.builder(
+                        controller: _scrollController,
                         padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                        itemCount: state.repairs.length,
+                        // +1 для индикатора загрузки если есть ещё данные
+                        itemCount: state.repairs.length + (state.hasMore ? 1 : 0),
                         itemBuilder: (context, index) {
+                          // Показываем индикатор загрузки в конце списка
+                          if (index >= state.repairs.length) {
+                            return Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Center(
+                                child: state.isLoadingMore
+                                    ? const CircularProgressIndicator()
+                                    : const SizedBox.shrink(),
+                              ),
+                            );
+                          }
+
                           final repair = state.repairs[index];
                           return AnimatedListItem(
                             key: ValueKey(repair.id),
                             index: index,
-                            child: RepairCard(repair: repair),
+                            // Анимируем только первые 20 элементов для производительности
+                            animate: index < 20,
+                            child: RepairCard(
+                              repair: repair,
+                              searchQuery: state.searchQuery,
+                            ),
                           );
                         },
                       ),

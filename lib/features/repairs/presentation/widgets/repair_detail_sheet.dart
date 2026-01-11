@@ -11,18 +11,30 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Детальный просмотр ремонта с галереей фото
 class RepairDetailSheet extends StatefulWidget {
   final Repair repair;
+  /// Имя клиента (опционально, для отображения в карточке)
+  final String? clientName;
+  /// Телефон клиента (опционально, для возможности позвонить)
+  final String? clientPhone;
 
   const RepairDetailSheet({
     super.key,
     required this.repair,
+    this.clientName,
+    this.clientPhone,
   });
 
   /// Показать детальный просмотр ремонта
-  static Future<void> show(BuildContext context, Repair repair) {
+  static Future<void> show(
+    BuildContext context,
+    Repair repair, {
+    String? clientName,
+    String? clientPhone,
+  }) {
     HapticFeedback.lightImpact();
     return showModalBottomSheet(
       context: context,
@@ -30,7 +42,11 @@ class RepairDetailSheet extends StatefulWidget {
       backgroundColor: Colors.transparent,
       builder: (sheetContext) => BlocProvider.value(
         value: context.read<RepairsBloc>(),
-        child: RepairDetailSheet(repair: repair),
+        child: RepairDetailSheet(
+          repair: repair,
+          clientName: clientName,
+          clientPhone: clientPhone,
+        ),
       ),
     );
   }
@@ -120,8 +136,8 @@ class _RepairDetailSheetState extends State<RepairDetailSheet>
                           controller: scrollController,
                           padding: EdgeInsets.zero,
                           children: [
-                            // Photo gallery
-                            if (hasPhotos) _buildPhotoGallery(theme),
+                            // Photo gallery or placeholder
+                            _buildPhotoSection(theme, hasPhotos),
                             // Repair info
                             Padding(
                               padding: const EdgeInsets.all(20),
@@ -173,6 +189,54 @@ class _RepairDetailSheetState extends State<RepairDetailSheet>
     );
   }
 
+  /// Секция фото - галерея или плейсхолдер
+  Widget _buildPhotoSection(ThemeData theme, bool hasPhotos) {
+    if (hasPhotos) {
+      return _buildPhotoGallery(theme);
+    }
+    return _buildAddPhotoPlaceholder(theme);
+  }
+
+  /// Плейсхолдер "Добавить фото" когда нет фотографий
+  Widget _buildAddPhotoPlaceholder(ThemeData theme) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.pop(context);
+        _showEditModal(context);
+      },
+      child: Container(
+        margin: const EdgeInsets.all(16),
+        height: 180,
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: theme.colorScheme.outline.withValues(alpha: 0.3),
+            width: 1,
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.add_a_photo_outlined,
+              size: 48,
+              color: theme.colorScheme.primary,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Добавить фото',
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: theme.colorScheme.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildPhotoGallery(ThemeData theme) {
     final photos = widget.repair.photoPaths;
 
@@ -180,9 +244,10 @@ class _RepairDetailSheetState extends State<RepairDetailSheet>
       children: [
         // Photo carousel
         SizedBox(
-          height: 280,
+          height: 300,
           child: Stack(
             children: [
+              // Photos
               PageView.builder(
                 controller: _photoPageController,
                 itemCount: photos.length,
@@ -197,29 +262,69 @@ class _RepairDetailSheetState extends State<RepairDetailSheet>
                   return GestureDetector(
                     onTap: () => _openFullscreenPhoto(index),
                     child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      margin: const EdgeInsets.symmetric(horizontal: 16),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(16),
                         child: file.existsSync()
                             ? Hero(
                                 tag: 'repair_photo_${widget.repair.id}_$index',
                                 child: Image.file(
                                   file,
                                   fit: BoxFit.cover,
+                                  width: double.infinity,
                                   errorBuilder: (_, __, ___) =>
-                                      _buildPhotoPlaceholder(theme),
+                                      _buildPhotoErrorPlaceholder(theme),
                                 ),
                               )
-                            : _buildPhotoPlaceholder(theme),
+                            : _buildPhotoErrorPlaceholder(theme),
                       ),
                     ),
                   );
                 },
               ),
+              // Add photo button
+              Positioned(
+                top: 12,
+                left: 24,
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.pop(context);
+                    _showEditModal(context);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.add_a_photo,
+                          size: 16,
+                          color: Colors.white,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Добавить',
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
               // Photo counter badge
               Positioned(
                 top: 12,
-                right: 16,
+                right: 24,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 10,
@@ -249,27 +354,30 @@ class _RepairDetailSheetState extends State<RepairDetailSheet>
                   ),
                 ),
               ),
-              // Fullscreen hint
+              // Fullscreen button
               Positioned(
                 bottom: 12,
-                right: 16,
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.black45,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.fullscreen,
-                    size: 20,
-                    color: Colors.white,
+                right: 24,
+                child: GestureDetector(
+                  onTap: () => _openFullscreenPhoto(_currentPhotoIndex),
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.black45,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.fullscreen,
+                      size: 22,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
             ],
           ),
         ),
-        // Page indicators
+        // Page indicators (dots)
         if (photos.length > 1)
           Padding(
             padding: const EdgeInsets.only(top: 12),
@@ -296,7 +404,7 @@ class _RepairDetailSheetState extends State<RepairDetailSheet>
     );
   }
 
-  Widget _buildPhotoPlaceholder(ThemeData theme) {
+  Widget _buildPhotoErrorPlaceholder(ThemeData theme) {
     return Container(
       color: theme.colorScheme.surfaceContainerHighest,
       child: Center(
@@ -417,6 +525,8 @@ class _RepairDetailSheetState extends State<RepairDetailSheet>
 
   Widget _buildInfoSection(ThemeData theme) {
     final repair = widget.repair;
+    final hasClientInfo = widget.clientName != null && widget.clientName!.isNotEmpty;
+    final hasPhone = widget.clientPhone != null && widget.clientPhone!.isNotEmpty;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -426,6 +536,9 @@ class _RepairDetailSheetState extends State<RepairDetailSheet>
       ),
       child: Column(
         children: [
+          // Client info with call button
+          if (hasClientInfo)
+            _buildClientRow(theme, hasPhone),
           // Car info
           if (repair.carMake.isNotEmpty)
             _buildInfoRow(
@@ -441,43 +554,109 @@ class _RepairDetailSheetState extends State<RepairDetailSheet>
             'Дата и время',
             DateFormat('dd MMMM yyyy, HH:mm', 'ru').format(repair.date),
           ),
-          // Cost
+          // Cost - оранжевый цвет как на скриншоте
           _buildInfoRow(
             theme,
             Icons.payments_outlined,
             'Стоимость работы',
             '${repair.cost.toStringAsFixed(0)} ₽',
-            valueColor: theme.colorScheme.primary,
+            valueColor: Colors.orange.shade600,
           ),
-          // Materials cost
+          // Materials cost - также оранжевый
           if (repair.materials.isNotEmpty)
             _buildInfoRow(
               theme,
               Icons.inventory_2_outlined,
               'Материалы',
               '${repair.materialsCost.toStringAsFixed(0)} ₽',
+              valueColor: Colors.orange.shade600,
             ),
-          // Total profit
-          if (repair.materials.isNotEmpty)
-            _buildInfoRow(
-              theme,
-              Icons.trending_up,
-              'Прибыль',
-              '${repair.profit.toStringAsFixed(0)} ₽',
-              valueColor: repair.profit >= 0 ? Colors.green : theme.colorScheme.error,
-              isLast: true,
-            ),
-          if (repair.materials.isEmpty)
-            _buildInfoRow(
-              theme,
-              Icons.schedule_outlined,
-              'Создано',
-              DateFormat('dd.MM.yyyy', 'ru').format(repair.createdAt),
-              isLast: true,
-            ),
+          // Total profit - показываем всегда
+          _buildInfoRow(
+            theme,
+            Icons.trending_up,
+            'Прибыль',
+            '${repair.profit >= 0 ? '' : ''}${repair.profit.toStringAsFixed(0)} ₽',
+            valueColor: repair.profit >= 0 ? Colors.green.shade600 : Colors.red.shade600,
+            isLast: true,
+          ),
         ],
       ),
     );
+  }
+
+  /// Строка с информацией о клиенте и кнопкой звонка
+  Widget _buildClientRow(ThemeData theme, bool hasPhone) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            children: [
+              Icon(
+                Icons.person_outline,
+                size: 20,
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Клиент',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                      ),
+                    ),
+                    Text(
+                      widget.clientName!,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Кнопка звонка
+              if (hasPhone)
+                GestureDetector(
+                  onTap: _callClient,
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.phone,
+                      size: 22,
+                      color: Colors.green.shade600,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        Divider(
+          height: 1,
+          color: theme.dividerColor.withValues(alpha: 0.5),
+        ),
+      ],
+    );
+  }
+
+  /// Позвонить клиенту
+  Future<void> _callClient() async {
+    if (widget.clientPhone == null || widget.clientPhone!.isEmpty) return;
+
+    final phoneNumber = widget.clientPhone!.replaceAll(RegExp(r'[^\d+]'), '');
+    final uri = Uri.parse('tel:$phoneNumber');
+
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    }
   }
 
   Widget _buildInfoRow(

@@ -86,6 +86,10 @@ class AppColors {
     0xFF263238,
   ); // Темный текст на secondary контейнерах
 
+  // Material 3 Error Container
+  static const Color errorContainer = Color(0xFFFFDAD6); // Светло-красный
+  static const Color onErrorContainer = Color(0xFF410002); // Тёмно-красный текст
+
   // Material 3 Tertiary Colors (золото/янтарь)
   static const Color tertiary = Color(
     0xFFFFB300,
@@ -120,6 +124,10 @@ class AppColors {
   static const Color darkTertiary = Color(0xFFFFD54F);
   static const Color darkTertiaryContainer = Color(0xFF3E2723);
   static const Color darkOnTertiaryContainer = Color(0xFFFFE082);
+
+  // Dark Error Container
+  static const Color darkErrorContainer = Color(0xFF93000A); // Тёмно-красный
+  static const Color darkOnErrorContainer = Color(0xFFFFDAD6); // Светло-красный текст
 
   // Dark Surface variants
   static const Color darkSurfaceVariant = Color(0xFF3C3C3C);

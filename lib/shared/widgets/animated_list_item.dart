@@ -11,6 +11,8 @@ class AnimatedListItem extends StatefulWidget {
   final Duration duration;
   final Offset slideOffset;
   final Curve curve;
+  /// Включить/выключить анимацию. Если false - элемент показывается сразу.
+  final bool animate;
 
   const AnimatedListItem({
     Key? key,
@@ -20,6 +22,7 @@ class AnimatedListItem extends StatefulWidget {
     this.duration = const Duration(milliseconds: 400),
     this.slideOffset = const Offset(0, 0.15),
     this.curve = Curves.easeOutCubic,
+    this.animate = true,
   }) : super(key: key);
 
   @override
@@ -67,6 +70,11 @@ class _AnimatedListItemState extends State<AnimatedListItem>
 
   @override
   Widget build(BuildContext context) {
+    // Если анимация отключена - показываем элемент сразу
+    if (!widget.animate) {
+      return widget.child;
+    }
+
     return FadeTransition(
       opacity: _fadeAnimation,
       child: SlideTransition(

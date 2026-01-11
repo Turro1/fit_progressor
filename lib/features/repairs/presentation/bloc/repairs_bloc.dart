@@ -22,6 +22,9 @@ class RepairsBloc extends Bloc<RepairsEvent, RepairsState> {
   final MaterialStockService stockService;
   final GetRepairById getRepairById;
 
+  /// Количество элементов на странице
+  static const int _pageSize = 20;
+
   RepairsBloc({
     required this.getRepairs,
     required this.addRepair,
@@ -33,9 +36,11 @@ class RepairsBloc extends Bloc<RepairsEvent, RepairsState> {
     required this.getRepairById,
   }) : super(RepairsInitial()) {
     on<LoadRepairs>(_onLoadRepairs);
+    on<LoadMoreRepairs>(_onLoadMoreRepairs);
     on<AddRepairEvent>(_onAddRepair);
     on<UpdateRepairEvent>(_onUpdateRepair);
     on<DeleteRepairEvent>(_onDeleteRepair);
+    on<RestoreRepairEvent>(_onRestoreRepair);
     on<SearchRepairsEvent>(_onSearchRepairs);
     on<FilterRepairsEvent>(_onFilterRepairs);
     on<ClearFiltersEvent>(_onClearFilters);
@@ -73,15 +78,57 @@ class RepairsBloc extends Bloc<RepairsEvent, RepairsState> {
               .where((r) => r.clientId == event.clientId)
               .toList();
         }
-        final finalRepairs = _applyFilter(filteredRepairs, currentFilter);
+        final finalFilteredRepairs = _applyFilter(filteredRepairs, currentFilter);
+
+        // Пагинация - показываем только первую страницу
+        final hasMore = finalFilteredRepairs.length > _pageSize;
+        final displayedRepairs = hasMore
+            ? finalFilteredRepairs.take(_pageSize).toList()
+            : finalFilteredRepairs;
+
         emit(RepairsLoaded(
-          repairs: finalRepairs,
+          repairs: displayedRepairs,
           allRepairs: allRepairs, // Всегда сохраняем ВСЕ ремонты
+          filteredRepairs: finalFilteredRepairs, // Все отфильтрованные ремонты
           filterCarId: event.carId,
           filter: currentFilter,
+          hasMore: hasMore,
         ));
       },
     );
+  }
+
+  /// Подгрузка следующей порции ремонтов
+  Future<void> _onLoadMoreRepairs(
+    LoadMoreRepairs event,
+    Emitter<RepairsState> emit,
+  ) async {
+    if (state is! RepairsLoaded) return;
+
+    final currentState = state as RepairsLoaded;
+    if (!currentState.hasMore || currentState.isLoadingMore) return;
+
+    // Показываем индикатор загрузки
+    emit(currentState.copyWith(isLoadingMore: true));
+
+    // Небольшая задержка для плавности UI
+    await Future.delayed(const Duration(milliseconds: 100));
+
+    final currentLength = currentState.repairs.length;
+    final allFiltered = currentState.filteredRepairs;
+    final nextPageEnd = currentLength + _pageSize;
+    final hasMore = nextPageEnd < allFiltered.length;
+
+    final newRepairs = [
+      ...currentState.repairs,
+      ...allFiltered.skip(currentLength).take(_pageSize),
+    ];
+
+    emit(currentState.copyWith(
+      repairs: newRepairs,
+      hasMore: hasMore,
+      isLoadingMore: false,
+    ));
   }
 
   /// Применяет фильтр к списку ремонтов
@@ -269,6 +316,51 @@ class RepairsBloc extends Bloc<RepairsEvent, RepairsState> {
     );
   }
 
+  /// Восстанавливает удалённый ремонт (Undo)
+  Future<void> _onRestoreRepair(
+    RestoreRepairEvent event,
+    Emitter<RepairsState> emit,
+  ) async {
+    // Сохраняем текущий фильтр по автомобилю, если он есть
+    String? currentCarId;
+    if (state is RepairsLoaded) {
+      currentCarId = (state as RepairsLoaded).filterCarId;
+    }
+
+    // Не показываем loading для быстрого восстановления
+    final params = AddRepairParams(
+      partType: event.repair.partType,
+      partPosition: event.repair.partPosition,
+      photoPaths: event.repair.photoPaths,
+      description: event.repair.description,
+      date: event.repair.date,
+      cost: event.repair.cost,
+      clientId: event.repair.clientId,
+      carId: event.repair.carId,
+      carMake: event.repair.carMake,
+      carModel: event.repair.carModel,
+      materials: event.repair.materials,
+      status: event.repair.status,
+      existingId: event.repair.id, // Используем оригинальный ID
+    );
+
+    final result = await addRepair(params);
+
+    await result.fold(
+      (failure) async {
+        emit(const RepairsError(message: 'Не удалось восстановить ремонт'));
+      },
+      (repair) async {
+        // Списываем материалы со склада
+        if (event.repair.materials.isNotEmpty) {
+          await stockService.deductMaterials(event.repair.materials);
+        }
+        emit(const RepairsOperationSuccess(message: 'Ремонт восстановлен'));
+        add(LoadRepairs(carId: currentCarId));
+      },
+    );
+  }
+
   Future<void> _onSearchRepairs(
     SearchRepairsEvent event,
     Emitter<RepairsState> emit,
@@ -293,13 +385,22 @@ class RepairsBloc extends Bloc<RepairsEvent, RepairsState> {
     result.fold(
       (failure) => emit(const RepairsError(message: 'Ошибка поиска')),
       (repairs) {
-        final filteredRepairs = _applyFilter(repairs, currentFilter);
+        final finalFilteredRepairs = _applyFilter(repairs, currentFilter);
+
+        // Пагинация результатов поиска
+        final hasMore = finalFilteredRepairs.length > _pageSize;
+        final displayedRepairs = hasMore
+            ? finalFilteredRepairs.take(_pageSize).toList()
+            : finalFilteredRepairs;
+
         emit(RepairsLoaded(
-          repairs: filteredRepairs,
+          repairs: displayedRepairs,
           allRepairs: allRepairs.isNotEmpty ? allRepairs : repairs,
+          filteredRepairs: finalFilteredRepairs,
           searchQuery: event.query,
           filterCarId: event.carId,
           filter: currentFilter,
+          hasMore: hasMore,
         ));
       },
     );
@@ -311,10 +412,19 @@ class RepairsBloc extends Bloc<RepairsEvent, RepairsState> {
   ) async {
     if (state is RepairsLoaded) {
       final currentState = state as RepairsLoaded;
-      final filteredRepairs = _applyFilter(currentState.allRepairs, event.filter);
+      final finalFilteredRepairs = _applyFilter(currentState.allRepairs, event.filter);
+
+      // Пагинация отфильтрованных результатов
+      final hasMore = finalFilteredRepairs.length > _pageSize;
+      final displayedRepairs = hasMore
+          ? finalFilteredRepairs.take(_pageSize).toList()
+          : finalFilteredRepairs;
+
       emit(currentState.copyWith(
-        repairs: filteredRepairs,
+        repairs: displayedRepairs,
+        filteredRepairs: finalFilteredRepairs,
         filter: event.filter,
+        hasMore: hasMore,
       ));
     } else {
       // Если состояние не Loaded, загружаем данные с фильтром
@@ -324,11 +434,20 @@ class RepairsBloc extends Bloc<RepairsEvent, RepairsState> {
         (failure) =>
             emit(const RepairsError(message: 'Не удалось загрузить ремонты')),
         (repairs) {
-          final filteredRepairs = _applyFilter(repairs, event.filter);
+          final finalFilteredRepairs = _applyFilter(repairs, event.filter);
+
+          // Пагинация
+          final hasMore = finalFilteredRepairs.length > _pageSize;
+          final displayedRepairs = hasMore
+              ? finalFilteredRepairs.take(_pageSize).toList()
+              : finalFilteredRepairs;
+
           emit(RepairsLoaded(
-            repairs: filteredRepairs,
+            repairs: displayedRepairs,
             allRepairs: repairs,
+            filteredRepairs: finalFilteredRepairs,
             filter: event.filter,
+            hasMore: hasMore,
           ));
         },
       );
@@ -341,9 +460,18 @@ class RepairsBloc extends Bloc<RepairsEvent, RepairsState> {
   ) async {
     if (state is RepairsLoaded) {
       final currentState = state as RepairsLoaded;
+
+      // При очистке фильтров сбрасываем пагинацию
+      final hasMore = currentState.allRepairs.length > _pageSize;
+      final displayedRepairs = hasMore
+          ? currentState.allRepairs.take(_pageSize).toList()
+          : currentState.allRepairs;
+
       emit(currentState.copyWith(
-        repairs: currentState.allRepairs,
+        repairs: displayedRepairs,
+        filteredRepairs: currentState.allRepairs,
         filter: const RepairFilter(),
+        hasMore: hasMore,
       ));
     }
   }
