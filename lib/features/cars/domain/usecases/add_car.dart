@@ -14,7 +14,7 @@ class AddCar implements UseCase<Car, AddCarParams> {
   @override
   Future<Either<Failure, Car>> call(AddCarParams params) async {
     final car = Car(
-      id: 'car_${DateTime.now().millisecondsSinceEpoch}',
+      id: params.existingId ?? 'car_${DateTime.now().millisecondsSinceEpoch}',
       clientId: params.clientId,
       make: params.make.toUpperCase(),
       model: params.model,
@@ -34,11 +34,13 @@ class AddCarParams {
   final String make;
   final String model;
   final String plate;
+  final String? existingId;
 
   AddCarParams({
     required this.clientId,
     required this.make,
     required this.model,
     required this.plate,
+    this.existingId,
   });
 }

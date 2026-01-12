@@ -6,12 +6,18 @@ import 'package:uuid/uuid.dart';
 import 'package:fit_progressor/core/sync/sync_message.dart';
 import 'package:fit_progressor/core/sync/tracking/hive_models/pending_change_hive_model.dart';
 
+/// Callback для уведомления о новом изменении
+typedef OnChangeTracked = Future<void> Function(ChangePayload change);
+
 /// Отслеживает изменения данных для синхронизации
 class ChangeTracker {
   static const String _pendingChangesBoxName = 'pending_changes';
 
   Box<PendingChangeHiveModel>? _box;
   bool _isEnabled = true;
+
+  /// Callback для уведомления SyncEngine о новом изменении
+  OnChangeTracked? onChangeTracked;
 
   /// Включить/выключить отслеживание изменений
   void setEnabled(bool enabled) {
@@ -35,8 +41,13 @@ class ChangeTracker {
 
   /// Получить box для pending changes
   Box<PendingChangeHiveModel> get box {
+    // Автоматически получаем box если он уже открыт через HiveConfig
     if (_box == null || !_box!.isOpen) {
-      throw StateError('ChangeTracker not initialized. Call init() first.');
+      if (Hive.isBoxOpen(_pendingChangesBoxName)) {
+        _box = Hive.box<PendingChangeHiveModel>(_pendingChangesBoxName);
+      } else {
+        throw StateError('ChangeTracker not initialized. Call init() first or ensure HiveConfig.init() was called.');
+      }
     }
     return _box!;
   }
@@ -67,6 +78,20 @@ class ChangeTracker {
     );
 
     await box.put(changeId, pendingChange);
+
+    // Уведомляем SyncEngine о новом изменении для немедленной синхронизации
+    if (onChangeTracked != null) {
+      final changePayload = ChangePayload(
+        changeId: changeId,
+        entityId: entityId,
+        entityType: entityType,
+        operation: operation,
+        changedAt: now,
+        version: version,
+        data: data,
+      );
+      await onChangeTracked!(changePayload);
+    }
   }
 
   /// Получить все несинхронизированные изменения

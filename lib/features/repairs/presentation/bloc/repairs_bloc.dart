@@ -183,13 +183,11 @@ class RepairsBloc extends Bloc<RepairsEvent, RepairsState> {
     AddRepairEvent event,
     Emitter<RepairsState> emit,
   ) async {
-    // Сохраняем текущий фильтр по автомобилю, если он есть
-    String? currentCarId;
+    // Сохраняем текущее состояние для инкрементального обновления
+    RepairsLoaded? currentState;
     if (state is RepairsLoaded) {
-      currentCarId = (state as RepairsLoaded).filterCarId;
+      currentState = state as RepairsLoaded;
     }
-
-    emit(RepairsLoading());
 
     // 1. Сгенерировать ID для ремонта
     final repairId = 'repair_${DateTime.now().millisecondsSinceEpoch}';
@@ -230,24 +228,56 @@ class RepairsBloc extends Bloc<RepairsEvent, RepairsState> {
         if (event.materials.isNotEmpty) {
           await stockService.deductMaterials(event.materials);
         }
-        emit(const RepairsOperationSuccess(message: 'Ремонт добавлен'));
-        // Перезагружаем с сохранением фильтра
-        add(LoadRepairs(carId: currentCarId));
+
+        // 5. Инкрементальное обновление кэша вместо полной перезагрузки
+        if (currentState != null) {
+          final newAllRepairs = [repair, ...currentState.allRepairs];
+          final newFilteredRepairs = _applyFilter(
+            _filterByCarAndClient(newAllRepairs, currentState.filterCarId, null),
+            currentState.filter,
+          );
+          final hasMore = newFilteredRepairs.length > _pageSize;
+          final displayedRepairs = hasMore
+              ? newFilteredRepairs.take(_pageSize).toList()
+              : newFilteredRepairs;
+
+          // Сначала обновляем данные, потом показываем success
+          emit(currentState.copyWith(
+            repairs: displayedRepairs,
+            allRepairs: newAllRepairs,
+            filteredRepairs: newFilteredRepairs,
+            hasMore: hasMore,
+          ));
+          emit(const RepairsOperationSuccess(message: 'Ремонт добавлен'));
+        } else {
+          emit(const RepairsOperationSuccess(message: 'Ремонт добавлен'));
+          add(LoadRepairs());
+        }
       },
     );
+  }
+
+  /// Вспомогательный метод для фильтрации по carId и clientId
+  List<Repair> _filterByCarAndClient(List<Repair> repairs, String? carId, String? clientId) {
+    var result = repairs;
+    if (carId != null) {
+      result = result.where((r) => r.carId == carId).toList();
+    }
+    if (clientId != null) {
+      result = result.where((r) => r.clientId == clientId).toList();
+    }
+    return result;
   }
 
   Future<void> _onUpdateRepair(
     UpdateRepairEvent event,
     Emitter<RepairsState> emit,
   ) async {
-    // Сохраняем текущий фильтр по автомобилю, если он есть
-    String? currentCarId;
+    // Сохраняем текущее состояние для инкрементального обновления
+    RepairsLoaded? currentState;
     if (state is RepairsLoaded) {
-      currentCarId = (state as RepairsLoaded).filterCarId;
+      currentState = state as RepairsLoaded;
     }
-
-    emit(RepairsLoading());
 
     // 1. Получить старый ремонт для корректировки материалов
     final oldRepairResult = await getRepairById(event.repair.id);
@@ -270,9 +300,32 @@ class RepairsBloc extends Bloc<RepairsEvent, RepairsState> {
             );
           },
         );
-        emit(const RepairsOperationSuccess(message: 'Ремонт обновлен'));
-        // Перезагружаем с сохранением фильтра
-        add(LoadRepairs(carId: currentCarId));
+
+        // 4. Инкрементальное обновление кэша
+        if (currentState != null) {
+          final newAllRepairs = currentState.allRepairs
+              .map((r) => r.id == repair.id ? repair : r)
+              .toList();
+          final newFilteredRepairs = _applyFilter(
+            _filterByCarAndClient(newAllRepairs, currentState.filterCarId, null),
+            currentState.filter,
+          );
+          final hasMore = newFilteredRepairs.length > _pageSize;
+          final displayedRepairs = hasMore
+              ? newFilteredRepairs.take(_pageSize).toList()
+              : newFilteredRepairs;
+
+          emit(currentState.copyWith(
+            repairs: displayedRepairs,
+            allRepairs: newAllRepairs,
+            filteredRepairs: newFilteredRepairs,
+            hasMore: hasMore,
+          ));
+          emit(const RepairsOperationSuccess(message: 'Ремонт обновлен'));
+        } else {
+          emit(const RepairsOperationSuccess(message: 'Ремонт обновлен'));
+          add(LoadRepairs());
+        }
       },
     );
   }
@@ -281,13 +334,11 @@ class RepairsBloc extends Bloc<RepairsEvent, RepairsState> {
     DeleteRepairEvent event,
     Emitter<RepairsState> emit,
   ) async {
-    // Сохраняем текущий фильтр по автомобилю, если он есть
-    String? currentCarId;
+    // Сохраняем текущее состояние для инкрементального обновления
+    RepairsLoaded? currentState;
     if (state is RepairsLoaded) {
-      currentCarId = (state as RepairsLoaded).filterCarId;
+      currentState = state as RepairsLoaded;
     }
-
-    emit(RepairsLoading());
 
     // 1. Получить ремонт для возврата материалов
     final repairResult = await getRepairById(event.repairId);
@@ -309,9 +360,32 @@ class RepairsBloc extends Bloc<RepairsEvent, RepairsState> {
             }
           },
         );
-        emit(const RepairsOperationSuccess(message: 'Ремонт удален'));
-        // Перезагружаем с сохранением фильтра
-        add(LoadRepairs(carId: currentCarId));
+
+        // 4. Инкрементальное обновление кэша
+        if (currentState != null) {
+          final newAllRepairs = currentState.allRepairs
+              .where((r) => r.id != event.repairId)
+              .toList();
+          final newFilteredRepairs = _applyFilter(
+            _filterByCarAndClient(newAllRepairs, currentState.filterCarId, null),
+            currentState.filter,
+          );
+          final hasMore = newFilteredRepairs.length > _pageSize;
+          final displayedRepairs = hasMore
+              ? newFilteredRepairs.take(_pageSize).toList()
+              : newFilteredRepairs;
+
+          emit(currentState.copyWith(
+            repairs: displayedRepairs,
+            allRepairs: newAllRepairs,
+            filteredRepairs: newFilteredRepairs,
+            hasMore: hasMore,
+          ));
+          emit(const RepairsOperationSuccess(message: 'Ремонт удален'));
+        } else {
+          emit(const RepairsOperationSuccess(message: 'Ремонт удален'));
+          add(LoadRepairs());
+        }
       },
     );
   }
@@ -321,10 +395,10 @@ class RepairsBloc extends Bloc<RepairsEvent, RepairsState> {
     RestoreRepairEvent event,
     Emitter<RepairsState> emit,
   ) async {
-    // Сохраняем текущий фильтр по автомобилю, если он есть
-    String? currentCarId;
+    // Сохраняем текущее состояние для инкрементального обновления
+    RepairsLoaded? currentState;
     if (state is RepairsLoaded) {
-      currentCarId = (state as RepairsLoaded).filterCarId;
+      currentState = state as RepairsLoaded;
     }
 
     // Не показываем loading для быстрого восстановления
@@ -355,8 +429,32 @@ class RepairsBloc extends Bloc<RepairsEvent, RepairsState> {
         if (event.repair.materials.isNotEmpty) {
           await stockService.deductMaterials(event.repair.materials);
         }
-        emit(const RepairsOperationSuccess(message: 'Ремонт восстановлен'));
-        add(LoadRepairs(carId: currentCarId));
+
+        // Инкрементальное обновление кэша
+        if (currentState != null) {
+          final newAllRepairs = [repair, ...currentState.allRepairs];
+          final newFilteredRepairs = _applyFilter(
+            _filterByCarAndClient(newAllRepairs, currentState.filterCarId, null),
+            currentState.filter,
+          );
+          final hasMore = newFilteredRepairs.length > _pageSize;
+          final displayedRepairs = hasMore
+              ? newFilteredRepairs.take(_pageSize).toList()
+              : newFilteredRepairs;
+
+          emit(RepairsOperationSuccess(
+            message: 'Ремонт восстановлен',
+            updatedState: currentState.copyWith(
+              repairs: displayedRepairs,
+              allRepairs: newAllRepairs,
+              filteredRepairs: newFilteredRepairs,
+              hasMore: hasMore,
+            ),
+          ));
+        } else {
+          emit(const RepairsOperationSuccess(message: 'Ремонт восстановлен'));
+          add(LoadRepairs());
+        }
       },
     );
   }

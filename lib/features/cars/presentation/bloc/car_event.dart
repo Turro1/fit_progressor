@@ -82,3 +82,13 @@ class FilterCarsEvent extends CarEvent {
 class ClearCarFiltersEvent extends CarEvent {
   const ClearCarFiltersEvent();
 }
+
+/// Событие для восстановления удалённого автомобиля (Undo)
+class RestoreCarEvent extends CarEvent {
+  final Car car;
+
+  const RestoreCarEvent({required this.car});
+
+  @override
+  List<Object?> get props => [car];
+}

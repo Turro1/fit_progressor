@@ -9,6 +9,7 @@ import 'package:fit_progressor/shared/widgets/delete_confirmation_dialog.dart';
 import 'package:fit_progressor/shared/widgets/skeleton_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../bloc/client_bloc.dart';
 import '../bloc/client_event.dart';
 import '../bloc/client_state.dart';
@@ -156,8 +157,8 @@ class _ClientsPageState extends State<ClientsPage> {
                                   carsCount: clientCarsCount,
                                   onEdit: () => _showClientModal(context, client),
                                   onDelete: () => _confirmDelete(context, client, clientCarsCount),
-                                  onTap: () =>
-                                      _showClientCarsModal(context, client),
+                                  onTap: () => _showClientCarsModal(context, client),
+                                  onCall: () => _makePhoneCall(client.phone),
                                 ),
                               );
                             },
@@ -223,5 +224,12 @@ class _ClientsPageState extends State<ClientsPage> {
     if (count == 1) return 'автомобиль';
     if (count >= 2 && count <= 4) return 'автомобиля';
     return 'автомобилей';
+  }
+
+  Future<void> _makePhoneCall(String phoneNumber) async {
+    final Uri launchUri = Uri(scheme: 'tel', path: phoneNumber);
+    if (await canLaunchUrl(launchUri)) {
+      await launchUrl(launchUri);
+    }
   }
 }

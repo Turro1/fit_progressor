@@ -40,6 +40,7 @@ class CarBloc extends Bloc<CarEvent, CarState> {
     on<AddCarEvent>(_onAddCar);
     on<UpdateCarEvent>(_onUpdateCar);
     on<DeleteCarEvent>(_onDeleteCar);
+    on<RestoreCarEvent>(_onRestoreCar);
     on<SearchCarsEvent>(_onSearchCars);
     on<LoadCarMakes>(_onLoadCarMakes);
     on<LoadCarModels>(_onLoadCarModels);
@@ -130,7 +131,32 @@ class CarBloc extends Bloc<CarEvent, CarState> {
       },
       (_) async {
         emit(const CarOperationSuccess(message: 'Автомобиль удален'));
-        add(LoadCars());
+        add(const LoadCars());
+      },
+    );
+  }
+
+  Future<void> _onRestoreCar(
+    RestoreCarEvent event,
+    Emitter<CarState> emit,
+  ) async {
+    emit(CarLoading());
+    final params = AddCarParams(
+      clientId: event.car.clientId,
+      make: event.car.make,
+      model: event.car.model,
+      plate: event.car.plate,
+      existingId: event.car.id,
+    );
+    final result = await addCar(params);
+
+    await result.fold(
+      (failure) async {
+        emit(const CarError(message: 'Не удалось восстановить автомобиль'));
+      },
+      (_) async {
+        emit(const CarOperationSuccess(message: 'Автомобиль восстановлен'));
+        add(const LoadCars());
       },
     );
   }

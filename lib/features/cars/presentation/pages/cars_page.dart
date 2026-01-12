@@ -4,6 +4,7 @@ import 'package:fit_progressor/shared/widgets/app_search_bar.dart';
 import 'package:fit_progressor/shared/widgets/empty_state.dart';
 import 'package:fit_progressor/shared/widgets/delete_confirmation_dialog.dart';
 import 'package:fit_progressor/shared/widgets/skeleton_loader.dart';
+import 'package:fit_progressor/shared/services/undo_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/car.dart';
@@ -151,13 +152,16 @@ class _CarsPageState extends State<CarsPage> {
                     );
                   }
                   if (state is CarOperationSuccess) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(state.message),
-                        backgroundColor: theme.colorScheme.secondary,
-                      ),
-                    );
-                    context.read<CarBloc>().add(LoadCars());
+                    // Не показываем SnackBar для удаления - его покажет UndoService
+                    if (!state.message.contains('удален')) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(state.message),
+                          backgroundColor: theme.colorScheme.secondary,
+                        ),
+                      );
+                    }
+                    context.read<CarBloc>().add(const LoadCars());
                   }
                 },
                 buildWhen: (previous, current) =>
@@ -245,6 +249,8 @@ class _CarsPageState extends State<CarsPage> {
   }
 
   void _confirmDelete(BuildContext context, Car car) async {
+    final carBloc = context.read<CarBloc>();
+
     final confirmed = await DeleteConfirmationDialog.show(
       context: context,
       data: DeleteConfirmationData(
@@ -254,13 +260,25 @@ class _CarsPageState extends State<CarsPage> {
         icon: Icons.directions_car_outlined,
         warnings: [
           'Все ремонты этого автомобиля будут удалены',
-          'Это действие нельзя отменить',
         ],
       ),
     );
 
     if (confirmed && context.mounted) {
-      context.read<CarBloc>().add(DeleteCarEvent(carId: car.id));
+      // Сохраняем копию для восстановления
+      final deletedCar = car;
+
+      // Удаляем автомобиль
+      carBloc.add(DeleteCarEvent(carId: car.id));
+
+      // Показываем Undo SnackBar
+      UndoService.showUndoSnackBar(
+        context: context,
+        message: '${car.make} ${car.model} удалён',
+        onUndo: () {
+          carBloc.add(RestoreCarEvent(car: deletedCar));
+        },
+      );
     }
   }
 }

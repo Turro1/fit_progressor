@@ -1,5 +1,27 @@
 import 'package:fit_progressor/features/cars/data/models/car_model.dart';
 
+/// Параметры фильтрации для getCarsFiltered
+class CarFilterParams {
+  final String? clientId;
+  final List<String>? makes;
+  final String? searchQuery;
+  final int? limit;
+  final int? offset;
+
+  const CarFilterParams({
+    this.clientId,
+    this.makes,
+    this.searchQuery,
+    this.limit,
+    this.offset,
+  });
+
+  bool get hasFilters =>
+      clientId != null ||
+      (makes != null && makes!.isNotEmpty) ||
+      (searchQuery != null && searchQuery!.isNotEmpty);
+}
+
 abstract class CarLocalDataSource {
   Future<CarModel> getCarById(String id);
 
@@ -20,4 +42,13 @@ abstract class CarLocalDataSource {
 
   // Получить машины по ID клиента
   Future<List<CarModel>> getCarsByClient(String clientId);
+
+  /// Загружает машины с фильтрацией на уровне datasource (оптимизация)
+  Future<List<CarModel>> getCarsFiltered(CarFilterParams params);
+
+  /// Возвращает общее количество машин (для пагинации)
+  Future<int> getCarsCount([CarFilterParams? params]);
+
+  /// Возвращает список уникальных марок машин
+  Future<List<String>> getUniqueMakes();
 }

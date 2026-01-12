@@ -13,7 +13,7 @@ class AddMaterial implements UseCase<Material, AddMaterialParams> {
   @override
   Future<Either<Failure, Material>> call(AddMaterialParams params) async {
     final newMaterial = Material(
-      id: 'm${DateTime.now().millisecondsSinceEpoch}',
+      id: params.existingId ?? 'm${DateTime.now().millisecondsSinceEpoch}',
       name: params.name,
       quantity: params.quantity,
       unit: params.unit,
@@ -31,6 +31,7 @@ class AddMaterialParams extends Equatable {
   final MaterialUnit unit;
   final double minQuantity;
   final double cost;
+  final String? existingId;
 
   const AddMaterialParams({
     required this.name,
@@ -38,8 +39,9 @@ class AddMaterialParams extends Equatable {
     required this.unit,
     required this.minQuantity,
     required this.cost,
+    this.existingId,
   });
 
   @override
-  List<Object?> get props => [name, quantity, unit, minQuantity, cost];
+  List<Object?> get props => [name, quantity, unit, minQuantity, cost, existingId];
 }

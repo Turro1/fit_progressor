@@ -1,12 +1,18 @@
 import 'package:hive/hive.dart';
 import 'package:fit_progressor/core/error/exceptions/cache_exception.dart';
 import 'package:fit_progressor/core/storage/hive_config.dart';
+import 'package:fit_progressor/core/sync/sync_message.dart';
+import 'package:fit_progressor/core/sync/tracking/change_tracker.dart';
 import 'package:fit_progressor/features/materials/data/models/material_model.dart';
 import 'package:fit_progressor/features/materials/data/models/material_hive_model.dart';
 import 'material_local_data_source.dart';
 
 /// Hive implementation of MaterialLocalDataSource
 class MaterialHiveDataSource implements MaterialLocalDataSource {
+  final ChangeTracker? changeTracker;
+
+  MaterialHiveDataSource({this.changeTracker});
+
   Box<MaterialHiveModel> get _box => HiveConfig.getBox<MaterialHiveModel>(HiveBoxes.materials);
 
   @override
@@ -31,6 +37,8 @@ class MaterialHiveDataSource implements MaterialLocalDataSource {
       await _box.clear();
       for (final material in materials) {
         final hiveModel = MaterialHiveModel.fromEntity(material);
+        hiveModel.version = 1;
+        hiveModel.updatedAt = DateTime.now();
         await _box.put(material.id, hiveModel);
       }
     } catch (e) {
@@ -58,7 +66,19 @@ class MaterialHiveDataSource implements MaterialLocalDataSource {
   Future<MaterialModel> addMaterial(MaterialModel material) async {
     try {
       final hiveModel = MaterialHiveModel.fromEntity(material);
+      hiveModel.version = 1;
+      hiveModel.updatedAt = DateTime.now();
       await _box.put(material.id, hiveModel);
+
+      // Отслеживаем изменение для синхронизации
+      await changeTracker?.track(
+        entityId: material.id,
+        entityType: EntityType.material,
+        operation: ChangeOperation.create,
+        version: hiveModel.version,
+        data: hiveModel.toJson(),
+      );
+
       return material;
     } catch (e) {
       throw CacheException(message: 'Ошибка добавления материала: $e');
@@ -68,11 +88,25 @@ class MaterialHiveDataSource implements MaterialLocalDataSource {
   /// Update a single material
   Future<MaterialModel> updateMaterial(MaterialModel material) async {
     try {
-      if (!_box.containsKey(material.id)) {
+      final existing = _box.get(material.id);
+      if (existing == null) {
         throw CacheException(message: 'Материал не найден');
       }
+
       final hiveModel = MaterialHiveModel.fromEntity(material);
+      hiveModel.version = existing.version + 1;
+      hiveModel.updatedAt = DateTime.now();
       await _box.put(material.id, hiveModel);
+
+      // Отслеживаем изменение для синхронизации
+      await changeTracker?.track(
+        entityId: material.id,
+        entityType: EntityType.material,
+        operation: ChangeOperation.update,
+        version: hiveModel.version,
+        data: hiveModel.toJson(),
+      );
+
       return material;
     } catch (e) {
       if (e is CacheException) rethrow;
@@ -83,7 +117,19 @@ class MaterialHiveDataSource implements MaterialLocalDataSource {
   /// Delete a single material
   Future<void> deleteMaterial(String id) async {
     try {
+      final existing = _box.get(id);
+      final version = (existing?.version ?? 0) + 1;
+
       await _box.delete(id);
+
+      // Отслеживаем удаление для синхронизации
+      await changeTracker?.track(
+        entityId: id,
+        entityType: EntityType.material,
+        operation: ChangeOperation.delete,
+        version: version,
+        data: null,
+      );
     } catch (e) {
       throw CacheException(message: 'Ошибка удаления материала: $e');
     }

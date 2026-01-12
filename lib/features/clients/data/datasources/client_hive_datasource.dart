@@ -2,12 +2,18 @@ import 'package:hive/hive.dart';
 import 'package:fit_progressor/core/error/exceptions/cache_exception.dart';
 import 'package:fit_progressor/core/error/exceptions/duplicate_exception.dart';
 import 'package:fit_progressor/core/storage/hive_config.dart';
+import 'package:fit_progressor/core/sync/sync_message.dart';
+import 'package:fit_progressor/core/sync/tracking/change_tracker.dart';
 import 'package:fit_progressor/features/clients/data/models/client_model.dart';
 import 'package:fit_progressor/features/clients/data/models/client_hive_model.dart';
 import 'client_local_data_source.dart';
 
 /// Hive implementation of ClientLocalDataSource
 class ClientHiveDataSource implements ClientLocalDataSource {
+  final ChangeTracker? changeTracker;
+
+  ClientHiveDataSource({this.changeTracker});
+
   Box<ClientHiveModel> get _box => HiveConfig.getBox<ClientHiveModel>(HiveBoxes.clients);
 
   @override
@@ -60,7 +66,19 @@ class ClientHiveDataSource implements ClientLocalDataSource {
       }
 
       final hiveModel = ClientHiveModel.fromEntity(client);
+      hiveModel.version = 1;
+      hiveModel.updatedAt = DateTime.now();
       await _box.put(client.id, hiveModel);
+
+      // Отслеживаем изменение для синхронизации
+      await changeTracker?.track(
+        entityId: client.id,
+        entityType: EntityType.client,
+        operation: ChangeOperation.create,
+        version: hiveModel.version,
+        data: hiveModel.toJson(),
+      );
+
       return client;
     } catch (e) {
       if (e is DuplicateException || e is CacheException) rethrow;
@@ -71,7 +89,8 @@ class ClientHiveDataSource implements ClientLocalDataSource {
   @override
   Future<ClientModel> updateClient(ClientModel client) async {
     try {
-      if (!_box.containsKey(client.id)) {
+      final existing = _box.get(client.id);
+      if (existing == null) {
         throw CacheException(message: 'Клиент не найден');
       }
 
@@ -93,7 +112,19 @@ class ClientHiveDataSource implements ClientLocalDataSource {
       }
 
       final hiveModel = ClientHiveModel.fromEntity(client);
+      hiveModel.version = existing.version + 1;
+      hiveModel.updatedAt = DateTime.now();
       await _box.put(client.id, hiveModel);
+
+      // Отслеживаем изменение для синхронизации
+      await changeTracker?.track(
+        entityId: client.id,
+        entityType: EntityType.client,
+        operation: ChangeOperation.update,
+        version: hiveModel.version,
+        data: hiveModel.toJson(),
+      );
+
       return client;
     } catch (e) {
       if (e is DuplicateException || e is CacheException) rethrow;
@@ -104,7 +135,19 @@ class ClientHiveDataSource implements ClientLocalDataSource {
   @override
   Future<void> deleteClient(String id) async {
     try {
+      final existing = _box.get(id);
+      final version = (existing?.version ?? 0) + 1;
+
       await _box.delete(id);
+
+      // Отслеживаем удаление для синхронизации
+      await changeTracker?.track(
+        entityId: id,
+        entityType: EntityType.client,
+        operation: ChangeOperation.delete,
+        version: version,
+        data: null,
+      );
     } catch (e) {
       throw CacheException(message: 'Ошибка удаления клиента: $e');
     }

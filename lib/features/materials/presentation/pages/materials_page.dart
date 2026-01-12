@@ -3,6 +3,7 @@ import 'package:fit_progressor/shared/widgets/animated_fab.dart';
 import 'package:fit_progressor/shared/widgets/animated_list_item.dart';
 import 'package:fit_progressor/shared/widgets/app_search_bar.dart';
 import 'package:fit_progressor/shared/widgets/empty_state.dart';
+import 'package:fit_progressor/shared/services/undo_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/material.dart' as entity;
@@ -136,12 +137,15 @@ class _MaterialsPageState extends State<MaterialsPage> {
                     );
                   }
                   if (state is material_state.MaterialOperationSuccess) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(state.message),
-                        backgroundColor: theme.colorScheme.secondary,
-                      ),
-                    );
+                    // Не показываем SnackBar для удаления - его покажет UndoService
+                    if (!state.message.contains('удален')) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(state.message),
+                          backgroundColor: theme.colorScheme.secondary,
+                        ),
+                      );
+                    }
                     context.read<MaterialBloc>().add(const LoadMaterials());
                   }
                 },
@@ -217,9 +221,11 @@ class _MaterialsPageState extends State<MaterialsPage> {
     );
   }
 
-  void _confirmDelete(BuildContext context, entity.Material material) {
+  void _confirmDelete(BuildContext context, entity.Material material) async {
+    final materialBloc = context.read<MaterialBloc>();
     final theme = Theme.of(context);
-    showDialog(
+
+    final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Удалить материал?'),
@@ -229,16 +235,11 @@ class _MaterialsPageState extends State<MaterialsPage> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(context, false),
             child: const Text('Отмена'),
           ),
           TextButton(
-            onPressed: () {
-              context.read<MaterialBloc>().add(
-                DeleteMaterialEvent(materialId: material.id),
-              );
-              Navigator.pop(context);
-            },
+            onPressed: () => Navigator.pop(context, true),
             child: Text(
               'Удалить',
               style: TextStyle(color: theme.colorScheme.error),
@@ -247,6 +248,23 @@ class _MaterialsPageState extends State<MaterialsPage> {
         ],
       ),
     );
+
+    if (confirmed == true && context.mounted) {
+      // Сохраняем копию для восстановления
+      final deletedMaterial = material;
+
+      // Удаляем материал
+      materialBloc.add(DeleteMaterialEvent(materialId: material.id));
+
+      // Показываем Undo SnackBar
+      UndoService.showUndoSnackBar(
+        context: context,
+        message: '${material.name} удалён',
+        onUndo: () {
+          materialBloc.add(RestoreMaterialEvent(material: deletedMaterial));
+        },
+      );
+    }
   }
 }
 

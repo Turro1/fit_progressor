@@ -19,6 +19,7 @@ import 'package:fit_progressor/features/clients/data/datasources/client_local_da
 import 'package:fit_progressor/features/clients/data/datasources/client_hive_datasource.dart';
 import 'package:fit_progressor/features/dashboard/data/repositories/dashboard_repository_impl.dart';
 import 'package:fit_progressor/features/dashboard/domain/repositories/dashboard_repository.dart';
+import 'package:fit_progressor/features/dashboard/domain/usecases/get_dashboard_data.dart';
 import 'package:fit_progressor/features/dashboard/domain/usecases/get_dashboard_stats.dart';
 import 'package:fit_progressor/features/dashboard/presentation/bloc/dashboard_bloc.dart';
 
@@ -45,6 +46,7 @@ import 'package:fit_progressor/core/storage/hive_config.dart';
 import 'package:fit_progressor/core/theme/theme_cubit.dart';
 import 'package:fit_progressor/core/sync/tracking/change_tracker.dart';
 import 'package:fit_progressor/core/sync/sync_engine.dart';
+import 'package:fit_progressor/core/sync/sync_data_applier.dart';
 import 'package:fit_progressor/core/sync/bloc/sync_bloc.dart';
 import 'package:get_it/get_it.dart';
 
@@ -82,21 +84,25 @@ Future<void> init() async {
   await HiveConfig.init();
 
   // ============================================
+  // Core - Sync (register early, before datasources)
+  // ============================================
+
+  // Change Tracker (must be registered before datasources that use it)
+  sl.registerLazySingleton(() => ChangeTracker());
+
+  // ============================================
   // Features - Dashboard
   // ============================================
 
-  // Bloc
+  // Bloc (оптимизировано: один usecase вместо пяти)
   sl.registerFactory(
     () => DashboardBloc(
-      getDashboardStats: sl(),
-      getRepairs: sl(),
-      getClients: sl(),
-      getCars: sl(),
-      getMaterials: sl(),
+      getDashboardData: sl(),
     ),
   );
 
   // Use cases
+  sl.registerLazySingleton(() => GetDashboardData(sl()));
   sl.registerLazySingleton(() => GetDashboardStats(sl()));
 
   // Repository
@@ -136,9 +142,9 @@ Future<void> init() async {
     () => ClientRepositoryImpl(localDataSource: sl()),
   );
 
-  // Data sources - Using Hive
+  // Data sources - Using Hive (with ChangeTracker for sync)
   sl.registerLazySingleton<ClientLocalDataSource>(
-    () => ClientHiveDataSource(),
+    () => ClientHiveDataSource(changeTracker: sl<ChangeTracker>()),
   );
 
   // ============================================
@@ -176,9 +182,9 @@ Future<void> init() async {
     () => CarLibraryRepositoryImpl(localDataSource: sl()),
   );
 
-  // Data sources - Using Hive
+  // Data sources - Using Hive (with ChangeTracker for sync)
   sl.registerLazySingleton<CarLocalDataSource>(
-    () => CarHiveDataSource(),
+    () => CarHiveDataSource(changeTracker: sl<ChangeTracker>()),
   );
   sl.registerLazySingleton<CarLibraryLocalDataSource>(
     () => CarLibraryHiveDataSource(),
@@ -227,9 +233,9 @@ Future<void> init() async {
     () => RepairRepositoryImpl(localDataSource: sl()),
   );
 
-  // Data sources - Using Hive
+  // Data sources - Using Hive (with ChangeTracker for sync)
   sl.registerLazySingleton<RepairLocalDataSource>(
-    () => RepairHiveDataSource(),
+    () => RepairHiveDataSource(changeTracker: sl<ChangeTracker>()),
   );
 
   // ============================================
@@ -259,9 +265,9 @@ Future<void> init() async {
     () => MaterialRepositoryImpl(localDataSource: sl()),
   );
 
-  // Data sources - Using Hive
+  // Data sources - Using Hive (with ChangeTracker for sync)
   sl.registerLazySingleton<MaterialLocalDataSource>(
-    () => MaterialHiveDataSource(),
+    () => MaterialHiveDataSource(changeTracker: sl<ChangeTracker>()),
   );
 
   // ============================================
@@ -290,14 +296,29 @@ Future<void> init() async {
   );
 
   // ============================================
-  // Core - Sync
+  // Core - Sync (SyncEngine and SyncBloc)
   // ============================================
 
-  // Change Tracker
-  sl.registerLazySingleton(() => ChangeTracker());
+  // Sync Data Applier
+  sl.registerLazySingleton(() => SyncDataApplier(sl<ChangeTracker>()));
 
-  // Sync Engine
-  sl.registerLazySingleton(() => SyncEngine(sl<ChangeTracker>()));
+  // Sync Engine with callbacks
+  sl.registerLazySingleton(() {
+    final changeTracker = sl<ChangeTracker>();
+    final engine = SyncEngine(changeTracker);
+    final dataApplier = sl<SyncDataApplier>();
+
+    // Настраиваем callbacks для применения входящих изменений
+    engine.onApplyChange = dataApplier.applyChange;
+    engine.onGetAllData = dataApplier.getAllData;
+
+    // Настраиваем отправку локальных изменений на удалённые устройства
+    changeTracker.onChangeTracked = (change) async {
+      await engine.broadcastLocalChange(change);
+    };
+
+    return engine;
+  });
 
   // Sync Bloc
   sl.registerFactory(() => SyncBloc(sl<SyncEngine>()));

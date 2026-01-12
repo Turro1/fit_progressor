@@ -71,3 +71,13 @@ class FilterMaterialsEvent extends MaterialEvent {
 class ClearMaterialFiltersEvent extends MaterialEvent {
   const ClearMaterialFiltersEvent();
 }
+
+/// Событие для восстановления удалённого материала (Undo)
+class RestoreMaterialEvent extends MaterialEvent {
+  final Material material;
+
+  const RestoreMaterialEvent({required this.material});
+
+  @override
+  List<Object?> get props => [material];
+}

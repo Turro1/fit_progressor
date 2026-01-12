@@ -88,9 +88,11 @@ class RepairsError extends RepairsState {
 
 class RepairsOperationSuccess extends RepairsState {
   final String message;
+  /// Обновлённое состояние (для инкрементального обновления без полной перезагрузки)
+  final RepairsLoaded? updatedState;
 
-  const RepairsOperationSuccess({required this.message});
+  const RepairsOperationSuccess({required this.message, this.updatedState});
 
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [message, updatedState];
 }

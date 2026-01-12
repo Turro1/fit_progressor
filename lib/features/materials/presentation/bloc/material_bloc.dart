@@ -30,6 +30,7 @@ class MaterialBloc extends Bloc<MaterialEvent, MaterialState> {
     on<AddMaterialEvent>(_onAddMaterial);
     on<UpdateMaterialEvent>(_onUpdateMaterial);
     on<DeleteMaterialEvent>(_onDeleteMaterial);
+    on<RestoreMaterialEvent>(_onRestoreMaterial);
     on<SearchMaterialsEvent>(_onSearchMaterials);
     on<FilterMaterialsEvent>(_onFilterMaterials);
     on<ClearMaterialFiltersEvent>(_onClearFilters);
@@ -104,7 +105,32 @@ class MaterialBloc extends Bloc<MaterialEvent, MaterialState> {
           emit(const MaterialError(message: 'Не удалось удалить материал')),
       (_) async {
         emit(const MaterialOperationSuccess(message: 'Материал удален'));
-        add(LoadMaterials());
+        add(const LoadMaterials());
+      },
+    );
+  }
+
+  Future<void> _onRestoreMaterial(
+    RestoreMaterialEvent event,
+    Emitter<MaterialState> emit,
+  ) async {
+    emit(MaterialLoading());
+    final params = AddMaterialParams(
+      name: event.material.name,
+      quantity: event.material.quantity,
+      unit: event.material.unit,
+      minQuantity: event.material.minQuantity,
+      cost: event.material.cost,
+      existingId: event.material.id,
+    );
+    final result = await addMaterial(params);
+
+    await result.fold(
+      (failure) async =>
+          emit(const MaterialError(message: 'Не удалось восстановить материал')),
+      (_) async {
+        emit(const MaterialOperationSuccess(message: 'Материал восстановлен'));
+        add(const LoadMaterials());
       },
     );
   }

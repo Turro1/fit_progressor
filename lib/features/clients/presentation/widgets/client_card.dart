@@ -9,6 +9,7 @@ class ClientCard extends StatelessWidget {
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
   final VoidCallback? onTap;
+  final VoidCallback? onCall;
 
   const ClientCard({
     Key? key,
@@ -17,6 +18,7 @@ class ClientCard extends StatelessWidget {
     this.onEdit,
     this.onDelete,
     this.onTap,
+    this.onCall,
   }) : super(key: key);
 
   String _formatPhone(String phone) {
@@ -102,13 +104,29 @@ class ClientCard extends StatelessWidget {
             ),
           ),
       ],
-      trailing: onTap != null
-          ? Icon(
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (client.phone.isNotEmpty && onCall != null)
+            IconButton(
+              icon: Icon(
+                Icons.phone,
+                color: theme.colorScheme.primary,
+              ),
+              onPressed: onCall,
+              tooltip: 'Позвонить',
+              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+              padding: EdgeInsets.zero,
+              iconSize: 20,
+            ),
+          if (onTap != null)
+            Icon(
               Icons.arrow_forward_ios,
               size: 16,
               color: theme.iconTheme.color,
-            )
-          : null,
+            ),
+        ],
+      ),
     );
   }
 }
