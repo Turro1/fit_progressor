@@ -1,6 +1,8 @@
 import 'package:fit_progressor/features/clients/domain/entities/client.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fit_progressor/core/widgets/country_code_picker.dart';
 import '../bloc/client_bloc.dart';
 import '../bloc/client_event.dart';
 import '../bloc/client_state.dart';
@@ -21,17 +23,55 @@ class _ClientFormModalState extends State<ClientFormModal> {
   late TextEditingController _phoneController;
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
+  CountryCodeData _selectedCountry = CountryCodes.defaultCountry;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.client?.name ?? '');
-    _phoneController = TextEditingController(text: widget.client?.phone ?? '');
+
+    // Парсим существующий телефон клиента
+    _parseExistingPhone(widget.client?.phone);
 
     // Слушаем изменения для обновления character counter
     _nameController.addListener(() {
       setState(() {});
     });
+  }
+
+  void _parseExistingPhone(String? phone) {
+    if (phone == null || phone.isEmpty) {
+      _selectedCountry = CountryCodes.defaultCountry;
+      _phoneController = TextEditingController();
+      return;
+    }
+
+    // Извлекаем только цифры
+    final digits = phone.replaceAll(RegExp(r'\D'), '');
+
+    // Пробуем найти код страны
+    // Популярные коды стран из региона
+    final countryCodes = [
+      ('373', 'MD'), // Молдова
+      ('380', 'UA'), // Украина
+      ('40', 'RO'),  // Румыния
+      ('7', 'RU'),   // Россия
+      ('375', 'BY'), // Беларусь
+    ];
+
+    String? localNumber;
+    String countryCodeStr = 'MD';
+
+    for (final (code, country) in countryCodes) {
+      if (digits.startsWith(code)) {
+        countryCodeStr = country;
+        localNumber = digits.substring(code.length);
+        break;
+      }
+    }
+
+    _selectedCountry = CountryCodes.findByCode(countryCodeStr) ?? CountryCodes.defaultCountry;
+    _phoneController = TextEditingController(text: localNumber ?? digits);
   }
 
   @override
@@ -87,22 +127,61 @@ class _ClientFormModalState extends State<ClientFormModal> {
             },
           ),
           SizedBox(height: AppSpacing.lg),
-          // Phone field
+          // Phone field with inline country code picker
           TextFormField(
             controller: _phoneController,
             keyboardType: TextInputType.phone,
-            decoration: const InputDecoration(
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(12),
+            ],
+            decoration: InputDecoration(
               labelText: 'Телефон',
-              helperText: 'Формат: +373 (XXX) XXX-XX',
-              hintText: '+373 (777) 123-45',
-              prefixIcon: Icon(Icons.phone),
+              hintText: '77712345',
+              prefixIcon: InkWell(
+                onTap: () async {
+                  final picked = await showCountryCodePicker(
+                    context: context,
+                    selectedCountry: _selectedCountry,
+                  );
+                  if (picked != null) {
+                    setState(() {
+                      _selectedCountry = picked;
+                    });
+                  }
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _selectedCountry.flag,
+                        style: const TextStyle(fontSize: 18),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        _selectedCountry.dialCode,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      Icon(
+                        Icons.arrow_drop_down,
+                        size: 18,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
             ),
             validator: (value) {
               // Телефон необязателен, но если заполнен, должен быть валидным
               if (value != null && value.isNotEmpty) {
                 final digits = value.replaceAll(RegExp(r'\D'), '');
-                if (digits.length < 10) {
-                  return 'Введите корректный номер телефона';
+                if (digits.length < 6) {
+                  return 'Минимум 6 цифр';
                 }
               }
               return null;
@@ -115,17 +194,29 @@ class _ClientFormModalState extends State<ClientFormModal> {
     );
   }
 
+  /// Формирует полный номер телефона с кодом страны
+  String _getFullPhoneNumber() {
+    final localNumber = _phoneController.text.trim();
+    if (localNumber.isEmpty) return '';
+
+    // Убираем + из кода страны для хранения
+    final cleanDialCode = _selectedCountry.dialCode.replaceAll('+', '');
+    return '$cleanDialCode$localNumber';
+  }
+
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
       });
 
+      final phone = _getFullPhoneNumber();
+
       if (widget.client == null) {
         context.read<ClientBloc>().add(
           AddClientEvent(
             name: _nameController.text.trim(),
-            phone: _phoneController.text.trim(),
+            phone: phone,
           ),
         );
       } else {
@@ -134,7 +225,7 @@ class _ClientFormModalState extends State<ClientFormModal> {
             client: Client(
               id: widget.client!.id,
               name: _nameController.text.trim(),
-              phone: _phoneController.text.trim(),
+              phone: phone,
               createdAt: widget.client!.createdAt,
             ),
           ),

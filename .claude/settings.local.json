@@ -2,7 +2,16 @@
   "permissions": {
     "allow": [
       "Bash(wc:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(flutter analyze:*)",
+      "Bash(git checkout:*)",
+      "WebSearch",
+      "Bash(del \"F:\\\\Projects\\\\fit_progressor\\\\lib\\\\core\\\\widgets\\\\country_code_picker.dart\")",
+      "Bash(flutter pub get:*)",
+      "WebFetch(domain:pub.dev)",
+      "Bash(flutter build:*)",
+      "Bash(flutter clean:*)",
+      "mcp__ide__getDiagnostics"
     ]
   }
 }
