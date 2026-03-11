@@ -30,16 +30,86 @@ class AppTheme {
       errorContainer: AppColors.errorContainer,
       onErrorContainer: AppColors.onErrorContainer,
     ),
-    appBarTheme: const AppBarTheme(
-      backgroundColor: AppColors.primary, // Changed from darkBackground
-      elevation: 0,
-      iconTheme: IconThemeData(
-        color: AppColors.textOnPrimary,
-      ), // Changed from textOnDark
-      titleTextStyle: TextStyle(
-        color: AppColors.textOnPrimary, // Changed from textOnDark
+    textTheme: const TextTheme(
+      headlineLarge: TextStyle(
+        fontSize: 24,
+        fontWeight: FontWeight.w800,
+        letterSpacing: -0.5,
+        color: AppColors.textPrimary,
+      ),
+      headlineMedium: TextStyle(
         fontSize: 20,
+        fontWeight: FontWeight.w700,
+        color: AppColors.textPrimary,
+      ),
+      headlineSmall: TextStyle(
+        fontSize: 18,
         fontWeight: FontWeight.w600,
+        color: AppColors.textPrimary,
+      ),
+      titleLarge: TextStyle(
+        fontSize: 17,
+        fontWeight: FontWeight.w600,
+        color: AppColors.textPrimary,
+      ),
+      titleMedium: TextStyle(
+        fontSize: 15,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.1,
+        color: AppColors.textPrimary,
+      ),
+      titleSmall: TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+        color: AppColors.textSecondary,
+      ),
+      bodyLarge: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w400,
+        color: AppColors.textPrimary,
+      ),
+      bodyMedium: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0.1,
+        color: AppColors.textPrimary,
+      ),
+      bodySmall: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+        color: AppColors.textSecondary,
+      ),
+      labelLarge: TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.5,
+        color: AppColors.primary,
+      ),
+      labelMedium: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+        letterSpacing: 0.4,
+        color: AppColors.textSecondary,
+      ),
+      labelSmall: TextStyle(
+        fontSize: 11,
+        fontWeight: FontWeight.w500,
+        letterSpacing: 0.3,
+        color: AppColors.textSecondary,
+      ),
+    ),
+    appBarTheme: const AppBarTheme(
+      backgroundColor: AppColors.surface,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      scrolledUnderElevation: 1,
+      shadowColor: AppColors.cardBorder,
+      iconTheme: IconThemeData(color: AppColors.textPrimary),
+      titleTextStyle: TextStyle(
+        color: AppColors.textPrimary,
+        fontSize: 20,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.3,
       ),
     ),
     inputDecorationTheme: InputDecorationTheme(
@@ -120,7 +190,7 @@ class AppTheme {
       ),
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
     ),
-    iconTheme: const IconThemeData(color: AppColors.textSecondary, size: 24),
+    iconTheme: const IconThemeData(color: AppColors.textSecondary, size: 22),
     bottomSheetTheme: const BottomSheetThemeData(
       backgroundColor: AppColors.surface,
       modalBackgroundColor: AppColors.surface,
@@ -128,7 +198,52 @@ class AppTheme {
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
     ),
+    chipTheme: ChipThemeData(
+      backgroundColor: AppColors.surfaceContainerHigh,
+      selectedColor: AppColors.primaryContainer,
+      labelStyle: const TextStyle(
+        color: AppColors.textPrimary,
+        fontSize: 13,
+        fontWeight: FontWeight.w500,
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+    ),
+    dialogTheme: DialogThemeData(
+      backgroundColor: AppColors.surface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+    ),
     dividerTheme: const DividerThemeData(color: AppColors.cardBorder, space: 1),
+    navigationBarTheme: NavigationBarThemeData(
+      backgroundColor: AppColors.surface,
+      indicatorColor: AppColors.primaryContainer,
+      iconTheme: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return const IconThemeData(color: AppColors.primary, size: 22);
+        }
+        return const IconThemeData(color: AppColors.textSecondary, size: 22);
+      }),
+      labelTextStyle: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: AppColors.primary,
+          );
+        }
+        return const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          color: AppColors.textSecondary,
+        );
+      }),
+    ),
+    snackBarTheme: SnackBarThemeData(
+      backgroundColor: AppColors.textPrimary,
+      contentTextStyle: const TextStyle(color: AppColors.white),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      behavior: SnackBarBehavior.floating,
+    ),
   );
 
   // ========== DARK THEME ==========
@@ -160,14 +275,86 @@ class AppTheme {
       errorContainer: AppColors.darkErrorContainer,
       onErrorContainer: AppColors.darkOnErrorContainer,
     ),
+    textTheme: const TextTheme(
+      headlineLarge: TextStyle(
+        fontSize: 24,
+        fontWeight: FontWeight.w800,
+        letterSpacing: -0.5,
+        color: AppColors.darkTextPrimary,
+      ),
+      headlineMedium: TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.w700,
+        color: AppColors.darkTextPrimary,
+      ),
+      headlineSmall: TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.w600,
+        color: AppColors.darkTextPrimary,
+      ),
+      titleLarge: TextStyle(
+        fontSize: 17,
+        fontWeight: FontWeight.w600,
+        color: AppColors.darkTextPrimary,
+      ),
+      titleMedium: TextStyle(
+        fontSize: 15,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.1,
+        color: AppColors.darkTextPrimary,
+      ),
+      titleSmall: TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+        color: AppColors.darkTextSecondary,
+      ),
+      bodyLarge: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w400,
+        color: AppColors.darkTextPrimary,
+      ),
+      bodyMedium: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0.1,
+        color: AppColors.darkTextPrimary,
+      ),
+      bodySmall: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+        color: AppColors.darkTextSecondary,
+      ),
+      labelLarge: TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.5,
+        color: AppColors.darkPrimary,
+      ),
+      labelMedium: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+        letterSpacing: 0.4,
+        color: AppColors.darkTextSecondary,
+      ),
+      labelSmall: TextStyle(
+        fontSize: 11,
+        fontWeight: FontWeight.w500,
+        letterSpacing: 0.3,
+        color: AppColors.darkTextSecondary,
+      ),
+    ),
     appBarTheme: const AppBarTheme(
       backgroundColor: AppColors.darkSurface,
+      surfaceTintColor: Colors.transparent,
       elevation: 0,
+      scrolledUnderElevation: 1,
+      shadowColor: AppColors.darkCardBorder,
       iconTheme: IconThemeData(color: AppColors.darkTextPrimary),
       titleTextStyle: TextStyle(
         color: AppColors.darkTextPrimary,
         fontSize: 20,
-        fontWeight: FontWeight.w600,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.3,
       ),
     ),
     inputDecorationTheme: InputDecorationTheme(

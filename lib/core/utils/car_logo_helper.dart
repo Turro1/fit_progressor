@@ -428,20 +428,30 @@ class CarLogoHelper {
 
       final logoImage = Image.asset(
         'assets/logos/optimized/$fileName.png',
-        width: size,
-        height: size,
+        width: size * 0.75,
+        height: size * 0.75,
         fit: BoxFit.contain,
-        color: isDark ? Colors.white : null,
         errorBuilder: (context, error, stackTrace) {
           developer.log('Logo error for "$fileName"', name: 'CarLogoHelper');
           return Icon(Icons.directions_car_rounded, size: size * 0.8);
         },
       );
 
-      return Transform.scale(
-        scale: 1.6, // Увеличиваем масштаб иконки
-        child: logoImage,
-      );
+      // In dark mode, logos (often dark PNGs) need a white bg to be visible
+      if (isDark) {
+        return Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(size * 0.2),
+          ),
+          padding: EdgeInsets.all(size * 0.1),
+          child: Center(child: logoImage),
+        );
+      }
+
+      return Transform.scale(scale: 1.6, child: logoImage);
     } else {
       // Fallback
       return Icon(Icons.directions_car_rounded, size: size * 0.8);

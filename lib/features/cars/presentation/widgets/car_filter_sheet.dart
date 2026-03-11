@@ -219,7 +219,7 @@ class _CarMakeChip extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               // Car logo
-              Container(
+              SizedBox(
                 width: 24,
                 height: 24,
                 child: Center(
