@@ -1,10 +1,10 @@
 import 'package:hive/hive.dart';
-import 'package:fit_progressor/core/error/exceptions/cache_exception.dart';
-import 'package:fit_progressor/core/storage/hive_config.dart';
-import 'package:fit_progressor/core/sync/sync_message.dart';
-import 'package:fit_progressor/core/sync/tracking/change_tracker.dart';
-import 'package:fit_progressor/features/materials/data/models/material_model.dart';
-import 'package:fit_progressor/features/materials/data/models/material_hive_model.dart';
+import 'package:car_repair_manager/core/error/exceptions/cache_exception.dart';
+import 'package:car_repair_manager/core/storage/hive_config.dart';
+import 'package:car_repair_manager/core/sync/sync_message.dart';
+import 'package:car_repair_manager/core/sync/tracking/change_tracker.dart';
+import 'package:car_repair_manager/features/materials/data/models/material_model.dart';
+import 'package:car_repair_manager/features/materials/data/models/material_hive_model.dart';
 import 'material_local_data_source.dart';
 
 /// Hive implementation of MaterialLocalDataSource
@@ -49,11 +49,12 @@ class MaterialHiveDataSource implements MaterialLocalDataSource {
   // Extended methods for better Hive utilization
 
   /// Get material by ID
+  @override
   Future<MaterialModel> getMaterialById(String id) async {
     try {
       final hiveModel = _box.get(id);
       if (hiveModel == null) {
-        throw CacheException(message: 'Материал не найден');
+        throw const CacheException(message: 'Материал не найден');
       }
       return MaterialModel.fromEntity(hiveModel.toEntity());
     } catch (e) {
@@ -63,6 +64,7 @@ class MaterialHiveDataSource implements MaterialLocalDataSource {
   }
 
   /// Add a single material
+  @override
   Future<MaterialModel> addMaterial(MaterialModel material) async {
     try {
       final hiveModel = MaterialHiveModel.fromEntity(material);
@@ -86,11 +88,12 @@ class MaterialHiveDataSource implements MaterialLocalDataSource {
   }
 
   /// Update a single material
+  @override
   Future<MaterialModel> updateMaterial(MaterialModel material) async {
     try {
       final existing = _box.get(material.id);
       if (existing == null) {
-        throw CacheException(message: 'Материал не найден');
+        throw const CacheException(message: 'Материал не найден');
       }
 
       final hiveModel = MaterialHiveModel.fromEntity(material);
@@ -115,6 +118,7 @@ class MaterialHiveDataSource implements MaterialLocalDataSource {
   }
 
   /// Delete a single material
+  @override
   Future<void> deleteMaterial(String id) async {
     try {
       final existing = _box.get(id);

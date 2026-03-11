@@ -1,4 +1,4 @@
-import 'package:fit_progressor/core/sync/sync_config.dart';
+import 'package:car_repair_manager/core/sync/sync_config.dart';
 
 /// Данные для QR-кода подключения
 class QrDataModel {
@@ -15,7 +15,7 @@ class QrDataModel {
   });
 
   /// Преобразовать в строку для QR-кода
-  /// Формат: fitprogressor://ip:port?name=Name&id=uuid
+  /// Формат: CarRepairManager://ip:port?name=Name&id=uuid
   String toQrString() {
     final encodedName = Uri.encodeComponent(serverName);
     return '${SyncConfig.uriScheme}://$serverIp:$port?name=$encodedName&id=$serverId';
@@ -25,7 +25,7 @@ class QrDataModel {
   factory QrDataModel.fromQrString(String qrString) {
     // Проверяем схему
     if (!qrString.startsWith('${SyncConfig.uriScheme}://')) {
-      throw FormatException('Invalid QR code format: wrong scheme');
+      throw const FormatException('Invalid QR code format: wrong scheme');
     }
 
     // Убираем схему
@@ -34,18 +34,18 @@ class QrDataModel {
     // Разбираем host:port и query параметры
     final parts = withoutScheme.split('?');
     if (parts.isEmpty) {
-      throw FormatException('Invalid QR code format: no host');
+      throw const FormatException('Invalid QR code format: no host');
     }
 
     final hostPort = parts[0].split(':');
     if (hostPort.length != 2) {
-      throw FormatException('Invalid QR code format: invalid host:port');
+      throw const FormatException('Invalid QR code format: invalid host:port');
     }
 
     final serverIp = hostPort[0];
     final port = int.tryParse(hostPort[1]);
     if (port == null) {
-      throw FormatException('Invalid QR code format: invalid port');
+      throw const FormatException('Invalid QR code format: invalid port');
     }
 
     // Разбираем query параметры

@@ -199,7 +199,7 @@ class _MaterialItem extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  '${material.quantity.toStringAsFixed(material.quantity == material.quantity.roundToDouble() ? 0 : 1)}',
+                  material.quantity.toStringAsFixed(material.quantity == material.quantity.roundToDouble() ? 0 : 1),
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: isOutOfStock

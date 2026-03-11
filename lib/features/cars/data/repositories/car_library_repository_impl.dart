@@ -1,11 +1,11 @@
 import 'package:dartz/dartz.dart';
 
-import 'package:fit_progressor/core/error/exceptions/cache_exception.dart';
-import 'package:fit_progressor/core/error/failures/cache_failure.dart';
-import 'package:fit_progressor/core/error/failures/failure.dart';
-import 'package:fit_progressor/features/cars/data/datasources/car_library_local_data_source.dart';
-import 'package:fit_progressor/features/cars/domain/entities/car_library.dart';
-import 'package:fit_progressor/features/cars/domain/repositories/car_library_repository.dart';
+import 'package:car_repair_manager/core/error/exceptions/cache_exception.dart';
+import 'package:car_repair_manager/core/error/failures/cache_failure.dart';
+import 'package:car_repair_manager/core/error/failures/failure.dart';
+import 'package:car_repair_manager/features/cars/data/datasources/car_library_local_data_source.dart';
+import 'package:car_repair_manager/features/cars/domain/entities/car_library.dart';
+import 'package:car_repair_manager/features/cars/domain/repositories/car_library_repository.dart';
 
 class CarLibraryRepositoryImpl implements CarLibraryRepository {
   final CarLibraryLocalDataSource localDataSource;
@@ -18,7 +18,7 @@ class CarLibraryRepositoryImpl implements CarLibraryRepository {
       final library = await localDataSource.getCarLibrary();
       return Right(library);
     } on CacheException {
-      return Left(
+      return const Left(
          CacheFailure(
           message: 'Cache error occurred while retrieving car library',
         ),
@@ -38,8 +38,8 @@ class CarLibraryRepositoryImpl implements CarLibraryRepository {
       final makes = await localDataSource.getCarMakes();
       return Right(makes);
     } on CacheException {
-      return Left(
-        const CacheFailure(
+      return const Left(
+        CacheFailure(
           message: 'Cache error occurred while retrieving car makes',
         ),
       );
@@ -58,8 +58,8 @@ class CarLibraryRepositoryImpl implements CarLibraryRepository {
       final models = await localDataSource.getCarModels(make);
       return Right(models);
     } on CacheException {
-      return Left(
-        const CacheFailure(
+      return const Left(
+        CacheFailure(
           message: 'Cache error occurred while retrieving car models',
         ),
       );
@@ -78,8 +78,8 @@ class CarLibraryRepositoryImpl implements CarLibraryRepository {
       await localDataSource.addToLibrary(make, model);
       return const Right(null);
     } on CacheException {
-      return Left(
-        const CacheFailure(
+      return const Left(
+        CacheFailure(
           message: 'Cache error occurred while adding to car library',
         ),
       );

@@ -1,4 +1,4 @@
-import 'package:fit_progressor/core/error/exceptions/app_exception.dart';
+import 'package:car_repair_manager/core/error/exceptions/app_exception.dart';
 
 /// Исключение при работе с сетью
 class NetworkException extends AppException {

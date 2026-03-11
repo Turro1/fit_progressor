@@ -1,4 +1,4 @@
-import 'package:fit_progressor/features/cars/data/models/car_model.dart';
+import 'package:car_repair_manager/features/cars/data/models/car_model.dart';
 
 /// Параметры фильтрации для getCarsFiltered
 class CarFilterParams {

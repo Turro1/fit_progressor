@@ -1,6 +1,6 @@
 {
-    "name": "fit_progressor",
-    "short_name": "fit_progressor",
+    "name": "Car Repair Manager",
+    "short_name": "Car Repair Manager",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

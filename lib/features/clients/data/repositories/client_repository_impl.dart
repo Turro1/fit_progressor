@@ -1,14 +1,14 @@
 import 'package:dartz/dartz.dart';
 
-import 'package:fit_progressor/core/error/exceptions/cache_exception.dart';
-import 'package:fit_progressor/core/error/exceptions/duplicate_exception.dart';
-import 'package:fit_progressor/core/error/failures/cache_failure.dart';
-import 'package:fit_progressor/core/error/failures/duplicate_failure.dart';
-import 'package:fit_progressor/core/error/failures/failure.dart';
-import 'package:fit_progressor/features/clients/data/datasources/client_local_data_source.dart';
-import 'package:fit_progressor/features/clients/data/models/client_model.dart';
-import 'package:fit_progressor/features/clients/domain/entities/client.dart';
-import 'package:fit_progressor/features/clients/domain/repositories/client_repository.dart';
+import 'package:car_repair_manager/core/error/exceptions/cache_exception.dart';
+import 'package:car_repair_manager/core/error/exceptions/duplicate_exception.dart';
+import 'package:car_repair_manager/core/error/failures/cache_failure.dart';
+import 'package:car_repair_manager/core/error/failures/duplicate_failure.dart';
+import 'package:car_repair_manager/core/error/failures/failure.dart';
+import 'package:car_repair_manager/features/clients/data/datasources/client_local_data_source.dart';
+import 'package:car_repair_manager/features/clients/data/models/client_model.dart';
+import 'package:car_repair_manager/features/clients/domain/entities/client.dart';
+import 'package:car_repair_manager/features/clients/domain/repositories/client_repository.dart';
 
 class ClientRepositoryImpl implements ClientRepository {
   final ClientLocalDataSource localDataSource;
@@ -24,8 +24,8 @@ class ClientRepositoryImpl implements ClientRepository {
     } on DuplicateException catch (e) {
       return Left(DuplicateFailure(message: e.message));
     } on CacheException {
-      return Left(
-        const CacheFailure(message: 'Cache error occurred while adding client'),
+      return const Left(
+        CacheFailure(message: 'Cache error occurred while adding client'),
       );
     } catch (e) {
       return Left(
@@ -42,8 +42,8 @@ class ClientRepositoryImpl implements ClientRepository {
       await localDataSource.deleteClient(id);
       return const Right(null);
     } on CacheException {
-      return Left(
-        const CacheFailure(
+      return const Left(
+        CacheFailure(
           message: 'Cache error occurred while deleting client',
         ),
       );
@@ -85,8 +85,8 @@ class ClientRepositoryImpl implements ClientRepository {
       final clients = await localDataSource.getClientById(id);
       return Right(clients);
     } on CacheException {
-      return Left(
-        const CacheFailure(
+      return const Left(
+        CacheFailure(
           message: 'Cache error occurred while retrieving client',
         ),
       );
@@ -105,8 +105,8 @@ class ClientRepositoryImpl implements ClientRepository {
       final clients = await localDataSource.searchClients(query);
       return Right(clients);
     } on CacheException {
-      return Left(
-        const CacheFailure(
+      return const Left(
+        CacheFailure(
           message: 'Cache error occurred while searching clients',
         ),
       );
@@ -128,8 +128,8 @@ class ClientRepositoryImpl implements ClientRepository {
     } on DuplicateException catch (e) {
       return Left(DuplicateFailure(message: e.message));
     } on CacheException {
-      return Left(
-        const CacheFailure(
+      return const Left(
+        CacheFailure(
           message: 'Cache error occurred while updating client',
         ),
       );

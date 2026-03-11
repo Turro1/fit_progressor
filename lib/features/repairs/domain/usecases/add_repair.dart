@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
-import 'package:fit_progressor/core/error/failures/failure.dart';
-import 'package:fit_progressor/core/usecases/usecase.dart';
+import 'package:car_repair_manager/core/error/failures/failure.dart';
+import 'package:car_repair_manager/core/usecases/usecase.dart';
 import '../entities/repair.dart';
 import '../entities/repair_material.dart';
 import '../entities/repair_status.dart';

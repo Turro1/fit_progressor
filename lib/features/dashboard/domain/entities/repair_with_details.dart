@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:fit_progressor/features/repairs/domain/entities/repair.dart';
+import 'package:car_repair_manager/features/repairs/domain/entities/repair.dart';
 
 /// Обогащенная модель ремонта с данными клиента и автомобиля
 /// для отображения на дашборде

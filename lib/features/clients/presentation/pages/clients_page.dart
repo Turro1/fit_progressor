@@ -1,12 +1,12 @@
-import 'package:fit_progressor/features/clients/domain/entities/client.dart';
-import 'package:fit_progressor/features/cars/presentation/bloc/car_bloc.dart';
-import 'package:fit_progressor/features/cars/presentation/bloc/car_event.dart';
-import 'package:fit_progressor/features/cars/presentation/bloc/car_state.dart';
-import 'package:fit_progressor/shared/widgets/animated_fab.dart';
-import 'package:fit_progressor/shared/widgets/animated_list_item.dart';
-import 'package:fit_progressor/shared/widgets/empty_state.dart';
-import 'package:fit_progressor/shared/widgets/delete_confirmation_dialog.dart';
-import 'package:fit_progressor/shared/widgets/skeleton_loader.dart';
+import 'package:car_repair_manager/features/clients/domain/entities/client.dart';
+import 'package:car_repair_manager/features/cars/presentation/bloc/car_bloc.dart';
+import 'package:car_repair_manager/features/cars/presentation/bloc/car_event.dart';
+import 'package:car_repair_manager/features/cars/presentation/bloc/car_state.dart';
+import 'package:car_repair_manager/shared/widgets/animated_fab.dart';
+import 'package:car_repair_manager/shared/widgets/animated_list_item.dart';
+import 'package:car_repair_manager/shared/widgets/empty_state.dart';
+import 'package:car_repair_manager/shared/widgets/delete_confirmation_dialog.dart';
+import 'package:car_repair_manager/shared/widgets/skeleton_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -16,7 +16,7 @@ import '../bloc/client_state.dart';
 import '../widgets/client_card.dart';
 import '../widgets/client_cars_modal.dart';
 import '../widgets/client_form_modal.dart';
-import 'package:fit_progressor/shared/widgets/app_search_bar.dart';
+import 'package:car_repair_manager/shared/widgets/app_search_bar.dart';
 
 class ClientsPage extends StatefulWidget {
   const ClientsPage({Key? key}) : super(key: key);
@@ -31,7 +31,7 @@ class _ClientsPageState extends State<ClientsPage> {
     super.initState();
     // Load clients and cars on init
     context.read<ClientBloc>().add(LoadClients());
-    context.read<CarBloc>().add(LoadCars());
+    context.read<CarBloc>().add(const LoadCars());
   }
 
   @override
@@ -141,7 +141,7 @@ class _ClientsPageState extends State<ClientsPage> {
                         return RefreshIndicator(
                           onRefresh: () async {
                             context.read<ClientBloc>().add(LoadClients());
-                            context.read<CarBloc>().add(LoadCars());
+                            context.read<CarBloc>().add(const LoadCars());
                           },
                           child: ListView.builder(
                             padding: const EdgeInsets.symmetric(horizontal: 15),

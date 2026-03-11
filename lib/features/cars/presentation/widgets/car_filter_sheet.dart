@@ -1,5 +1,5 @@
-import 'package:fit_progressor/core/utils/car_logo_helper.dart';
-import 'package:fit_progressor/features/cars/domain/entities/car_filter.dart';
+import 'package:car_repair_manager/core/utils/car_logo_helper.dart';
+import 'package:car_repair_manager/features/cars/domain/entities/car_filter.dart';
 import 'package:flutter/material.dart';
 
 /// Bottom sheet для выбора фильтров автомобилей
@@ -222,21 +222,8 @@ class _CarMakeChip extends StatelessWidget {
               Container(
                 width: 24,
                 height: 24,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: Image.asset(
-                    CarLogoHelper.getLogoPath(make),
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => Icon(
-                      Icons.directions_car,
-                      size: 16,
-                      color: theme.colorScheme.primary,
-                    ),
-                  ),
+                child: Center(
+                  child: CarLogoHelper.getLogoWidget(context, make, size: 20),
                 ),
               ),
               const SizedBox(width: 8),

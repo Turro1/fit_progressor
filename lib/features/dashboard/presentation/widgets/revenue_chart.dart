@@ -1,6 +1,6 @@
 import 'dart:ui' as ui;
 
-import 'package:fit_progressor/features/dashboard/domain/entities/dashboard_stats.dart';
+import 'package:car_repair_manager/features/dashboard/domain/entities/dashboard_stats.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -111,8 +111,8 @@ class _RevenueChartState extends State<RevenueChart>
 
     if (_selectedPeriod == ChartPeriod.lastMonth) {
       // Прошлый месяц: 30-60 дней назад
-      final startDate = today.subtract(Duration(days: 60));
-      final endDate = today.subtract(Duration(days: 30));
+      final startDate = today.subtract(const Duration(days: 60));
+      final endDate = today.subtract(const Duration(days: 30));
       filteredRevenue = widget.data.dailyRevenue.where((r) {
         final rDate = DateTime(r.date.year, r.date.month, r.date.day);
         return rDate.isAfter(startDate) && rDate.isBefore(endDate.add(const Duration(days: 1)));
@@ -661,7 +661,7 @@ class _RevenueChartState extends State<RevenueChart>
     final velocity = details.primaryVelocity ?? 0;
     if (velocity.abs() < 200) return;
 
-    final periods = ChartPeriod.values;
+    const periods = ChartPeriod.values;
     final currentIndex = periods.indexOf(_selectedPeriod);
 
     if (velocity > 0 && currentIndex > 0) {
@@ -914,8 +914,8 @@ class _ChartPainter extends CustomPainter {
   }
 
   void _drawDashedPath(Canvas canvas, Path path, Paint paint) {
-    final dashWidth = 5.0;
-    final dashSpace = 3.0;
+    const dashWidth = 5.0;
+    const dashSpace = 3.0;
     final pathMetrics = path.computeMetrics();
 
     for (final metric in pathMetrics) {

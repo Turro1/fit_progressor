@@ -56,7 +56,7 @@ class MaterialBloc extends Bloc<MaterialEvent, MaterialState> {
     AddMaterialEvent event,
     Emitter<MaterialState> emit,
   ) async {
-    emit(MaterialLoading());
+    emit(const MaterialLoading());
     final params = AddMaterialParams(
       name: event.name,
       quantity: event.quantity,
@@ -80,7 +80,7 @@ class MaterialBloc extends Bloc<MaterialEvent, MaterialState> {
     UpdateMaterialEvent event,
     Emitter<MaterialState> emit,
   ) async {
-    emit(MaterialLoading());
+    emit(const MaterialLoading());
     final result = await updateMaterial(event.material);
 
     await result.fold(
@@ -97,7 +97,7 @@ class MaterialBloc extends Bloc<MaterialEvent, MaterialState> {
     DeleteMaterialEvent event,
     Emitter<MaterialState> emit,
   ) async {
-    emit(MaterialLoading());
+    emit(const MaterialLoading());
     final result = await deleteMaterial(event.materialId);
 
     await result.fold(
@@ -114,7 +114,7 @@ class MaterialBloc extends Bloc<MaterialEvent, MaterialState> {
     RestoreMaterialEvent event,
     Emitter<MaterialState> emit,
   ) async {
-    emit(MaterialLoading());
+    emit(const MaterialLoading());
     final params = AddMaterialParams(
       name: event.material.name,
       quantity: event.material.quantity,

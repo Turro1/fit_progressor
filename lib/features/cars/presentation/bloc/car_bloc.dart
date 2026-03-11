@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:fit_progressor/core/error/failures/duplicate_failure.dart';
+import 'package:car_repair_manager/core/error/failures/duplicate_failure.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../domain/entities/car.dart';
 import '../../domain/entities/car_filter.dart';
@@ -76,7 +76,7 @@ class CarBloc extends Bloc<CarEvent, CarState> {
   }
 
   Future<void> _onAddCar(AddCarEvent event, Emitter<CarState> emit) async {
-    emit(CarLoading());
+    emit(const CarLoading());
     final params = AddCarParams(
       clientId: event.clientId,
       make: event.make,
@@ -102,7 +102,7 @@ class CarBloc extends Bloc<CarEvent, CarState> {
     UpdateCarEvent event,
     Emitter<CarState> emit,
   ) async {
-    emit(CarLoading());
+    emit(const CarLoading());
     final result = await updateCar(event.car);
 
     await result.fold(
@@ -122,7 +122,7 @@ class CarBloc extends Bloc<CarEvent, CarState> {
     DeleteCarEvent event,
     Emitter<CarState> emit,
   ) async {
-    emit(CarLoading());
+    emit(const CarLoading());
     final result = await deleteCar(event.carId);
 
     await result.fold(
@@ -140,7 +140,7 @@ class CarBloc extends Bloc<CarEvent, CarState> {
     RestoreCarEvent event,
     Emitter<CarState> emit,
   ) async {
-    emit(CarLoading());
+    emit(const CarLoading());
     final params = AddCarParams(
       clientId: event.car.clientId,
       make: event.car.make,

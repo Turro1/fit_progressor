@@ -5,9 +5,9 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart';
-import 'package:fit_progressor/features/repairs/domain/entities/repair.dart';
-import 'package:fit_progressor/features/clients/domain/entities/client.dart';
-import 'package:fit_progressor/features/cars/domain/entities/car.dart';
+import 'package:car_repair_manager/features/repairs/domain/entities/repair.dart';
+import 'package:car_repair_manager/features/clients/domain/entities/client.dart';
+import 'package:car_repair_manager/features/cars/domain/entities/car.dart';
 
 /// Тип экспорта
 enum ExportType { pdf, csv }
@@ -242,7 +242,7 @@ class ExportService {
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
             pw.Text(
-              'FitProgressor',
+              'CarRepairManager',
               style: pw.TextStyle(
                 fontSize: 20,
                 fontWeight: pw.FontWeight.bold,

@@ -1,15 +1,15 @@
 import 'dart:io';
-import 'package:fit_progressor/features/dashboard/domain/entities/repair_with_details.dart';
-import 'package:fit_progressor/features/repairs/domain/entities/repair_status.dart';
-import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_bloc.dart';
-import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_event.dart';
-import 'package:fit_progressor/features/repairs/presentation/widgets/repair_detail_sheet.dart';
-import 'package:fit_progressor/features/repairs/presentation/widgets/repair_form_modal.dart';
-import 'package:fit_progressor/shared/widgets/entity_card.dart';
-import 'package:fit_progressor/shared/widgets/delete_confirmation_dialog.dart';
-import 'package:fit_progressor/shared/services/undo_service.dart';
-import 'package:fit_progressor/core/utils/car_logo_helper.dart';
-import 'package:fit_progressor/core/utils/date_formatter.dart';
+import 'package:car_repair_manager/features/dashboard/domain/entities/repair_with_details.dart';
+import 'package:car_repair_manager/features/repairs/domain/entities/repair_status.dart';
+import 'package:car_repair_manager/features/repairs/presentation/bloc/repairs_bloc.dart';
+import 'package:car_repair_manager/features/repairs/presentation/bloc/repairs_event.dart';
+import 'package:car_repair_manager/features/repairs/presentation/widgets/repair_detail_sheet.dart';
+import 'package:car_repair_manager/features/repairs/presentation/widgets/repair_form_modal.dart';
+import 'package:car_repair_manager/shared/widgets/entity_card.dart';
+import 'package:car_repair_manager/shared/widgets/delete_confirmation_dialog.dart';
+import 'package:car_repair_manager/shared/services/undo_service.dart';
+import 'package:car_repair_manager/core/utils/car_logo_helper.dart';
+import 'package:car_repair_manager/core/utils/date_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -128,7 +128,7 @@ class DashboardRepairCard extends StatelessWidget {
       onEdit: () => _showEditModal(context),
       onDelete: () => _confirmDelete(context),
       onTap: () => _openRepairDetailSheet(context),
-      leading: _buildLeading(theme),
+      leading: _buildLeading(context, theme),
       title: Row(
         children: [
           Expanded(
@@ -161,16 +161,18 @@ class DashboardRepairCard extends StatelessWidget {
                           Icon(
                             Icons.build_outlined,
                             size: 16,
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.6),
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.6,
+                            ),
                           ),
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
                               repair.partPosition,
                               style: theme.textTheme.bodyMedium?.copyWith(
-                                color: theme.colorScheme.onSurface
-                                    .withValues(alpha: 0.8),
+                                color: theme.colorScheme.onSurface.withValues(
+                                  alpha: 0.8,
+                                ),
                               ),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
@@ -193,8 +195,9 @@ class DashboardRepairCard extends StatelessWidget {
                           child: Text(
                             repairWithDetails.carFullName,
                             style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onSurface
-                                  .withValues(alpha: 0.8),
+                              color: theme.colorScheme.onSurface.withValues(
+                                alpha: 0.8,
+                              ),
                             ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
@@ -279,26 +282,26 @@ class DashboardRepairCard extends StatelessWidget {
 
     switch (status) {
       case RepairStatus.pending:
-        backgroundColor = theme.colorScheme.surfaceContainerHighest;
-        textColor = theme.colorScheme.onSurfaceVariant;
+        backgroundColor = theme.colorScheme.tertiaryContainer;
+        textColor = theme.colorScheme.onTertiaryContainer;
         label = 'Ожидает';
         icon = Icons.schedule;
         break;
       case RepairStatus.inProgress:
-        backgroundColor = Colors.orange.withValues(alpha: 0.15);
-        textColor = Colors.orange.shade700;
+        backgroundColor = theme.colorScheme.primaryContainer;
+        textColor = theme.colorScheme.onPrimaryContainer;
         label = 'В работе';
         icon = Icons.engineering;
         break;
       case RepairStatus.completed:
-        backgroundColor = Colors.green.withValues(alpha: 0.15);
-        textColor = Colors.green.shade700;
+        backgroundColor = const Color(0xFF34C759).withValues(alpha: 0.2);
+        textColor = const Color(0xFF1B5E20);
         label = 'Готово';
         icon = Icons.check_circle;
         break;
       case RepairStatus.cancelled:
-        backgroundColor = theme.colorScheme.errorContainer.withValues(alpha: 0.15);
-        textColor = theme.colorScheme.error;
+        backgroundColor = theme.colorScheme.errorContainer;
+        textColor = theme.colorScheme.onErrorContainer;
         label = 'Отменён';
         icon = Icons.cancel;
         break;
@@ -330,35 +333,37 @@ class DashboardRepairCard extends StatelessWidget {
     );
   }
 
-  Widget _buildLeading(ThemeData theme) {
+  Widget _buildLeading(BuildContext context, ThemeData theme) {
     final repair = repairWithDetails.repair;
 
     // Priority: car logo, then photo, then icon
     if (repair.carMake.isNotEmpty) {
-      return CircleAvatar(
-        radius: 28,
-        backgroundColor: Colors.white,
-        child: Image.asset(
-          CarLogoHelper.getLogoPath(repair.carMake),
-          fit: BoxFit.contain,
-          width: 40,
-          height: 40,
-          errorBuilder: (context, error, stackTrace) {
-            return Icon(
-              Icons.directions_car_rounded,
-              size: 32,
-              color: theme.colorScheme.primary,
-            );
-          },
+      return Container(
+        width: 64,
+        height: 64,
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest.withValues(
+            alpha: 0.5,
+          ),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Center(
+          child: CarLogoHelper.getLogoWidget(context, repair.carMake, size: 40),
         ),
       );
     }
 
     if (repair.photoPaths.isNotEmpty) {
-      return CircleAvatar(
-        radius: 28,
-        backgroundImage: FileImage(File(repair.photoPaths.first)),
-        onBackgroundImageError: (error, stackTrace) {},
+      return Container(
+        width: 64,
+        height: 64,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          image: DecorationImage(
+            image: FileImage(File(repair.photoPaths.first)),
+            fit: BoxFit.cover,
+          ),
+        ),
       );
     }
 
@@ -366,15 +371,19 @@ class DashboardRepairCard extends StatelessWidget {
   }
 
   Widget _buildDefaultIcon(ThemeData theme) {
-    return CircleAvatar(
-      radius: 28,
-      backgroundColor: theme.colorScheme.surfaceContainerHighest.withValues(
-        alpha: 0.3,
+    return Container(
+      width: 64,
+      height: 64,
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(16),
       ),
-      child: Icon(
-        Icons.build_circle_rounded,
-        color: theme.colorScheme.primary,
-        size: 32,
+      child: Center(
+        child: Icon(
+          Icons.build_circle_rounded,
+          color: theme.colorScheme.primary,
+          size: 32,
+        ),
       ),
     );
   }

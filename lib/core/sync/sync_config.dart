@@ -19,7 +19,7 @@ class SyncConfig {
   static const int batchSize = 100;
 
   /// URI схема для QR кода
-  static const String uriScheme = 'fitprogressor';
+  static const String uriScheme = 'CarRepairManager';
 
   /// Версия протокола синхронизации
   static const String protocolVersion = '1.0';

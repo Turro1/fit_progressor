@@ -1,4 +1,4 @@
-import 'package:fit_progressor/features/materials/domain/entities/material.dart'
+import 'package:car_repair_manager/features/materials/domain/entities/material.dart'
     as entities;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';

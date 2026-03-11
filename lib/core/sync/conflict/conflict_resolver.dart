@@ -1,4 +1,4 @@
-import 'package:fit_progressor/core/sync/sync_message.dart';
+import 'package:car_repair_manager/core/sync/sync_message.dart';
 
 /// Результат разрешения конфликта
 enum ConflictResolution {

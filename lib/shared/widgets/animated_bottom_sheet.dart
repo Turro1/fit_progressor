@@ -67,9 +67,10 @@ class _AnimatedBottomSheetWrapperState
       duration: const Duration(milliseconds: 300),
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 0.95,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
@@ -103,7 +104,7 @@ class _AnimatedBottomSheetWrapperState
               decoration: BoxDecoration(
                 color: widget.backgroundColor ?? theme.colorScheme.surface,
                 borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(20),
+                  top: Radius.circular(28),
                 ),
                 boxShadow: [
                   BoxShadow(
@@ -136,13 +137,15 @@ class _DragHandle extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Padding(
-      padding: const EdgeInsets.only(top: 12, bottom: 8),
-      child: Container(
-        width: 40,
-        height: 4,
-        decoration: BoxDecoration(
-          color: theme.colorScheme.onSurface.withValues(alpha: 0.2),
-          borderRadius: BorderRadius.circular(2),
+      padding: const EdgeInsets.only(top: 12, bottom: 12),
+      child: Center(
+        child: Container(
+          width: 40,
+          height: 5,
+          decoration: BoxDecoration(
+            color: theme.colorScheme.outlineVariant,
+            borderRadius: BorderRadius.circular(2.5),
+          ),
         ),
       ),
     );
@@ -184,9 +187,10 @@ class _AnimatedFormModalState extends State<AnimatedFormModal>
       duration: const Duration(milliseconds: 400),
     );
 
-    _slideAnimation = Tween<double>(begin: 30.0, end: 0.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
-    );
+    _slideAnimation = Tween<double>(
+      begin: 30.0,
+      end: 0.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
@@ -233,10 +237,12 @@ class _AnimatedFormModalState extends State<AnimatedFormModal>
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: widget.actions!
-                              .map((action) => Padding(
-                                    padding: const EdgeInsets.only(left: 12),
-                                    child: action,
-                                  ))
+                              .map(
+                                (action) => Padding(
+                                  padding: const EdgeInsets.only(left: 12),
+                                  child: action,
+                                ),
+                              )
                               .toList(),
                         ),
                       ],
@@ -314,18 +320,17 @@ class _AnimatedFormFieldState extends State<AnimatedFormField>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: widget.duration,
-    );
+    _controller = AnimationController(vsync: this, duration: widget.duration);
 
-    _slideAnimation = Tween<double>(begin: 20.0, end: 0.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
-    );
+    _slideAnimation = Tween<double>(
+      begin: 20.0,
+      end: 0.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
 
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
     Future.delayed(widget.delay * widget.index, () {
       if (mounted) {
@@ -347,10 +352,7 @@ class _AnimatedFormFieldState extends State<AnimatedFormField>
       builder: (context, child) {
         return Transform.translate(
           offset: Offset(0, _slideAnimation.value),
-          child: Opacity(
-            opacity: _fadeAnimation.value,
-            child: widget.child,
-          ),
+          child: Opacity(opacity: _fadeAnimation.value, child: widget.child),
         );
       },
     );
@@ -394,10 +396,7 @@ class _ShakeAnimationState extends State<ShakeAnimation>
       TweenSequenceItem(tween: Tween(begin: -8.0, end: 8.0), weight: 2),
       TweenSequenceItem(tween: Tween(begin: 8.0, end: -5.0), weight: 2),
       TweenSequenceItem(tween: Tween(begin: -5.0, end: 0.0), weight: 1),
-    ]).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeInOut,
-    ));
+    ]).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
     _controller.addStatusListener((status) {
       if (status == AnimationStatus.completed) {

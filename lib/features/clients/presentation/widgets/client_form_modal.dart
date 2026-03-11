@@ -1,13 +1,13 @@
-import 'package:fit_progressor/features/clients/domain/entities/client.dart';
+import 'package:car_repair_manager/features/clients/domain/entities/client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:fit_progressor/core/widgets/country_code_picker.dart';
+import 'package:car_repair_manager/core/widgets/country_code_picker.dart';
 import '../bloc/client_bloc.dart';
 import '../bloc/client_event.dart';
 import '../bloc/client_state.dart';
-import 'package:fit_progressor/shared/widgets/base_form_modal.dart';
-import 'package:fit_progressor/core/theme/app_spacing.dart';
+import 'package:car_repair_manager/shared/widgets/base_form_modal.dart';
+import 'package:car_repair_manager/core/theme/app_spacing.dart';
 
 class ClientFormModal extends StatefulWidget {
   final Client? client;
@@ -126,7 +126,7 @@ class _ClientFormModalState extends State<ClientFormModal> {
               return null;
             },
           ),
-          SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.lg),
           // Phone field with inline country code picker
           TextFormField(
             controller: _phoneController,

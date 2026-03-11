@@ -3,28 +3,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:fit_progressor/core/theme/theme_cubit.dart';
-import 'package:fit_progressor/core/sync/bloc/sync_bloc.dart';
-import 'package:fit_progressor/core/sync/bloc/sync_state.dart';
-import 'package:fit_progressor/core/sync/sync_engine.dart';
-import 'package:fit_progressor/core/services/export_service.dart';
-import 'package:fit_progressor/core/services/data_seeder_service.dart';
-import 'package:fit_progressor/core/services/cache_cleaner_service.dart';
-import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_bloc.dart';
-import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_event.dart';
-import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_state.dart';
-import 'package:fit_progressor/features/clients/presentation/bloc/client_bloc.dart';
-import 'package:fit_progressor/features/clients/presentation/bloc/client_event.dart';
-import 'package:fit_progressor/features/clients/presentation/bloc/client_state.dart';
-import 'package:fit_progressor/features/cars/presentation/bloc/car_bloc.dart';
-import 'package:fit_progressor/features/cars/presentation/bloc/car_event.dart';
-import 'package:fit_progressor/features/cars/presentation/bloc/car_state.dart';
-import 'package:fit_progressor/features/materials/presentation/bloc/material_bloc.dart';
-import 'package:fit_progressor/features/materials/presentation/bloc/material_event.dart';
-import 'package:fit_progressor/features/dashboard/presentation/bloc/dashboard_bloc.dart';
-import 'package:fit_progressor/features/dashboard/presentation/bloc/dashboard_event.dart';
-import 'package:fit_progressor/shared/widgets/export_sheet.dart';
-import 'package:fit_progressor/injection_container.dart' as di;
+import 'package:car_repair_manager/core/theme/theme_cubit.dart';
+import 'package:car_repair_manager/core/sync/bloc/sync_bloc.dart';
+import 'package:car_repair_manager/core/sync/bloc/sync_state.dart';
+import 'package:car_repair_manager/core/sync/sync_engine.dart';
+import 'package:car_repair_manager/core/services/export_service.dart';
+import 'package:car_repair_manager/core/services/data_seeder_service.dart';
+import 'package:car_repair_manager/core/services/cache_cleaner_service.dart';
+import 'package:car_repair_manager/features/repairs/presentation/bloc/repairs_bloc.dart';
+import 'package:car_repair_manager/features/repairs/presentation/bloc/repairs_event.dart';
+import 'package:car_repair_manager/features/repairs/presentation/bloc/repairs_state.dart';
+import 'package:car_repair_manager/features/clients/presentation/bloc/client_bloc.dart';
+import 'package:car_repair_manager/features/clients/presentation/bloc/client_event.dart';
+import 'package:car_repair_manager/features/clients/presentation/bloc/client_state.dart';
+import 'package:car_repair_manager/features/cars/presentation/bloc/car_bloc.dart';
+import 'package:car_repair_manager/features/cars/presentation/bloc/car_event.dart';
+import 'package:car_repair_manager/features/cars/presentation/bloc/car_state.dart';
+import 'package:car_repair_manager/features/materials/presentation/bloc/material_bloc.dart';
+import 'package:car_repair_manager/features/materials/presentation/bloc/material_event.dart';
+import 'package:car_repair_manager/features/dashboard/presentation/bloc/dashboard_bloc.dart';
+import 'package:car_repair_manager/features/dashboard/presentation/bloc/dashboard_event.dart';
+import 'package:car_repair_manager/shared/widgets/export_sheet.dart';
+import 'package:car_repair_manager/injection_container.dart' as di;
 
 /// Страница настроек
 class SettingsPage extends StatefulWidget {
@@ -47,10 +47,10 @@ class _SettingsPageState extends State<SettingsPage> {
   /// Перезагружает все BLOCs после очистки данных
   void _reloadAllBlocs() {
     // Перезагружаем все данные
-    context.read<RepairsBloc>().add(LoadRepairs());
+    context.read<RepairsBloc>().add(const LoadRepairs());
     context.read<ClientBloc>().add(LoadClients());
     context.read<CarBloc>().add(const LoadCars());
-    context.read<MaterialBloc>().add(LoadMaterials());
+    context.read<MaterialBloc>().add(const LoadMaterials());
     context.read<DashboardBloc>().add(LoadDashboard());
   }
 
@@ -341,7 +341,7 @@ class _SettingsPageState extends State<SettingsPage> {
         children: [
           const ListTile(
             leading: Icon(Icons.info_outline),
-            title: Text('FitProgressor'),
+            title: Text('CarRepairManager'),
             subtitle: Text('Версия 1.0.0'),
           ),
           const Divider(height: 1),
@@ -352,7 +352,7 @@ class _SettingsPageState extends State<SettingsPage> {
             onTap: () {
               showLicensePage(
                 context: context,
-                applicationName: 'FitProgressor',
+                applicationName: 'CarRepairManager',
                 applicationVersion: '1.0.0',
               );
             },

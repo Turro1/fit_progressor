@@ -4,15 +4,15 @@ import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
 
-import 'package:fit_progressor/core/sync/sync_config.dart';
-import 'package:fit_progressor/core/sync/sync_message.dart';
-import 'package:fit_progressor/core/sync/server/sync_server.dart';
-import 'package:fit_progressor/core/sync/client/sync_client.dart';
-import 'package:fit_progressor/core/sync/tracking/change_tracker.dart';
-import 'package:fit_progressor/core/sync/conflict/conflict_resolver.dart';
-import 'package:fit_progressor/core/sync/qr/network_info_service.dart';
-import 'package:fit_progressor/core/sync/qr/qr_data_model.dart';
-import 'package:fit_progressor/core/sync/tracking/hive_models/sync_metadata_hive_model.dart';
+import 'package:car_repair_manager/core/sync/sync_config.dart';
+import 'package:car_repair_manager/core/sync/sync_message.dart';
+import 'package:car_repair_manager/core/sync/server/sync_server.dart';
+import 'package:car_repair_manager/core/sync/client/sync_client.dart';
+import 'package:car_repair_manager/core/sync/tracking/change_tracker.dart';
+import 'package:car_repair_manager/core/sync/conflict/conflict_resolver.dart';
+import 'package:car_repair_manager/core/sync/qr/network_info_service.dart';
+import 'package:car_repair_manager/core/sync/qr/qr_data_model.dart';
+import 'package:car_repair_manager/core/sync/tracking/hive_models/sync_metadata_hive_model.dart';
 
 /// Режим работы синхронизации
 enum SyncMode {
@@ -135,7 +135,7 @@ class SyncEngine {
       _deviceName = metadata.deviceName;
     } else {
       _deviceId = const Uuid().v4();
-      _deviceName = 'FitProgressor Device';
+      _deviceName = 'CarRepairManager Device';
 
       final newMetadata = SyncMetadataHiveModel(
         deviceId: _deviceId,

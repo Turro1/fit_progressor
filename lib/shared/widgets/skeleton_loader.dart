@@ -137,26 +137,26 @@ class EntityCardSkeleton extends StatelessWidget {
             ),
           ],
         ),
-        child: Row(
+        child: const Row(
           children: [
             // Avatar
-            const SkeletonBox(width: 56, height: 56, borderRadius: 28),
-            const SizedBox(width: 16),
+            SkeletonBox(width: 56, height: 56, borderRadius: 28),
+            SizedBox(width: 16),
             // Content
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SkeletonBox(width: 140, height: 20),
-                  const SizedBox(height: 8),
-                  const SkeletonBox(width: 100, height: 16),
-                  const SizedBox(height: 6),
-                  const SkeletonBox(width: 80, height: 14),
+                  SkeletonBox(width: 140, height: 20),
+                  SizedBox(height: 8),
+                  SkeletonBox(width: 100, height: 16),
+                  SizedBox(height: 6),
+                  SkeletonBox(width: 80, height: 14),
                 ],
               ),
             ),
             // Arrow
-            const SkeletonBox(width: 16, height: 16, borderRadius: 4),
+            SkeletonBox(width: 16, height: 16, borderRadius: 4),
           ],
         ),
       ),
@@ -204,19 +204,19 @@ class StatCardSkeleton extends StatelessWidget {
             ),
           ],
         ),
-        child: Column(
+        child: const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const SkeletonBox(width: 80, height: 14),
-                const SkeletonBox(width: 24, height: 24, borderRadius: 12),
+                SkeletonBox(width: 80, height: 14),
+                SkeletonBox(width: 24, height: 24, borderRadius: 12),
               ],
             ),
-            const SizedBox(height: 8),
-            const SkeletonBox(width: 100, height: 28),
+            SizedBox(height: 8),
+            SkeletonBox(width: 100, height: 28),
           ],
         ),
       ),
@@ -234,11 +234,11 @@ class DashboardSkeleton extends StatelessWidget {
       padding: const EdgeInsets.all(15),
       children: [
         // Header
-        Row(
+        const Row(
           children: [
-            const SkeletonBox(width: 28, height: 28, borderRadius: 4),
-            const SizedBox(width: 10),
-            const SkeletonBox(width: 100, height: 28),
+            SkeletonBox(width: 28, height: 28, borderRadius: 4),
+            SizedBox(width: 10),
+            SkeletonBox(width: 100, height: 28),
           ],
         ),
         const SizedBox(height: 20),

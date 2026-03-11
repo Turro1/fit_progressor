@@ -1,5 +1,5 @@
-import 'package:fit_progressor/features/dashboard/domain/entities/dashboard_stats.dart';
-import 'package:fit_progressor/shared/widgets/animated_counter.dart';
+import 'package:car_repair_manager/features/dashboard/domain/entities/dashboard_stats.dart';
+import 'package:car_repair_manager/shared/widgets/animated_counter.dart';
 import 'package:flutter/material.dart';
 
 class StatCard extends StatefulWidget {

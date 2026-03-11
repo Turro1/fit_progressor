@@ -1,15 +1,15 @@
-import 'package:fit_progressor/core/services/material_stock_service.dart';
-import 'package:fit_progressor/features/repairs/data/services/repair_image_service.dart';
-import 'package:fit_progressor/features/repairs/domain/entities/repair.dart';
-import 'package:fit_progressor/features/repairs/domain/entities/repair_filter.dart';
-import 'package:fit_progressor/features/repairs/domain/usecases/add_repair.dart';
-import 'package:fit_progressor/features/repairs/domain/usecases/delete_repair.dart';
-import 'package:fit_progressor/features/repairs/domain/usecases/get_repair_by_id.dart';
-import 'package:fit_progressor/features/repairs/domain/usecases/get_repairs.dart';
-import 'package:fit_progressor/features/repairs/domain/usecases/search_repairs.dart';
-import 'package:fit_progressor/features/repairs/domain/usecases/update_repair.dart';
-import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_event.dart';
-import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_state.dart';
+import 'package:car_repair_manager/core/services/material_stock_service.dart';
+import 'package:car_repair_manager/features/repairs/data/services/repair_image_service.dart';
+import 'package:car_repair_manager/features/repairs/domain/entities/repair.dart';
+import 'package:car_repair_manager/features/repairs/domain/entities/repair_filter.dart';
+import 'package:car_repair_manager/features/repairs/domain/usecases/add_repair.dart';
+import 'package:car_repair_manager/features/repairs/domain/usecases/delete_repair.dart';
+import 'package:car_repair_manager/features/repairs/domain/usecases/get_repair_by_id.dart';
+import 'package:car_repair_manager/features/repairs/domain/usecases/get_repairs.dart';
+import 'package:car_repair_manager/features/repairs/domain/usecases/search_repairs.dart';
+import 'package:car_repair_manager/features/repairs/domain/usecases/update_repair.dart';
+import 'package:car_repair_manager/features/repairs/presentation/bloc/repairs_event.dart';
+import 'package:car_repair_manager/features/repairs/presentation/bloc/repairs_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class RepairsBloc extends Bloc<RepairsEvent, RepairsState> {
@@ -251,7 +251,7 @@ class RepairsBloc extends Bloc<RepairsEvent, RepairsState> {
           emit(const RepairsOperationSuccess(message: 'Ремонт добавлен'));
         } else {
           emit(const RepairsOperationSuccess(message: 'Ремонт добавлен'));
-          add(LoadRepairs());
+          add(const LoadRepairs());
         }
       },
     );
@@ -324,7 +324,7 @@ class RepairsBloc extends Bloc<RepairsEvent, RepairsState> {
           emit(const RepairsOperationSuccess(message: 'Ремонт обновлен'));
         } else {
           emit(const RepairsOperationSuccess(message: 'Ремонт обновлен'));
-          add(LoadRepairs());
+          add(const LoadRepairs());
         }
       },
     );
@@ -384,7 +384,7 @@ class RepairsBloc extends Bloc<RepairsEvent, RepairsState> {
           emit(const RepairsOperationSuccess(message: 'Ремонт удален'));
         } else {
           emit(const RepairsOperationSuccess(message: 'Ремонт удален'));
-          add(LoadRepairs());
+          add(const LoadRepairs());
         }
       },
     );
@@ -453,7 +453,7 @@ class RepairsBloc extends Bloc<RepairsEvent, RepairsState> {
           ));
         } else {
           emit(const RepairsOperationSuccess(message: 'Ремонт восстановлен'));
-          add(LoadRepairs());
+          add(const LoadRepairs());
         }
       },
     );

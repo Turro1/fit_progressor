@@ -1,17 +1,17 @@
-import 'package:fit_progressor/features/cars/presentation/bloc/car_bloc.dart';
-import 'package:fit_progressor/features/cars/presentation/bloc/car_state.dart';
-import 'package:fit_progressor/features/cars/presentation/widgets/car_form_modal.dart';
-import 'package:fit_progressor/features/cars/presentation/widgets/car_repairs_modal.dart';
-import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_bloc.dart';
-import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_state.dart';
-import 'package:fit_progressor/shared/widgets/empty_state.dart';
+import 'package:car_repair_manager/features/cars/presentation/bloc/car_bloc.dart';
+import 'package:car_repair_manager/features/cars/presentation/bloc/car_state.dart';
+import 'package:car_repair_manager/features/cars/presentation/widgets/car_form_modal.dart';
+import 'package:car_repair_manager/features/cars/presentation/widgets/car_repairs_modal.dart';
+import 'package:car_repair_manager/features/repairs/presentation/bloc/repairs_bloc.dart';
+import 'package:car_repair_manager/features/repairs/presentation/bloc/repairs_state.dart';
+import 'package:car_repair_manager/shared/widgets/empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:fit_progressor/core/theme/app_spacing.dart';
-import 'package:fit_progressor/core/utils/car_logo_helper.dart';
-import 'package:fit_progressor/core/widgets/country_flag.dart';
-import 'package:fit_progressor/features/cars/domain/entities/car.dart';
+import 'package:car_repair_manager/core/theme/app_spacing.dart';
+import 'package:car_repair_manager/core/utils/car_logo_helper.dart';
+import 'package:car_repair_manager/core/widgets/country_flag.dart';
+import 'package:car_repair_manager/features/cars/domain/entities/car.dart';
 
 import '../../domain/entities/client.dart';
 
@@ -61,7 +61,7 @@ class ClientCarsModal extends StatelessWidget {
         children: [
           // Header
           Padding(
-            padding: EdgeInsets.only(
+            padding: const EdgeInsets.only(
               top: AppSpacing.lg,
               left: AppSpacing.xl,
               right: AppSpacing.xl,
@@ -72,7 +72,7 @@ class ClientCarsModal extends StatelessWidget {
                 Container(
                   width: 40,
                   height: 4,
-                  margin: EdgeInsets.only(bottom: AppSpacing.lg),
+                  margin: const EdgeInsets.only(bottom: AppSpacing.lg),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.outlineVariant,
                     borderRadius: BorderRadius.circular(2),
@@ -95,7 +95,7 @@ class ClientCarsModal extends StatelessWidget {
                         ),
                       ),
                     ),
-                    SizedBox(width: AppSpacing.lg),
+                    const SizedBox(width: AppSpacing.lg),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -106,10 +106,7 @@ class ClientCarsModal extends StatelessWidget {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          Text(
-                            client.phone,
-                            style: theme.textTheme.bodyMedium,
-                          ),
+                          Text(client.phone, style: theme.textTheme.bodyMedium),
                         ],
                       ),
                     ),
@@ -125,10 +122,10 @@ class ClientCarsModal extends StatelessWidget {
               ],
             ),
           ),
-          SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.lg),
           // Заголовок секции
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
             child: Row(
               children: [
                 Icon(
@@ -136,7 +133,7 @@ class ClientCarsModal extends StatelessWidget {
                   size: 20,
                   color: theme.colorScheme.primary,
                 ),
-                SizedBox(width: AppSpacing.sm),
+                const SizedBox(width: AppSpacing.sm),
                 Text(
                   'Автомобили',
                   style: theme.textTheme.titleMedium?.copyWith(
@@ -146,7 +143,7 @@ class ClientCarsModal extends StatelessWidget {
               ],
             ),
           ),
-          SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.md),
           // Cars list
           Expanded(
             child: BlocBuilder<CarBloc, CarState>(
@@ -164,20 +161,31 @@ class ClientCarsModal extends StatelessWidget {
                     return const EmptyState(
                       icon: Icons.directions_car_outlined,
                       title: 'Нет автомобилей',
-                      message: 'У этого клиента пока нет добавленных автомобилей',
+                      message:
+                          'У этого клиента пока нет добавленных автомобилей',
                     );
                   }
 
                   return BlocBuilder<RepairsBloc, RepairsState>(
                     builder: (context, repairsState) {
                       return ListView.builder(
-                        padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.lg,
+                        ),
                         itemCount: clientCars.length,
                         itemBuilder: (context, index) {
                           final car = clientCars[index];
-                          final repairsCount = _getRepairsCountForCar(car.id, repairsState);
+                          final repairsCount = _getRepairsCountForCar(
+                            car.id,
+                            repairsState,
+                          );
 
-                          return _buildCarCard(context, theme, car, repairsCount);
+                          return _buildCarCard(
+                            context,
+                            theme,
+                            car,
+                            repairsCount,
+                          );
                         },
                       );
                     },
@@ -195,7 +203,7 @@ class ClientCarsModal extends StatelessWidget {
           ),
           // Add car button
           Padding(
-            padding: EdgeInsets.all(AppSpacing.lg),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: SizedBox(
               width: double.infinity,
               child: FilledButton.icon(
@@ -225,47 +233,26 @@ class ClientCarsModal extends StatelessWidget {
     int repairsCount,
   ) {
     return Card(
-      margin: EdgeInsets.only(bottom: AppSpacing.md),
+      margin: const EdgeInsets.only(bottom: AppSpacing.md),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () => _openCarRepairsModal(context, car),
         child: Padding(
-          padding: EdgeInsets.all(AppSpacing.md),
+          padding: const EdgeInsets.all(AppSpacing.md),
           child: Row(
             children: [
-              // Car logo
-              Container(
+              SizedBox(
                 width: 48,
                 height: 48,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.08),
-                      blurRadius: 4,
-                      offset: const Offset(0, 1),
-                    ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Image.asset(
-                    CarLogoHelper.getLogoPath(car.make),
-                    width: 48,
-                    height: 48,
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Icon(
-                        Icons.directions_car_rounded,
-                        size: 28,
-                        color: theme.colorScheme.primary,
-                      );
-                    },
+                child: Center(
+                  child: CarLogoHelper.getLogoWidget(
+                    context,
+                    car.make,
+                    size: 36,
                   ),
                 ),
               ),
-              SizedBox(width: AppSpacing.md),
+              const SizedBox(width: AppSpacing.md),
               // Car info
               Expanded(
                 child: Column(
@@ -277,7 +264,7 @@ class ClientCarsModal extends StatelessWidget {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    SizedBox(height: AppSpacing.xs),
+                    const SizedBox(height: AppSpacing.xs),
                     PlateWithFlag(
                       plate: car.plate,
                       textStyle: theme.textTheme.bodySmall?.copyWith(
@@ -291,7 +278,7 @@ class ClientCarsModal extends StatelessWidget {
               // Repairs count badge
               if (repairsCount > 0)
                 Container(
-                  padding: EdgeInsets.symmetric(
+                  padding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.sm,
                     vertical: AppSpacing.xs,
                   ),
@@ -307,7 +294,7 @@ class ClientCarsModal extends StatelessWidget {
                         size: 14,
                         color: theme.colorScheme.onPrimaryContainer,
                       ),
-                      SizedBox(width: AppSpacing.xs),
+                      const SizedBox(width: AppSpacing.xs),
                       Text(
                         '$repairsCount',
                         style: theme.textTheme.labelSmall?.copyWith(
@@ -318,7 +305,7 @@ class ClientCarsModal extends StatelessWidget {
                     ],
                   ),
                 ),
-              SizedBox(width: AppSpacing.sm),
+              const SizedBox(width: AppSpacing.sm),
               // Arrow icon
               Icon(
                 Icons.chevron_right,

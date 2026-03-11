@@ -1,33 +1,31 @@
-import 'package:fit_progressor/features/cars/presentation/bloc/car_bloc.dart';
-import 'package:fit_progressor/features/clients/domain/entities/client.dart';
-import 'package:fit_progressor/features/clients/presentation/bloc/client_bloc.dart';
-import 'package:fit_progressor/features/clients/presentation/bloc/client_state.dart';
-import 'package:fit_progressor/features/clients/presentation/widgets/client_cars_modal.dart';
-import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_bloc.dart';
-import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_event.dart';
-import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_state.dart';
-import 'package:fit_progressor/features/repairs/presentation/widgets/repair_card.dart';
-import 'package:fit_progressor/features/repairs/presentation/widgets/repair_form_modal.dart';
-import 'package:fit_progressor/shared/widgets/empty_state.dart';
+import 'package:car_repair_manager/features/cars/presentation/bloc/car_bloc.dart';
+import 'package:car_repair_manager/features/clients/domain/entities/client.dart';
+import 'package:car_repair_manager/features/clients/presentation/bloc/client_bloc.dart';
+import 'package:car_repair_manager/features/clients/presentation/bloc/client_state.dart';
+import 'package:car_repair_manager/features/clients/presentation/widgets/client_cars_modal.dart';
+import 'package:car_repair_manager/features/repairs/presentation/bloc/repairs_bloc.dart';
+import 'package:car_repair_manager/features/repairs/presentation/bloc/repairs_event.dart';
+import 'package:car_repair_manager/features/repairs/presentation/bloc/repairs_state.dart';
+import 'package:car_repair_manager/features/repairs/presentation/widgets/repair_card.dart';
+import 'package:car_repair_manager/features/repairs/presentation/widgets/repair_form_modal.dart';
+import 'package:car_repair_manager/shared/widgets/empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:fit_progressor/core/theme/app_spacing.dart';
-import 'package:fit_progressor/core/utils/car_logo_helper.dart';
-import 'package:fit_progressor/core/widgets/country_flag.dart';
+import 'package:car_repair_manager/core/theme/app_spacing.dart';
+import 'package:car_repair_manager/core/utils/car_logo_helper.dart';
+import 'package:car_repair_manager/core/widgets/country_flag.dart';
 
 import '../../domain/entities/car.dart';
 
 class CarRepairsModal extends StatefulWidget {
   final Car car;
+
   /// Если передан - показывается кнопка "Назад" для возврата к клиенту
   final Client? sourceClient;
 
-  const CarRepairsModal({
-    Key? key,
-    required this.car,
-    this.sourceClient,
-  }) : super(key: key);
+  const CarRepairsModal({Key? key, required this.car, this.sourceClient})
+    : super(key: key);
 
   @override
   State<CarRepairsModal> createState() => _CarRepairsModalState();
@@ -89,7 +87,7 @@ class _CarRepairsModalState extends State<CarRepairsModal> {
         children: [
           // Header
           Padding(
-            padding: EdgeInsets.only(
+            padding: const EdgeInsets.only(
               top: AppSpacing.lg,
               left: AppSpacing.xl,
               right: AppSpacing.xl,
@@ -106,7 +104,8 @@ class _CarRepairsModalState extends State<CarRepairsModal> {
                         icon: const Icon(Icons.arrow_back),
                         tooltip: 'Назад к клиенту',
                         style: IconButton.styleFrom(
-                          backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                          backgroundColor:
+                              theme.colorScheme.surfaceContainerHighest,
                         ),
                       )
                     else
@@ -127,42 +126,22 @@ class _CarRepairsModalState extends State<CarRepairsModal> {
                     const SizedBox(width: 48), // placeholder для симметрии
                   ],
                 ),
-                SizedBox(height: AppSpacing.md),
+                const SizedBox(height: AppSpacing.md),
                 // Car info
                 Row(
                   children: [
-                    Container(
+                    SizedBox(
                       width: 56,
                       height: 56,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.asset(
-                          CarLogoHelper.getLogoPath(widget.car.make),
-                          width: 56,
-                          height: 56,
-                          fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Icon(
-                              Icons.directions_car_rounded,
-                              size: 32,
-                              color: theme.colorScheme.primary,
-                            );
-                          },
+                      child: Center(
+                        child: CarLogoHelper.getLogoWidget(
+                          context,
+                          widget.car.make,
+                          size: 40,
                         ),
                       ),
                     ),
-                    SizedBox(width: AppSpacing.lg),
+                    const SizedBox(width: AppSpacing.lg),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -173,7 +152,7 @@ class _CarRepairsModalState extends State<CarRepairsModal> {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          SizedBox(height: AppSpacing.xs),
+                          const SizedBox(height: AppSpacing.xs),
                           PlateWithFlag(
                             plate: widget.car.plate,
                             textStyle: theme.textTheme.bodyMedium?.copyWith(
@@ -189,7 +168,7 @@ class _CarRepairsModalState extends State<CarRepairsModal> {
               ],
             ),
           ),
-          SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.lg),
 
           // Owner info
           BlocBuilder<ClientBloc, ClientState>(
@@ -200,9 +179,9 @@ class _CarRepairsModalState extends State<CarRepairsModal> {
               }
 
               return Padding(
-                padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                 child: Container(
-                  padding: EdgeInsets.all(AppSpacing.md),
+                  padding: const EdgeInsets.all(AppSpacing.md),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(12),
@@ -223,7 +202,7 @@ class _CarRepairsModalState extends State<CarRepairsModal> {
                           ),
                         ),
                       ),
-                      SizedBox(width: AppSpacing.md),
+                      const SizedBox(width: AppSpacing.md),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -257,11 +236,11 @@ class _CarRepairsModalState extends State<CarRepairsModal> {
               );
             },
           ),
-          SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.lg),
 
           // Заголовок секции ремонтов
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
             child: Row(
               children: [
                 Icon(
@@ -269,7 +248,7 @@ class _CarRepairsModalState extends State<CarRepairsModal> {
                   size: 20,
                   color: theme.colorScheme.primary,
                 ),
-                SizedBox(width: AppSpacing.sm),
+                const SizedBox(width: AppSpacing.sm),
                 Text(
                   'Ремонты',
                   style: theme.textTheme.titleMedium?.copyWith(
@@ -281,7 +260,7 @@ class _CarRepairsModalState extends State<CarRepairsModal> {
                   builder: (context, state) {
                     if (state is RepairsLoaded && state.repairs.isNotEmpty) {
                       return Container(
-                        padding: EdgeInsets.symmetric(
+                        padding: const EdgeInsets.symmetric(
                           horizontal: AppSpacing.sm,
                           vertical: AppSpacing.xs,
                         ),
@@ -304,7 +283,7 @@ class _CarRepairsModalState extends State<CarRepairsModal> {
               ],
             ),
           ),
-          SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.md),
 
           // Repairs list
           Expanded(
@@ -326,7 +305,9 @@ class _CarRepairsModalState extends State<CarRepairsModal> {
                     ),
                   );
                   // Перезагружаем список ремонтов для этого автомобиля
-                  context.read<RepairsBloc>().add(LoadRepairs(carId: widget.car.id));
+                  context.read<RepairsBloc>().add(
+                    LoadRepairs(carId: widget.car.id),
+                  );
                 }
               },
               builder: (context, state) {
@@ -345,7 +326,9 @@ class _CarRepairsModalState extends State<CarRepairsModal> {
                   }
 
                   return ListView.builder(
-                    padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.lg,
+                    ),
                     itemCount: state.repairs.length,
                     itemBuilder: (context, index) {
                       final repair = state.repairs[index];
@@ -366,7 +349,7 @@ class _CarRepairsModalState extends State<CarRepairsModal> {
 
           // Add repair button
           Padding(
-            padding: EdgeInsets.all(AppSpacing.lg),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: SizedBox(
               width: double.infinity,
               child: FilledButton.icon(

@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:fit_progressor/core/sync/sync_config.dart';
-import 'package:fit_progressor/core/sync/sync_message.dart';
+import 'package:car_repair_manager/core/sync/sync_config.dart';
+import 'package:car_repair_manager/core/sync/sync_message.dart';
 
 /// Состояние подключения клиента
 enum SyncConnectionState {
@@ -95,9 +95,9 @@ class SyncClient {
       final url = 'ws://$serverIp:$port';
       _socket = await WebSocket.connect(
         url,
-        headers: {'User-Agent': 'FitProgressor/${SyncConfig.protocolVersion}'},
+        headers: {'User-Agent': 'CarRepairManager/${SyncConfig.protocolVersion}'},
       ).timeout(
-        Duration(seconds: SyncConfig.connectionTimeoutSeconds),
+        const Duration(seconds: SyncConfig.connectionTimeoutSeconds),
       );
 
       // Отправляем handshake
@@ -280,7 +280,7 @@ class SyncClient {
   /// Запустить ping timer
   void _startPingTimer() {
     _pingTimer = Timer.periodic(
-      Duration(seconds: SyncConfig.pingIntervalSeconds),
+      const Duration(seconds: SyncConfig.pingIntervalSeconds),
       (_) => _sendPing(),
     );
   }
@@ -309,7 +309,7 @@ class SyncClient {
     _setState(SyncConnectionState.reconnecting);
 
     _reconnectTimer = Timer(
-      Duration(seconds: SyncConfig.reconnectDelaySeconds),
+      const Duration(seconds: SyncConfig.reconnectDelaySeconds),
       () => _doConnect(serverIp, port),
     );
   }

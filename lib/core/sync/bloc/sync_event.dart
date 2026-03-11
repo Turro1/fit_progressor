@@ -1,8 +1,8 @@
 import 'package:equatable/equatable.dart';
 
-import 'package:fit_progressor/core/sync/qr/qr_data_model.dart';
-import 'package:fit_progressor/core/sync/sync_engine.dart';
-import 'package:fit_progressor/core/sync/client/sync_client.dart';
+import 'package:car_repair_manager/core/sync/qr/qr_data_model.dart';
+import 'package:car_repair_manager/core/sync/sync_engine.dart';
+import 'package:car_repair_manager/core/sync/client/sync_client.dart';
 
 /// Базовый класс событий синхронизации
 abstract class SyncEvent extends Equatable {

@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
-import 'package:fit_progressor/core/error/failures/failure.dart';
-import 'package:fit_progressor/features/repairs/domain/repositories/repair_repository.dart';
+import 'package:car_repair_manager/core/error/failures/failure.dart';
+import 'package:car_repair_manager/features/repairs/domain/repositories/repair_repository.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../repositories/car_repository.dart';
 

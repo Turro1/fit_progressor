@@ -1,12 +1,12 @@
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:fit_progressor/features/repairs/data/models/repair_hive_model.dart';
-import 'package:fit_progressor/features/repairs/data/models/repair_material_hive_model.dart';
-import 'package:fit_progressor/features/clients/data/models/client_hive_model.dart';
-import 'package:fit_progressor/features/cars/data/models/car_hive_model.dart';
-import 'package:fit_progressor/features/materials/data/models/material_hive_model.dart';
-import 'package:fit_progressor/core/sync/tracking/hive_models/sync_metadata_hive_model.dart';
-import 'package:fit_progressor/core/sync/tracking/hive_models/pending_change_hive_model.dart';
-import 'package:fit_progressor/core/sync/tracking/hive_models/connected_device_hive_model.dart';
+import 'package:car_repair_manager/features/repairs/data/models/repair_hive_model.dart';
+import 'package:car_repair_manager/features/repairs/data/models/repair_material_hive_model.dart';
+import 'package:car_repair_manager/features/clients/data/models/client_hive_model.dart';
+import 'package:car_repair_manager/features/cars/data/models/car_hive_model.dart';
+import 'package:car_repair_manager/features/materials/data/models/material_hive_model.dart';
+import 'package:car_repair_manager/core/sync/tracking/hive_models/sync_metadata_hive_model.dart';
+import 'package:car_repair_manager/core/sync/tracking/hive_models/pending_change_hive_model.dart';
+import 'package:car_repair_manager/core/sync/tracking/hive_models/connected_device_hive_model.dart';
 
 /// Box names for Hive storage
 class HiveBoxes {

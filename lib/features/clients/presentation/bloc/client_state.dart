@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:fit_progressor/features/clients/domain/entities/client.dart';
+import 'package:car_repair_manager/features/clients/domain/entities/client.dart';
 
 abstract class ClientState extends Equatable {
   const ClientState();

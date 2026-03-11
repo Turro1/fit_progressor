@@ -1,11 +1,11 @@
 import 'package:hive/hive.dart';
-import 'package:fit_progressor/core/error/exceptions/cache_exception.dart';
-import 'package:fit_progressor/core/error/exceptions/duplicate_exception.dart';
-import 'package:fit_progressor/core/storage/hive_config.dart';
-import 'package:fit_progressor/core/sync/sync_message.dart';
-import 'package:fit_progressor/core/sync/tracking/change_tracker.dart';
-import 'package:fit_progressor/features/clients/data/models/client_model.dart';
-import 'package:fit_progressor/features/clients/data/models/client_hive_model.dart';
+import 'package:car_repair_manager/core/error/exceptions/cache_exception.dart';
+import 'package:car_repair_manager/core/error/exceptions/duplicate_exception.dart';
+import 'package:car_repair_manager/core/storage/hive_config.dart';
+import 'package:car_repair_manager/core/sync/sync_message.dart';
+import 'package:car_repair_manager/core/sync/tracking/change_tracker.dart';
+import 'package:car_repair_manager/features/clients/data/models/client_model.dart';
+import 'package:car_repair_manager/features/clients/data/models/client_hive_model.dart';
 import 'client_local_data_source.dart';
 
 /// Hive implementation of ClientLocalDataSource
@@ -36,7 +36,7 @@ class ClientHiveDataSource implements ClientLocalDataSource {
     try {
       final hiveModel = _box.get(id);
       if (hiveModel == null) {
-        throw CacheException(message: 'Клиент не найден');
+        throw const CacheException(message: 'Клиент не найден');
       }
       return ClientModel.fromEntity(hiveModel.toEntity());
     } catch (e) {
@@ -91,7 +91,7 @@ class ClientHiveDataSource implements ClientLocalDataSource {
     try {
       final existing = _box.get(client.id);
       if (existing == null) {
-        throw CacheException(message: 'Клиент не найден');
+        throw const CacheException(message: 'Клиент не найден');
       }
 
       // Check for duplicate phone (excluding current client)

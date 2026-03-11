@@ -1,12 +1,12 @@
-import 'package:fit_progressor/core/error/failures/duplicate_failure.dart';
-import 'package:fit_progressor/core/usecases/usecase.dart';
-import 'package:fit_progressor/features/clients/domain/usecases/add_client.dart';
-import 'package:fit_progressor/features/clients/domain/usecases/delete_client.dart';
-import 'package:fit_progressor/features/clients/domain/usecases/get_clients.dart';
-import 'package:fit_progressor/features/clients/domain/usecases/search_clients.dart';
-import 'package:fit_progressor/features/clients/domain/usecases/update_client.dart';
-import 'package:fit_progressor/features/clients/presentation/bloc/client_event.dart';
-import 'package:fit_progressor/features/clients/presentation/bloc/client_state.dart';
+import 'package:car_repair_manager/core/error/failures/duplicate_failure.dart';
+import 'package:car_repair_manager/core/usecases/usecase.dart';
+import 'package:car_repair_manager/features/clients/domain/usecases/add_client.dart';
+import 'package:car_repair_manager/features/clients/domain/usecases/delete_client.dart';
+import 'package:car_repair_manager/features/clients/domain/usecases/get_clients.dart';
+import 'package:car_repair_manager/features/clients/domain/usecases/search_clients.dart';
+import 'package:car_repair_manager/features/clients/domain/usecases/update_client.dart';
+import 'package:car_repair_manager/features/clients/presentation/bloc/client_event.dart';
+import 'package:car_repair_manager/features/clients/presentation/bloc/client_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ClientBloc extends Bloc<ClientEvent, ClientState> {

@@ -1,4 +1,4 @@
-import 'package:fit_progressor/features/clients/domain/entities/client.dart';
+import 'package:car_repair_manager/features/clients/domain/entities/client.dart';
 
 class ClientModel extends Client {
   const ClientModel({

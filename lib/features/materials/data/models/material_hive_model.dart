@@ -1,6 +1,6 @@
 import 'package:hive/hive.dart';
-import 'package:fit_progressor/core/storage/hive_config.dart';
-import 'package:fit_progressor/features/materials/domain/entities/material.dart';
+import 'package:car_repair_manager/core/storage/hive_config.dart';
+import 'package:car_repair_manager/features/materials/domain/entities/material.dart';
 
 /// Hive model for Material (inventory)
 class MaterialHiveModel extends HiveObject {

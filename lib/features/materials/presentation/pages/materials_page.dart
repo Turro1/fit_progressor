@@ -1,9 +1,9 @@
-import 'package:fit_progressor/features/materials/domain/entities/material_filter.dart';
-import 'package:fit_progressor/shared/widgets/animated_fab.dart';
-import 'package:fit_progressor/shared/widgets/animated_list_item.dart';
-import 'package:fit_progressor/shared/widgets/app_search_bar.dart';
-import 'package:fit_progressor/shared/widgets/empty_state.dart';
-import 'package:fit_progressor/shared/services/undo_service.dart';
+import 'package:car_repair_manager/features/materials/domain/entities/material_filter.dart';
+import 'package:car_repair_manager/shared/widgets/animated_fab.dart';
+import 'package:car_repair_manager/shared/widgets/animated_list_item.dart';
+import 'package:car_repair_manager/shared/widgets/app_search_bar.dart';
+import 'package:car_repair_manager/shared/widgets/empty_state.dart';
+import 'package:car_repair_manager/shared/services/undo_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/material.dart' as entity;

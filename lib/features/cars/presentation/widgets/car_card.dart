@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:fit_progressor/shared/widgets/entity_card.dart';
-import 'package:fit_progressor/core/utils/car_logo_helper.dart';
-import 'package:fit_progressor/core/widgets/country_flag.dart';
+import 'package:car_repair_manager/shared/widgets/entity_card.dart';
+import 'package:car_repair_manager/core/utils/car_logo_helper.dart';
+import 'package:car_repair_manager/core/widgets/country_flag.dart';
 import '../../domain/entities/car.dart';
-import 'dart:developer' as developer;
 
 class CarCard extends StatelessWidget {
   final Car car;
@@ -32,28 +31,17 @@ class CarCard extends StatelessWidget {
       onDelete: onDelete,
       // Новый дизайн
       compact: false,
-      elevation: 2.0,
-      leading: CircleAvatar(
-        radius: 28,
-        backgroundColor: Colors.white,
-        child: Image.asset(
-          CarLogoHelper.getLogoPath(car.make),
-          fit: BoxFit.contain,
-          width: 40,
-          height: 40,
-          errorBuilder: (context, error, stackTrace) {
-            developer.log(
-              'Failed to load logo for ${car.make}: $error',
-              name: 'CarCard',
-              error: error,
-              stackTrace: stackTrace,
-            );
-            return Icon(
-              Icons.directions_car_rounded,
-              size: 32,
-              color: theme.colorScheme.primary,
-            );
-          },
+      leading: Container(
+        width: 64,
+        height: 64,
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest.withValues(
+            alpha: 0.5,
+          ),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Center(
+          child: CarLogoHelper.getLogoWidget(context, car.make, size: 40),
         ),
       ),
       title: Text(
@@ -97,10 +85,19 @@ class CarCard extends StatelessWidget {
           ),
       ],
       trailing: onTap != null
-          ? Icon(
-              Icons.arrow_forward_ios,
-              size: 16,
-              color: theme.iconTheme.color,
+          ? Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest.withValues(
+                  alpha: 0.3,
+                ),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.arrow_forward_ios,
+                size: 14,
+                color: theme.iconTheme.color,
+              ),
             )
           : null,
     );

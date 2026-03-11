@@ -1,6 +1,6 @@
 import 'package:hive/hive.dart';
-import 'package:fit_progressor/core/storage/hive_config.dart';
-import 'package:fit_progressor/features/clients/domain/entities/client.dart';
+import 'package:car_repair_manager/core/storage/hive_config.dart';
+import 'package:car_repair_manager/features/clients/domain/entities/client.dart';
 
 /// Hive model for Client
 class ClientHiveModel extends HiveObject {

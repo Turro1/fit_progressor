@@ -1,9 +1,9 @@
 import 'package:dartz/dartz.dart';
 
-import 'package:fit_progressor/core/error/failures/failure.dart';
-import 'package:fit_progressor/features/clients/domain/repositories/client_repository.dart';
-import 'package:fit_progressor/features/cars/domain/repositories/car_repository.dart';
-import 'package:fit_progressor/features/repairs/domain/repositories/repair_repository.dart';
+import 'package:car_repair_manager/core/error/failures/failure.dart';
+import 'package:car_repair_manager/features/clients/domain/repositories/client_repository.dart';
+import 'package:car_repair_manager/features/cars/domain/repositories/car_repository.dart';
+import 'package:car_repair_manager/features/repairs/domain/repositories/repair_repository.dart';
 import '../../../../core/usecases/usecase.dart';
 
 class DeleteClient implements UseCase<void, String> {

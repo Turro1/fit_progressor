@@ -1,4 +1,4 @@
-import 'package:fit_progressor/core/services/export_service.dart';
+import 'package:car_repair_manager/core/services/export_service.dart';
 import 'package:flutter/material.dart';
 import 'package:open_filex/open_filex.dart';
 
@@ -74,11 +74,11 @@ class _ExportSheetState extends State<ExportSheet> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Row(
+        title: const Row(
           children: [
             Icon(Icons.check_circle, color: Colors.green, size: 28),
-            const SizedBox(width: 12),
-            const Text('Экспорт завершён'),
+            SizedBox(width: 12),
+            Text('Экспорт завершён'),
           ],
         ),
         content: const Text('Файл успешно создан. Что вы хотите сделать?'),

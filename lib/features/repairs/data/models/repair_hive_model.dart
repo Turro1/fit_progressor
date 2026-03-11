@@ -1,8 +1,8 @@
 import 'package:hive/hive.dart';
-import 'package:fit_progressor/core/storage/hive_config.dart';
-import 'package:fit_progressor/features/repairs/domain/entities/repair.dart';
-import 'package:fit_progressor/features/repairs/domain/entities/repair_status.dart';
-import 'package:fit_progressor/features/repairs/data/models/repair_material_hive_model.dart';
+import 'package:car_repair_manager/core/storage/hive_config.dart';
+import 'package:car_repair_manager/features/repairs/domain/entities/repair.dart';
+import 'package:car_repair_manager/features/repairs/domain/entities/repair_status.dart';
+import 'package:car_repair_manager/features/repairs/data/models/repair_material_hive_model.dart';
 
 /// Hive model for Repair
 class RepairHiveModel extends HiveObject {

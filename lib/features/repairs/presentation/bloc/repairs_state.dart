@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
-import 'package:fit_progressor/features/repairs/domain/entities/repair.dart';
-import 'package:fit_progressor/features/repairs/domain/entities/repair_filter.dart';
+import 'package:car_repair_manager/features/repairs/domain/entities/repair.dart';
+import 'package:car_repair_manager/features/repairs/domain/entities/repair_filter.dart';
 
 abstract class RepairsState extends Equatable {
   const RepairsState();

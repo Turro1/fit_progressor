@@ -1,10 +1,10 @@
 import 'package:hive/hive.dart';
-import 'package:fit_progressor/core/error/exceptions/cache_exception.dart';
-import 'package:fit_progressor/core/storage/hive_config.dart';
-import 'package:fit_progressor/core/sync/sync_message.dart';
-import 'package:fit_progressor/core/sync/tracking/change_tracker.dart';
-import 'package:fit_progressor/features/repairs/data/models/repair_model.dart';
-import 'package:fit_progressor/features/repairs/data/models/repair_hive_model.dart';
+import 'package:car_repair_manager/core/error/exceptions/cache_exception.dart';
+import 'package:car_repair_manager/core/storage/hive_config.dart';
+import 'package:car_repair_manager/core/sync/sync_message.dart';
+import 'package:car_repair_manager/core/sync/tracking/change_tracker.dart';
+import 'package:car_repair_manager/features/repairs/data/models/repair_model.dart';
+import 'package:car_repair_manager/features/repairs/data/models/repair_hive_model.dart';
 import 'repair_local_datasource.dart';
 
 /// Hive implementation of RepairLocalDataSource
@@ -35,7 +35,7 @@ class RepairHiveDataSource implements RepairLocalDataSource {
     try {
       final hiveModel = _box.get(id);
       if (hiveModel == null) {
-        throw CacheException(message: 'Ремонт не найден');
+        throw const CacheException(message: 'Ремонт не найден');
       }
       return RepairModel.fromEntity(hiveModel.toEntity());
     } catch (e) {
@@ -72,7 +72,7 @@ class RepairHiveDataSource implements RepairLocalDataSource {
     try {
       final existing = _box.get(repair.id);
       if (existing == null) {
-        throw CacheException(message: 'Ремонт не найден');
+        throw const CacheException(message: 'Ремонт не найден');
       }
 
       final hiveModel = RepairHiveModel.fromEntity(repair);

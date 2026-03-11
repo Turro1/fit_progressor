@@ -36,9 +36,9 @@ class BaseFormModal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final borderRadius = theme.cardTheme.shape is RoundedRectangleBorder
-        ? (theme.cardTheme.shape as RoundedRectangleBorder).borderRadius
-        : BorderRadius.circular(12);
+    final borderRadius = theme.bottomSheetTheme.shape is RoundedRectangleBorder
+        ? (theme.bottomSheetTheme.shape as RoundedRectangleBorder).borderRadius
+        : BorderRadius.circular(28);
 
     return Container(
       decoration: BoxDecoration(
@@ -64,11 +64,11 @@ class BaseFormModal extends StatelessWidget {
                   Center(
                     child: Container(
                       width: 40,
-                      height: 4,
-                      margin: const EdgeInsets.only(bottom: 16),
+                      height: 5,
+                      margin: const EdgeInsets.only(top: 8, bottom: 20),
                       decoration: BoxDecoration(
                         color: theme.colorScheme.outlineVariant,
-                        borderRadius: BorderRadius.circular(2),
+                        borderRadius: BorderRadius.circular(2.5),
                       ),
                     ),
                   ),

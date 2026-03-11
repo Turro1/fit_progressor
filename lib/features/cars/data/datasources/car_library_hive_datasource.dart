@@ -1,5 +1,5 @@
-import 'package:fit_progressor/core/storage/hive_config.dart';
-import 'package:fit_progressor/features/cars/data/datasources/car_library_local_data_source.dart';
+import 'package:car_repair_manager/core/storage/hive_config.dart';
+import 'package:car_repair_manager/features/cars/data/datasources/car_library_local_data_source.dart';
 import '../models/car_library_model.dart';
 
 /// Hive implementation of CarLibraryLocalDataSource

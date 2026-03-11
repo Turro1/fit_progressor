@@ -1,21 +1,21 @@
-import 'package:fit_progressor/features/cars/domain/entities/car.dart';
-import 'package:fit_progressor/features/cars/presentation/bloc/car_bloc.dart';
-import 'package:fit_progressor/features/cars/presentation/bloc/car_event.dart';
-import 'package:fit_progressor/features/cars/presentation/bloc/car_state.dart';
-import 'package:fit_progressor/features/cars/presentation/widgets/car_dropdown_field.dart';
-import 'package:fit_progressor/features/clients/domain/entities/client.dart';
-import 'package:fit_progressor/features/clients/presentation/bloc/client_bloc.dart';
-import 'package:fit_progressor/features/clients/presentation/bloc/client_event.dart';
-import 'package:fit_progressor/features/clients/presentation/bloc/client_state.dart';
-import 'package:fit_progressor/features/repairs/domain/entities/part_types.dart';
-import 'package:fit_progressor/features/repairs/domain/entities/repair.dart';
-import 'package:fit_progressor/features/repairs/domain/entities/repair_material.dart';
-import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_bloc.dart';
-import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_event.dart';
-import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_state.dart';
-import 'package:fit_progressor/features/repairs/presentation/widgets/material_selector.dart';
-import 'package:fit_progressor/features/repairs/presentation/widgets/photo_gallery_field.dart';
-import 'package:fit_progressor/shared/widgets/step_indicator.dart';
+import 'package:car_repair_manager/features/cars/domain/entities/car.dart';
+import 'package:car_repair_manager/features/cars/presentation/bloc/car_bloc.dart';
+import 'package:car_repair_manager/features/cars/presentation/bloc/car_event.dart';
+import 'package:car_repair_manager/features/cars/presentation/bloc/car_state.dart';
+import 'package:car_repair_manager/features/cars/presentation/widgets/car_dropdown_field.dart';
+import 'package:car_repair_manager/features/clients/domain/entities/client.dart';
+import 'package:car_repair_manager/features/clients/presentation/bloc/client_bloc.dart';
+import 'package:car_repair_manager/features/clients/presentation/bloc/client_event.dart';
+import 'package:car_repair_manager/features/clients/presentation/bloc/client_state.dart';
+import 'package:car_repair_manager/features/repairs/domain/entities/part_types.dart';
+import 'package:car_repair_manager/features/repairs/domain/entities/repair.dart';
+import 'package:car_repair_manager/features/repairs/domain/entities/repair_material.dart';
+import 'package:car_repair_manager/features/repairs/presentation/bloc/repairs_bloc.dart';
+import 'package:car_repair_manager/features/repairs/presentation/bloc/repairs_event.dart';
+import 'package:car_repair_manager/features/repairs/presentation/bloc/repairs_state.dart';
+import 'package:car_repair_manager/features/repairs/presentation/widgets/material_selector.dart';
+import 'package:car_repair_manager/features/repairs/presentation/widgets/photo_gallery_field.dart';
+import 'package:car_repair_manager/shared/widgets/step_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -108,7 +108,7 @@ class _RepairFormModalState extends State<RepairFormModal> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         context.read<ClientBloc>().add(LoadClients());
-        context.read<CarBloc>().add(LoadCars());
+        context.read<CarBloc>().add(const LoadCars());
       }
     });
   }

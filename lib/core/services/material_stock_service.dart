@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
-import 'package:fit_progressor/core/error/failures/failure.dart';
-import 'package:fit_progressor/features/materials/domain/repositories/material_repository.dart';
-import 'package:fit_progressor/features/repairs/domain/entities/repair_material.dart';
+import 'package:car_repair_manager/core/error/failures/failure.dart';
+import 'package:car_repair_manager/features/materials/domain/repositories/material_repository.dart';
+import 'package:car_repair_manager/features/repairs/domain/entities/repair_material.dart';
 
 class MaterialStockService {
   final MaterialRepository materialRepository;

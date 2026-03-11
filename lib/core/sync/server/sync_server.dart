@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:fit_progressor/core/sync/sync_config.dart';
-import 'package:fit_progressor/core/sync/sync_message.dart';
+import 'package:car_repair_manager/core/sync/sync_config.dart';
+import 'package:car_repair_manager/core/sync/sync_message.dart';
 
 /// Информация о подключенном клиенте
 class ConnectedClient {
@@ -43,7 +43,7 @@ class SyncServer {
   bool _isRunning = false;
   int _port = SyncConfig.defaultPort;
   String _serverId = '';
-  String _serverName = 'FitProgressor Server';
+  String _serverName = 'CarRepairManager Server';
 
   // Callbacks
   OnClientConnected? onClientConnected;
@@ -72,7 +72,7 @@ class SyncServer {
   /// Запустить сервер
   Future<bool> start({
     required String serverId,
-    String serverName = 'FitProgressor Server',
+    String serverName = 'CarRepairManager Server',
     int port = SyncConfig.defaultPort,
   }) async {
     if (_isRunning) {
@@ -267,7 +267,7 @@ class SyncServer {
   /// Запустить ping timer для проверки соединений
   void _startPingTimer() {
     _pingTimer = Timer.periodic(
-      Duration(seconds: SyncConfig.pingIntervalSeconds),
+      const Duration(seconds: SyncConfig.pingIntervalSeconds),
       (_) => _pingClients(),
     );
   }
@@ -276,7 +276,7 @@ class SyncServer {
   void _pingClients() {
     final ping = SyncMessage.ping(deviceId: _serverId);
     final now = DateTime.now();
-    final timeout = Duration(seconds: SyncConfig.pingIntervalSeconds * 2);
+    const timeout = Duration(seconds: SyncConfig.pingIntervalSeconds * 2);
 
     // Проверяем таймауты и отправляем ping
     final toRemove = <String>[];

@@ -1,14 +1,14 @@
-import 'package:fit_progressor/features/repairs/domain/entities/repair.dart';
-import 'package:fit_progressor/features/repairs/domain/entities/repair_status.dart';
-import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_bloc.dart';
-import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_event.dart';
-import 'package:fit_progressor/features/repairs/presentation/widgets/repair_form_modal.dart';
-import 'package:fit_progressor/features/repairs/presentation/widgets/repair_detail_sheet.dart';
-import 'package:fit_progressor/shared/widgets/entity_card.dart';
-import 'package:fit_progressor/shared/widgets/highlighted_text.dart';
-import 'package:fit_progressor/shared/widgets/delete_confirmation_dialog.dart';
-import 'package:fit_progressor/shared/services/undo_service.dart';
-import 'package:fit_progressor/core/utils/car_logo_helper.dart';
+import 'package:car_repair_manager/features/repairs/domain/entities/repair.dart';
+import 'package:car_repair_manager/features/repairs/domain/entities/repair_status.dart';
+import 'package:car_repair_manager/features/repairs/presentation/bloc/repairs_bloc.dart';
+import 'package:car_repair_manager/features/repairs/presentation/bloc/repairs_event.dart';
+import 'package:car_repair_manager/features/repairs/presentation/widgets/repair_form_modal.dart';
+import 'package:car_repair_manager/features/repairs/presentation/widgets/repair_detail_sheet.dart';
+import 'package:car_repair_manager/shared/widgets/entity_card.dart';
+import 'package:car_repair_manager/shared/widgets/highlighted_text.dart';
+import 'package:car_repair_manager/shared/widgets/delete_confirmation_dialog.dart';
+import 'package:car_repair_manager/shared/services/undo_service.dart';
+import 'package:car_repair_manager/core/utils/car_logo_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -16,6 +16,7 @@ import 'package:intl/intl.dart';
 class RepairCard extends StatelessWidget {
   final Repair repair;
   final bool compact;
+
   /// Поисковый запрос для подсветки
   final String? searchQuery;
 
@@ -46,7 +47,8 @@ class RepairCard extends StatelessWidget {
       data: DeleteConfirmationData(
         title: 'Удалить ремонт?',
         itemName: repair.partType,
-        itemSubtitle: '${repair.carMake} ${repair.carModel} • ${DateFormat('dd.MM.yyyy').format(repair.date)}',
+        itemSubtitle:
+            '${repair.carMake} ${repair.carModel} • ${DateFormat('dd.MM.yyyy').format(repair.date)}',
         icon: Icons.build_outlined,
         warnings: [
           'Стоимость: ${repair.cost.toStringAsFixed(0)} ₽',
@@ -287,7 +289,6 @@ class RepairCard extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
-      elevation: 0,
       color: theme.colorScheme.surface,
       child: InkWell(
         onTap: () => _showDetailSheet(context),
@@ -304,7 +305,7 @@ class RepairCard extends StatelessWidget {
                     width: 4,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: _getStatusColor(repair.status),
+                      color: _getStatusColor(context, repair.status),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -364,15 +365,19 @@ class RepairCard extends StatelessWidget {
                                     Icon(
                                       Icons.photo_library_outlined,
                                       size: 12,
-                                      color: theme.colorScheme.onTertiaryContainer,
+                                      color:
+                                          theme.colorScheme.onTertiaryContainer,
                                     ),
                                     const SizedBox(width: 2),
                                     Text(
                                       '${repair.photoPaths.length}',
-                                      style: theme.textTheme.labelSmall?.copyWith(
-                                        color: theme.colorScheme.onTertiaryContainer,
-                                        fontWeight: FontWeight.w600,
-                                      ),
+                                      style: theme.textTheme.labelSmall
+                                          ?.copyWith(
+                                            color: theme
+                                                .colorScheme
+                                                .onTertiaryContainer,
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                     ),
                                   ],
                                 ),
@@ -416,50 +421,51 @@ class RepairCard extends StatelessWidget {
     );
   }
 
-  Color _getStatusColor(RepairStatus status) {
+  Color _getStatusColor(BuildContext context, RepairStatus status) {
+    final theme = Theme.of(context);
     switch (status) {
       case RepairStatus.pending:
-        return Colors.orange;
+        return theme.colorScheme.tertiary; // Warning/Pending
       case RepairStatus.inProgress:
-        return Colors.blue;
+        return theme.colorScheme.primary; // Active
       case RepairStatus.completed:
-        return Colors.green;
+        return const Color(0xFF34C759); // Success Green
       case RepairStatus.cancelled:
-        return Colors.grey;
+        return theme.colorScheme.error; // Error Red
     }
   }
 
   Widget _buildLeading(BuildContext context, ThemeData theme) {
     // Показываем только логотип авто или иконку (фото теперь в галерее миниатюр)
     if (repair.carMake.isNotEmpty) {
-      return CircleAvatar(
-        radius: 28,
-        backgroundColor: Colors.white,
-        child: Image.asset(
-          CarLogoHelper.getLogoPath(repair.carMake),
-          fit: BoxFit.contain,
-          width: 40,
-          height: 40,
-          errorBuilder: (context, error, stackTrace) {
-            return Icon(
-              Icons.directions_car_rounded,
-              size: 32,
-              color: theme.colorScheme.primary,
-            );
-          },
+      return Container(
+        width: 64,
+        height: 64,
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest.withValues(
+            alpha: 0.5,
+          ),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Center(
+          child: CarLogoHelper.getLogoWidget(context, repair.carMake, size: 40),
         ),
       );
     }
 
-    return CircleAvatar(
-      radius: 28,
-      backgroundColor: theme.colorScheme.surfaceContainerHighest.withValues(
-        alpha: 0.3,
+    return Container(
+      width: 64,
+      height: 64,
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(16),
       ),
-      child: Icon(
-        Icons.build_circle,
-        size: 32,
-        color: theme.colorScheme.primary,
+      child: Center(
+        child: Icon(
+          Icons.build_circle,
+          size: 32,
+          color: theme.colorScheme.primary,
+        ),
       ),
     );
   }
@@ -470,20 +476,22 @@ class RepairCard extends StatelessWidget {
 
     switch (repair.status) {
       case RepairStatus.pending:
-        badgeColor = Colors.orange.shade100;
-        textColor = Colors.orange.shade900;
+        badgeColor = theme.colorScheme.tertiaryContainer;
+        textColor = theme.colorScheme.onTertiaryContainer;
         break;
       case RepairStatus.inProgress:
-        badgeColor = Colors.blue.shade100;
-        textColor = Colors.blue.shade900;
+        badgeColor = theme.colorScheme.primaryContainer;
+        textColor = theme.colorScheme.onPrimaryContainer;
         break;
       case RepairStatus.completed:
-        badgeColor = Colors.green.shade100;
-        textColor = Colors.green.shade900;
+        badgeColor = const Color(
+          0xFF34C759,
+        ).withValues(alpha: 0.2); // Success container
+        textColor = const Color(0xFF1B5E20); // Dark green
         break;
       case RepairStatus.cancelled:
-        badgeColor = Colors.grey.shade200;
-        textColor = Colors.grey.shade700;
+        badgeColor = theme.colorScheme.errorContainer;
+        textColor = theme.colorScheme.onErrorContainer;
         break;
     }
 

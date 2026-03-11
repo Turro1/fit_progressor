@@ -1,4 +1,4 @@
-import 'package:fit_progressor/features/clients/domain/entities/client.dart';
+import 'package:car_repair_manager/features/clients/domain/entities/client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../clients/presentation/bloc/client_bloc.dart';
@@ -8,8 +8,8 @@ import '../../domain/entities/car.dart';
 import '../bloc/car_bloc.dart';
 import '../bloc/car_event.dart';
 import '../bloc/car_state.dart';
-import 'package:fit_progressor/shared/widgets/base_form_modal.dart';
-import 'package:fit_progressor/core/utils/moldova_formatters.dart';
+import 'package:car_repair_manager/shared/widgets/base_form_modal.dart';
+import 'package:car_repair_manager/core/utils/moldova_formatters.dart';
 import 'car_dropdown_field.dart';
 
 class CarFormModal extends StatefulWidget {
@@ -60,7 +60,7 @@ class _CarFormModalState extends State<CarFormModal> {
     }
 
     context.read<ClientBloc>().add(LoadClients());
-    context.read<CarBloc>().add(LoadCarMakes());
+    context.read<CarBloc>().add(const LoadCarMakes());
   }
 
   @override

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart' hide MaterialState;
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:fit_progressor/features/materials/domain/entities/material.dart'
+import 'package:car_repair_manager/features/materials/domain/entities/material.dart'
     as mat;
-import 'package:fit_progressor/features/materials/presentation/bloc/material_bloc.dart';
-import 'package:fit_progressor/features/materials/presentation/bloc/material_event.dart';
-import 'package:fit_progressor/features/materials/presentation/bloc/material_state.dart';
-import 'package:fit_progressor/features/repairs/domain/entities/repair_material.dart';
+import 'package:car_repair_manager/features/materials/presentation/bloc/material_bloc.dart';
+import 'package:car_repair_manager/features/materials/presentation/bloc/material_event.dart';
+import 'package:car_repair_manager/features/materials/presentation/bloc/material_state.dart';
+import 'package:car_repair_manager/features/repairs/domain/entities/repair_material.dart';
 
 class MaterialSelector extends StatefulWidget {
   final List<RepairMaterial> initialMaterials;
@@ -34,7 +34,7 @@ class _MaterialSelectorState extends State<MaterialSelector> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        context.read<MaterialBloc>().add(LoadMaterials());
+        context.read<MaterialBloc>().add(const LoadMaterials());
       }
     });
   }

@@ -1,4 +1,4 @@
-import 'package:fit_progressor/features/cars/domain/entities/car.dart';
+import 'package:car_repair_manager/features/cars/domain/entities/car.dart';
 
 class CarModel extends Car {
   const CarModel({

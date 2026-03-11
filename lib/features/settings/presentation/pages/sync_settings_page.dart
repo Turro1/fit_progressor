@@ -4,12 +4,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
-import 'package:fit_progressor/core/sync/bloc/sync_bloc.dart';
-import 'package:fit_progressor/core/sync/bloc/sync_event.dart';
-import 'package:fit_progressor/core/sync/bloc/sync_state.dart';
-import 'package:fit_progressor/core/sync/sync_engine.dart';
-import 'package:fit_progressor/core/sync/qr/qr_data_model.dart';
-import 'package:fit_progressor/core/sync/client/sync_client.dart';
+import 'package:car_repair_manager/core/sync/bloc/sync_bloc.dart';
+import 'package:car_repair_manager/core/sync/bloc/sync_event.dart';
+import 'package:car_repair_manager/core/sync/bloc/sync_state.dart';
+import 'package:car_repair_manager/core/sync/sync_engine.dart';
+import 'package:car_repair_manager/core/sync/qr/qr_data_model.dart';
+import 'package:car_repair_manager/core/sync/client/sync_client.dart';
 
 /// Страница настройки синхронизации
 class SyncSettingsPage extends StatelessWidget {

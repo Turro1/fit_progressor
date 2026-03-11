@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
 
-import 'package:fit_progressor/core/sync/sync_message.dart';
-import 'package:fit_progressor/core/sync/tracking/hive_models/pending_change_hive_model.dart';
+import 'package:car_repair_manager/core/sync/sync_message.dart';
+import 'package:car_repair_manager/core/sync/tracking/hive_models/pending_change_hive_model.dart';
 
 /// Callback для уведомления о новом изменении
 typedef OnChangeTracked = Future<void> Function(ChangePayload change);

@@ -1,12 +1,12 @@
 import 'dart:io';
-import 'package:fit_progressor/core/utils/car_logo_helper.dart';
-import 'package:fit_progressor/features/repairs/domain/entities/repair.dart';
-import 'package:fit_progressor/features/repairs/domain/entities/repair_status.dart';
-import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_bloc.dart';
-import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_event.dart';
-import 'package:fit_progressor/features/repairs/presentation/widgets/photo_viewer.dart';
-import 'package:fit_progressor/features/repairs/presentation/widgets/repair_form_modal.dart';
-import 'package:fit_progressor/shared/widgets/delete_confirmation_dialog.dart';
+import 'package:car_repair_manager/core/utils/car_logo_helper.dart';
+import 'package:car_repair_manager/features/repairs/domain/entities/repair.dart';
+import 'package:car_repair_manager/features/repairs/domain/entities/repair_status.dart';
+import 'package:car_repair_manager/features/repairs/presentation/bloc/repairs_bloc.dart';
+import 'package:car_repair_manager/features/repairs/presentation/bloc/repairs_event.dart';
+import 'package:car_repair_manager/features/repairs/presentation/widgets/photo_viewer.dart';
+import 'package:car_repair_manager/features/repairs/presentation/widgets/repair_form_modal.dart';
+import 'package:car_repair_manager/shared/widgets/delete_confirmation_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -16,8 +16,10 @@ import 'package:url_launcher/url_launcher.dart';
 /// Детальный просмотр ремонта с галереей фото
 class RepairDetailSheet extends StatefulWidget {
   final Repair repair;
+
   /// Имя клиента (опционально, для отображения в карточке)
   final String? clientName;
+
   /// Телефон клиента (опционально, для возможности позвонить)
   final String? clientPhone;
 
@@ -71,9 +73,10 @@ class _RepairDetailSheetState extends State<RepairDetailSheet>
       duration: const Duration(milliseconds: 300),
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 0.95,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
@@ -208,7 +211,9 @@ class _RepairDetailSheetState extends State<RepairDetailSheet>
         margin: const EdgeInsets.all(16),
         height: 180,
         decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+          color: theme.colorScheme.surfaceContainerHighest.withValues(
+            alpha: 0.5,
+          ),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: theme.colorScheme.outline.withValues(alpha: 0.3),
@@ -424,34 +429,17 @@ class _RepairDetailSheetState extends State<RepairDetailSheet>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Car logo
-        if (repair.carMake.isNotEmpty)
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: theme.shadowColor.withValues(alpha: 0.1),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.asset(
-                CarLogoHelper.getLogoPath(repair.carMake),
-                fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => Icon(
-                  Icons.directions_car_rounded,
-                  size: 32,
-                  color: theme.colorScheme.primary,
-                ),
-              ),
+        SizedBox(
+          width: 56,
+          height: 56,
+          child: Center(
+            child: CarLogoHelper.getLogoWidget(
+              context,
+              repair.carMake,
+              size: 40,
             ),
           ),
+        ),
         const SizedBox(width: 16),
         // Title and status
         Expanded(
@@ -525,8 +513,10 @@ class _RepairDetailSheetState extends State<RepairDetailSheet>
 
   Widget _buildInfoSection(ThemeData theme) {
     final repair = widget.repair;
-    final hasClientInfo = widget.clientName != null && widget.clientName!.isNotEmpty;
-    final hasPhone = widget.clientPhone != null && widget.clientPhone!.isNotEmpty;
+    final hasClientInfo =
+        widget.clientName != null && widget.clientName!.isNotEmpty;
+    final hasPhone =
+        widget.clientPhone != null && widget.clientPhone!.isNotEmpty;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -537,8 +527,7 @@ class _RepairDetailSheetState extends State<RepairDetailSheet>
       child: Column(
         children: [
           // Client info with call button
-          if (hasClientInfo)
-            _buildClientRow(theme, hasPhone),
+          if (hasClientInfo) _buildClientRow(theme, hasPhone),
           // Car info
           if (repair.carMake.isNotEmpty)
             _buildInfoRow(
@@ -577,7 +566,9 @@ class _RepairDetailSheetState extends State<RepairDetailSheet>
             Icons.trending_up,
             'Прибыль',
             '${repair.profit >= 0 ? '' : ''}${repair.profit.toStringAsFixed(0)} ₽',
-            valueColor: repair.profit >= 0 ? Colors.green.shade600 : Colors.red.shade600,
+            valueColor: repair.profit >= 0
+                ? Colors.green.shade600
+                : Colors.red.shade600,
             isLast: true,
           ),
         ],
@@ -606,7 +597,9 @@ class _RepairDetailSheetState extends State<RepairDetailSheet>
                     Text(
                       'Клиент',
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.6,
+                        ),
                       ),
                     ),
                     Text(
@@ -639,10 +632,7 @@ class _RepairDetailSheetState extends State<RepairDetailSheet>
             ],
           ),
         ),
-        Divider(
-          height: 1,
-          color: theme.dividerColor.withValues(alpha: 0.5),
-        ),
+        Divider(height: 1, color: theme.dividerColor.withValues(alpha: 0.5)),
       ],
     );
   }
@@ -698,10 +688,7 @@ class _RepairDetailSheetState extends State<RepairDetailSheet>
           ),
         ),
         if (!isLast)
-          Divider(
-            height: 1,
-            color: theme.dividerColor.withValues(alpha: 0.5),
-          ),
+          Divider(height: 1, color: theme.dividerColor.withValues(alpha: 0.5)),
       ],
     );
   }
@@ -736,9 +723,7 @@ class _RepairDetailSheetState extends State<RepairDetailSheet>
           const SizedBox(height: 12),
           Text(
             widget.repair.description,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              height: 1.5,
-            ),
+            style: theme.textTheme.bodyMedium?.copyWith(height: 1.5),
           ),
         ],
       ),
@@ -774,32 +759,34 @@ class _RepairDetailSheetState extends State<RepairDetailSheet>
             ],
           ),
           const SizedBox(height: 12),
-          ...materials.map((material) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        material.materialName,
-                        style: theme.textTheme.bodyMedium,
-                      ),
+          ...materials.map(
+            (material) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      material.materialName,
+                      style: theme.textTheme.bodyMedium,
                     ),
-                    Text(
-                      '${material.quantity} × ${material.unitCost.toStringAsFixed(0)} ₽',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                      ),
+                  ),
+                  Text(
+                    '${material.quantity} × ${material.unitCost.toStringAsFixed(0)} ₽',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${material.totalCost.toStringAsFixed(0)} ₽',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    '${material.totalCost.toStringAsFixed(0)} ₽',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
                     ),
-                  ],
-                ),
-              )),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -913,8 +900,8 @@ class _RepairDetailSheetState extends State<RepairDetailSheet>
                 Navigator.pop(dialogContext);
                 if (status != repair.status) {
                   context.read<RepairsBloc>().add(
-                        UpdateRepairEvent(repair: repair.copyWith(status: status)),
-                      );
+                    UpdateRepairEvent(repair: repair.copyWith(status: status)),
+                  );
                 }
               },
             );
@@ -961,9 +948,10 @@ class _ActionButtonState extends State<_ActionButton>
       vsync: this,
       duration: const Duration(milliseconds: 150),
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.95,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -992,9 +980,7 @@ class _ActionButtonState extends State<_ActionButton>
               decoration: BoxDecoration(
                 color: widget.color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: widget.color.withValues(alpha: 0.3),
-                ),
+                border: Border.all(color: widget.color.withValues(alpha: 0.3)),
               ),
               child: Column(
                 children: [

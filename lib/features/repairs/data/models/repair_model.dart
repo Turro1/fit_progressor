@@ -1,6 +1,6 @@
-import 'package:fit_progressor/features/repairs/data/models/repair_material_model.dart';
-import 'package:fit_progressor/features/repairs/domain/entities/repair.dart';
-import 'package:fit_progressor/features/repairs/domain/entities/repair_status.dart';
+import 'package:car_repair_manager/features/repairs/data/models/repair_material_model.dart';
+import 'package:car_repair_manager/features/repairs/domain/entities/repair.dart';
+import 'package:car_repair_manager/features/repairs/domain/entities/repair_status.dart';
 
 class RepairModel extends Repair {
   const RepairModel({

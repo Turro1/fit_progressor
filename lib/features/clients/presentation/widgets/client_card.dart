@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:fit_progressor/shared/widgets/entity_card.dart';
-import 'package:fit_progressor/core/utils/moldova_formatters.dart';
+import 'package:car_repair_manager/shared/widgets/entity_card.dart';
+import 'package:car_repair_manager/core/utils/moldova_formatters.dart';
 import '../../domain/entities/client.dart';
 
 class ClientCard extends StatelessWidget {

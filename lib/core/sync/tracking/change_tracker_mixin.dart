@@ -1,5 +1,5 @@
-import 'package:fit_progressor/core/sync/sync_message.dart';
-import 'package:fit_progressor/core/sync/tracking/change_tracker.dart';
+import 'package:car_repair_manager/core/sync/sync_message.dart';
+import 'package:car_repair_manager/core/sync/tracking/change_tracker.dart';
 
 /// Mixin для добавления отслеживания изменений в DataSources
 mixin ChangeTrackerMixin {

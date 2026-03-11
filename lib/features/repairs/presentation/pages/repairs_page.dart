@@ -1,14 +1,14 @@
-import 'package:fit_progressor/features/repairs/domain/entities/repair_filter.dart';
-import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_bloc.dart';
-import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_event.dart';
-import 'package:fit_progressor/features/repairs/presentation/bloc/repairs_state.dart';
-import 'package:fit_progressor/features/repairs/presentation/widgets/repair_card.dart';
-import 'package:fit_progressor/features/repairs/presentation/widgets/repair_filter_sheet.dart';
-import 'package:fit_progressor/features/repairs/presentation/widgets/repair_form_modal.dart';
-import 'package:fit_progressor/shared/widgets/animated_fab.dart';
-import 'package:fit_progressor/shared/widgets/animated_list_item.dart';
-import 'package:fit_progressor/shared/widgets/app_search_bar.dart';
-import 'package:fit_progressor/shared/widgets/empty_state.dart';
+import 'package:car_repair_manager/features/repairs/domain/entities/repair_filter.dart';
+import 'package:car_repair_manager/features/repairs/presentation/bloc/repairs_bloc.dart';
+import 'package:car_repair_manager/features/repairs/presentation/bloc/repairs_event.dart';
+import 'package:car_repair_manager/features/repairs/presentation/bloc/repairs_state.dart';
+import 'package:car_repair_manager/features/repairs/presentation/widgets/repair_card.dart';
+import 'package:car_repair_manager/features/repairs/presentation/widgets/repair_filter_sheet.dart';
+import 'package:car_repair_manager/features/repairs/presentation/widgets/repair_form_modal.dart';
+import 'package:car_repair_manager/shared/widgets/animated_fab.dart';
+import 'package:car_repair_manager/shared/widgets/animated_list_item.dart';
+import 'package:car_repair_manager/shared/widgets/app_search_bar.dart';
+import 'package:car_repair_manager/shared/widgets/empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -197,7 +197,7 @@ class _RepairsPageState extends State<RepairsPage> {
                           children: [
                             SizedBox(
                               height: MediaQuery.of(context).size.height * 0.5,
-                              child: EmptyState(
+                              child: const EmptyState(
                                 icon: Icons.build_circle,
                                 title: 'Нет ремонтов',
                                 message:
@@ -291,7 +291,7 @@ class _ActiveFiltersBar extends StatelessWidget {
 
     // Период
     if (filter.dateFrom != null || filter.dateTo != null) {
-      chips.add(_FilterChip(label: 'Период', icon: Icons.calendar_today));
+      chips.add(const _FilterChip(label: 'Период', icon: Icons.calendar_today));
     }
 
     return Container(

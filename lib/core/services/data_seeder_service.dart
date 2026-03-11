@@ -3,16 +3,16 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
-import 'package:fit_progressor/features/clients/domain/entities/client.dart';
-import 'package:fit_progressor/features/clients/domain/repositories/client_repository.dart';
-import 'package:fit_progressor/features/cars/domain/entities/car.dart';
-import 'package:fit_progressor/features/cars/domain/repositories/car_repository.dart';
-import 'package:fit_progressor/features/repairs/domain/entities/repair.dart';
-import 'package:fit_progressor/features/repairs/domain/entities/repair_status.dart';
-import 'package:fit_progressor/features/repairs/domain/entities/part_types.dart';
-import 'package:fit_progressor/features/repairs/domain/repositories/repair_repository.dart';
-import 'package:fit_progressor/features/materials/domain/entities/material.dart';
-import 'package:fit_progressor/features/materials/domain/repositories/material_repository.dart';
+import 'package:car_repair_manager/features/clients/domain/entities/client.dart';
+import 'package:car_repair_manager/features/clients/domain/repositories/client_repository.dart';
+import 'package:car_repair_manager/features/cars/domain/entities/car.dart';
+import 'package:car_repair_manager/features/cars/domain/repositories/car_repository.dart';
+import 'package:car_repair_manager/features/repairs/domain/entities/repair.dart';
+import 'package:car_repair_manager/features/repairs/domain/entities/repair_status.dart';
+import 'package:car_repair_manager/features/repairs/domain/entities/part_types.dart';
+import 'package:car_repair_manager/features/repairs/domain/repositories/repair_repository.dart';
+import 'package:car_repair_manager/features/materials/domain/entities/material.dart';
+import 'package:car_repair_manager/features/materials/domain/repositories/material_repository.dart';
 
 /// Сервис для заполнения базы тестовыми данными
 /// Доступен только в debug режиме
@@ -41,7 +41,7 @@ class DataSeederService {
   /// Заполнить базу тестовыми данными
   Future<SeederResult> seedAll() async {
     if (!isAvailable) {
-      return SeederResult(
+      return const SeederResult(
         success: false,
         message: 'Сидер доступен только в debug режиме',
       );

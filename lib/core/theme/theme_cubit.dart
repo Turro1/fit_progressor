@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:fit_progressor/core/storage/hive_config.dart';
+import 'package:car_repair_manager/core/storage/hive_config.dart';
 
 /// Режим темы приложения
 enum AppThemeMode {
@@ -106,7 +106,7 @@ class ThemeCubit extends Cubit<ThemeState> {
 
   /// Циклическое переключение между всеми режимами
   void cycleThemeMode() {
-    final modes = AppThemeMode.values;
+    const modes = AppThemeMode.values;
     final currentIndex = modes.indexOf(state.themeMode);
     final nextIndex = (currentIndex + 1) % modes.length;
     setThemeMode(modes[nextIndex]);

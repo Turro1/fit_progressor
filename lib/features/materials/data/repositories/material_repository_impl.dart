@@ -1,8 +1,8 @@
 import 'package:dartz/dartz.dart';
-import 'package:fit_progressor/core/error/exceptions/cache_exception.dart';
-import 'package:fit_progressor/core/error/failures/cache_failure.dart';
-import 'package:fit_progressor/core/error/failures/failure.dart';
-import 'package:fit_progressor/features/materials/data/models/material_model.dart';
+import 'package:car_repair_manager/core/error/exceptions/cache_exception.dart';
+import 'package:car_repair_manager/core/error/failures/cache_failure.dart';
+import 'package:car_repair_manager/core/error/failures/failure.dart';
+import 'package:car_repair_manager/features/materials/data/models/material_model.dart';
 import '../../domain/entities/material.dart';
 import '../../domain/repositories/material_repository.dart';
 import '../datasources/material_local_data_source.dart';
@@ -18,7 +18,7 @@ class MaterialRepositoryImpl implements MaterialRepository {
       final localMaterials = await localDataSource.getMaterials();
       return Right(localMaterials);
     } on CacheException {
-      return Left(const CacheFailure(message: ''));
+      return const Left(CacheFailure(message: ''));
     }
   }
 

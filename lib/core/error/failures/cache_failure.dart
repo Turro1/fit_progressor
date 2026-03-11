@@ -1,4 +1,4 @@
-import 'package:fit_progressor/core/error/failures/failure.dart';
+import 'package:car_repair_manager/core/error/failures/failure.dart';
 
 /// Ошибка кэша/локального хранилища
 class CacheFailure extends Failure {

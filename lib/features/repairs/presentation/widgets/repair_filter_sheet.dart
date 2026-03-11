@@ -1,6 +1,6 @@
-import 'package:fit_progressor/features/repairs/domain/entities/part_types.dart';
-import 'package:fit_progressor/features/repairs/domain/entities/repair_filter.dart';
-import 'package:fit_progressor/features/repairs/domain/entities/repair_status.dart';
+import 'package:car_repair_manager/features/repairs/domain/entities/part_types.dart';
+import 'package:car_repair_manager/features/repairs/domain/entities/repair_filter.dart';
+import 'package:car_repair_manager/features/repairs/domain/entities/repair_status.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 

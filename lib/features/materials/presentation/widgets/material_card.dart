@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:fit_progressor/shared/widgets/entity_card.dart';
+import 'package:car_repair_manager/shared/widgets/entity_card.dart';
 import '../../domain/entities/material.dart' as entity;
 
 class MaterialCard extends StatelessWidget {

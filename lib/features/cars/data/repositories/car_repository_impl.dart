@@ -1,14 +1,14 @@
 import 'package:dartz/dartz.dart';
 
-import 'package:fit_progressor/core/error/exceptions/cache_exception.dart';
-import 'package:fit_progressor/core/error/exceptions/duplicate_exception.dart';
-import 'package:fit_progressor/core/error/failures/cache_failure.dart';
-import 'package:fit_progressor/core/error/failures/duplicate_failure.dart';
-import 'package:fit_progressor/core/error/failures/failure.dart';
-import 'package:fit_progressor/features/cars/data/datasources/car_local_data_source.dart';
-import 'package:fit_progressor/features/cars/data/models/car_model.dart';
-import 'package:fit_progressor/features/cars/domain/entities/car.dart';
-import 'package:fit_progressor/features/cars/domain/repositories/car_repository.dart';
+import 'package:car_repair_manager/core/error/exceptions/cache_exception.dart';
+import 'package:car_repair_manager/core/error/exceptions/duplicate_exception.dart';
+import 'package:car_repair_manager/core/error/failures/cache_failure.dart';
+import 'package:car_repair_manager/core/error/failures/duplicate_failure.dart';
+import 'package:car_repair_manager/core/error/failures/failure.dart';
+import 'package:car_repair_manager/features/cars/data/datasources/car_local_data_source.dart';
+import 'package:car_repair_manager/features/cars/data/models/car_model.dart';
+import 'package:car_repair_manager/features/cars/domain/entities/car.dart';
+import 'package:car_repair_manager/features/cars/domain/repositories/car_repository.dart';
 
 class CarRepositoryImpl implements CarRepository {
   final CarLocalDataSource localDataSource;
@@ -21,8 +21,8 @@ class CarRepositoryImpl implements CarRepository {
       final car = await localDataSource.getCarById(id);
       return Right(car);
     } on CacheException {
-      return Left(
-        const CacheFailure(
+      return const Left(
+        CacheFailure(
           message: 'Cache error occurred while retrieving car by ID',
         ),
       );
@@ -44,8 +44,8 @@ class CarRepositoryImpl implements CarRepository {
     } on DuplicateException catch (e) {
       return Left( DuplicateFailure(message: e.message));
     } on CacheException {
-      return Left(
-        const CacheFailure(message: 'Cache error occurred while adding car'),
+      return const Left(
+        CacheFailure(message: 'Cache error occurred while adding car'),
       );
     } catch (e) {
       return Left(
@@ -60,8 +60,8 @@ class CarRepositoryImpl implements CarRepository {
       await localDataSource.deleteCar(carId);
       return const Right(null);
     } on CacheException {
-      return Left(
-        const CacheFailure(message: 'Cache error occurred while deleting car'),
+      return const Left(
+        CacheFailure(message: 'Cache error occurred while deleting car'),
       );
     } catch (e) {
       return Left(
@@ -78,8 +78,8 @@ class CarRepositoryImpl implements CarRepository {
       final cars = await localDataSource.getCars();
       return Right(cars);
     } on CacheException {
-      return Left(
-        const CacheFailure(
+      return const Left(
+        CacheFailure(
           message: 'Cache error occurred while retrieving cars',
         ),
       );
@@ -98,8 +98,8 @@ class CarRepositoryImpl implements CarRepository {
       final clients = await localDataSource.getCarsByClient(clientId);
       return Right(clients);
     } on CacheException {
-      return Left(
-        const CacheFailure(
+      return const Left(
+        CacheFailure(
           message: 'Cache error occurred while retrieving car',
         ),
       );
@@ -118,8 +118,8 @@ class CarRepositoryImpl implements CarRepository {
       final clients = await localDataSource.searchCars(query);
       return Right(clients);
     } on CacheException {
-      return Left(
-        const CacheFailure(
+      return const Left(
+        CacheFailure(
           message: 'Cache error occurred while searching cars',
         ),
       );
@@ -141,8 +141,8 @@ class CarRepositoryImpl implements CarRepository {
     } on DuplicateException catch (e) {
       return Left( DuplicateFailure(message: e.message));
     } on CacheException {
-      return Left(
-        const CacheFailure(message: 'Cache error occurred while updating car'),
+      return const Left(
+        CacheFailure(message: 'Cache error occurred while updating car'),
       );
     } catch (e) {
       return Left(

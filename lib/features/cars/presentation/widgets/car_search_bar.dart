@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:fit_progressor/shared/widgets/app_search_bar.dart'; // Import AppSearchBar
+import 'package:car_repair_manager/shared/widgets/app_search_bar.dart'; // Import AppSearchBar
 
 class CarSearchBar extends StatelessWidget {
   final Function(String) onSearch;

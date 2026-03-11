@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:fit_progressor/core/utils/moldova_formatters.dart';
+import 'package:car_repair_manager/core/utils/moldova_formatters.dart';
 
 /// Виджет для отображения флага страны на основе гос. номера
 class CountryFlag extends StatelessWidget {

@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:fit_progressor/features/materials/domain/entities/material.dart';
+import 'package:car_repair_manager/features/materials/domain/entities/material.dart';
 
 class RepairMaterial extends Equatable {
   final String materialId;

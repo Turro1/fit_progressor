@@ -1,5 +1,5 @@
 // Клиент
-import 'package:fit_progressor/shared/domain/entities/entity.dart';
+import 'package:car_repair_manager/shared/domain/entities/entity.dart';
 
 class Client extends Entity {
   final String name;
