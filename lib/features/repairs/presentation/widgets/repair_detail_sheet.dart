@@ -203,8 +203,9 @@ class _RepairDetailSheetState extends State<RepairDetailSheet>
   Widget _buildAddPhotoPlaceholder(ThemeData theme) {
     return GestureDetector(
       onTap: () {
+        final bloc = context.read<RepairsBloc>();
         Navigator.pop(context);
-        _showEditModal(context);
+        _showEditModalWithBloc(context, bloc);
       },
       child: Container(
         margin: const EdgeInsets.all(16),
@@ -292,8 +293,9 @@ class _RepairDetailSheetState extends State<RepairDetailSheet>
                 left: 24,
                 child: GestureDetector(
                   onTap: () {
+                    final bloc = context.read<RepairsBloc>();
                     Navigator.pop(context);
-                    _showEditModal(context);
+                    _showEditModalWithBloc(context, bloc);
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(
@@ -789,8 +791,9 @@ class _RepairDetailSheetState extends State<RepairDetailSheet>
             label: 'Изменить',
             color: theme.colorScheme.primary,
             onTap: () {
+              final bloc = context.read<RepairsBloc>();
               Navigator.pop(context);
-              _showEditModal(context);
+              _showEditModalWithBloc(context, bloc);
             },
           ),
         ),
@@ -829,12 +832,12 @@ class _RepairDetailSheetState extends State<RepairDetailSheet>
     );
   }
 
-  void _showEditModal(BuildContext context) {
+  void _showEditModalWithBloc(BuildContext context, RepairsBloc bloc) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       builder: (_) => BlocProvider.value(
-        value: context.read<RepairsBloc>(),
+        value: bloc,
         child: RepairFormModal(repair: widget.repair),
       ),
     );

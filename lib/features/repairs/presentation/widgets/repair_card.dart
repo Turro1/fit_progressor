@@ -113,168 +113,119 @@ class RepairCard extends StatelessWidget {
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
 
-          // Компактный layout: Позиция и автомобиль | Дата-время и стоимость
+          // Информационные строки
+          // Позиция
+          if (repair.partPosition.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.build_outlined,
+                    size: 15,
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: HighlightedText(
+                      text: repair.partPosition,
+                      query: searchQuery,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.7,
+                        ),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          // Автомобиль
+          if (repair.carMake.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.directions_car_outlined,
+                    size: 15,
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: HighlightedText(
+                      text: '${repair.carMake} ${repair.carModel}',
+                      query: searchQuery,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.7,
+                        ),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+          const SizedBox(height: 6),
+
+          // Нижняя строка: дата | фото | стоимость
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Левая часть: Позиция и автомобиль
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Позиция
-                    if (repair.partPosition.isNotEmpty)
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.build_outlined,
-                            size: 16,
-                            color: theme.colorScheme.onSurface.withValues(
-                              alpha: 0.6,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: HighlightedText(
-                              text: repair.partPosition,
-                              query: searchQuery,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: theme.colorScheme.onSurface.withValues(
-                                  alpha: 0.8,
-                                ),
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                    const SizedBox(height: 4),
-                    // Автомобиль (если есть)
-                    if (repair.carMake.isNotEmpty)
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.directions_car_outlined,
-                            size: 16,
-                            color: theme.colorScheme.onSurface.withValues(
-                              alpha: 0.6,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: HighlightedText(
-                              text: '${repair.carMake} ${repair.carModel}',
-                              query: searchQuery,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: theme.colorScheme.onSurface.withValues(
-                                  alpha: 0.8,
-                                ),
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                  ],
+              // Дата
+              Icon(
+                Icons.event,
+                size: 14,
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.45),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                DateFormat('dd.MM.yy').format(repair.date),
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                ),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                DateFormat('HH:mm').format(repair.date),
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.45),
                 ),
               ),
 
-              const SizedBox(width: 12),
+              // Фото индикатор
+              if (repair.photoPaths.isNotEmpty) ...[
+                const SizedBox(width: 10),
+                Icon(
+                  Icons.photo_library_outlined,
+                  size: 14,
+                  color: theme.colorScheme.tertiary,
+                ),
+                const SizedBox(width: 3),
+                Text(
+                  '${repair.photoPaths.length}',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.tertiary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
 
-              // Правая часть: Дата-время, фото и стоимость
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  // Дата и время вместе
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.event,
-                          size: 14,
-                          color: theme.colorScheme.onPrimaryContainer,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${DateFormat('dd.MM.yyyy').format(repair.date)} - ${DateFormat('HH:mm').format(repair.date)}',
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            color: theme.colorScheme.onPrimaryContainer,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  // Фото индикатор и стоимость
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Индикатор фото
-                      if (repair.photoPaths.isNotEmpty)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 4,
-                          ),
-                          margin: const EdgeInsets.only(right: 6),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.tertiaryContainer,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.photo_library_outlined,
-                                size: 14,
-                                color: theme.colorScheme.onTertiaryContainer,
-                              ),
-                              const SizedBox(width: 3),
-                              Text(
-                                '${repair.photoPaths.length}',
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: theme.colorScheme.onTertiaryContainer,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      // Стоимость
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.secondaryContainer,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          '${repair.cost.toStringAsFixed(0)} ₽',
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            color: theme.colorScheme.onSecondaryContainer,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+              const Spacer(),
+
+              // Стоимость — крупная и заметная
+              Text(
+                '${repair.cost.toStringAsFixed(0)} ₽',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF2E7D32),
+                ),
               ),
             ],
           ),
@@ -435,35 +386,31 @@ class RepairCard extends StatelessWidget {
   }
 
   Widget _buildLeading(BuildContext context, ThemeData theme) {
-    // Показываем только логотип авто или иконку (фото теперь в галерее миниатюр)
-    if (repair.carMake.isNotEmpty) {
-      return Container(
-        width: 64,
-        height: 64,
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest.withValues(
-            alpha: 0.5,
-          ),
-          borderRadius: BorderRadius.circular(16),
-        ),
-      );
-    }
+    final statusColor = _getStatusColor(context, repair.status);
+    final statusIcon = _getStatusIcon(repair.status);
 
     return Container(
-      width: 64,
-      height: 64,
+      width: 56,
+      height: 56,
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        color: statusColor.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Center(
-        child: Icon(
-          Icons.build_circle,
-          size: 32,
-          color: theme.colorScheme.primary,
-        ),
-      ),
+      child: Center(child: Icon(statusIcon, size: 28, color: statusColor)),
     );
+  }
+
+  IconData _getStatusIcon(RepairStatus status) {
+    switch (status) {
+      case RepairStatus.pending:
+        return Icons.schedule_rounded;
+      case RepairStatus.inProgress:
+        return Icons.engineering_rounded;
+      case RepairStatus.completed:
+        return Icons.check_circle_rounded;
+      case RepairStatus.cancelled:
+        return Icons.cancel_rounded;
+    }
   }
 
   Widget _buildStatusBadge(BuildContext context, ThemeData theme) {

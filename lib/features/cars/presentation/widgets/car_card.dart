@@ -31,13 +31,18 @@ class CarCard extends StatelessWidget {
       // Новый дизайн
       compact: false,
       leading: Container(
-        width: 64,
-        height: 64,
+        width: 56,
+        height: 56,
         decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest.withValues(
-            alpha: 0.5,
-          ),
+          color: theme.colorScheme.primaryContainer.withValues(alpha: 0.4),
           borderRadius: BorderRadius.circular(16),
+        ),
+        child: Center(
+          child: Icon(
+            Icons.directions_car_rounded,
+            size: 28,
+            color: theme.colorScheme.primary,
+          ),
         ),
       ),
       title: Text(
