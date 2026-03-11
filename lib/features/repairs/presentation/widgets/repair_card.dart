@@ -8,7 +8,6 @@ import 'package:car_repair_manager/shared/widgets/entity_card.dart';
 import 'package:car_repair_manager/shared/widgets/highlighted_text.dart';
 import 'package:car_repair_manager/shared/widgets/delete_confirmation_dialog.dart';
 import 'package:car_repair_manager/shared/services/undo_service.dart';
-import 'package:car_repair_manager/core/utils/car_logo_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -446,9 +445,6 @@ class RepairCard extends StatelessWidget {
             alpha: 0.5,
           ),
           borderRadius: BorderRadius.circular(16),
-        ),
-        child: Center(
-          child: CarLogoHelper.getLogoWidget(context, repair.carMake, size: 40),
         ),
       );
     }

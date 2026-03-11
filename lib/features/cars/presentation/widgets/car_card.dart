@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:car_repair_manager/shared/widgets/entity_card.dart';
-import 'package:car_repair_manager/core/utils/car_logo_helper.dart';
 import 'package:car_repair_manager/core/widgets/country_flag.dart';
 import '../../domain/entities/car.dart';
 
@@ -39,9 +38,6 @@ class CarCard extends StatelessWidget {
             alpha: 0.5,
           ),
           borderRadius: BorderRadius.circular(16),
-        ),
-        child: Center(
-          child: CarLogoHelper.getLogoWidget(context, car.make, size: 40),
         ),
       ),
       title: Text(

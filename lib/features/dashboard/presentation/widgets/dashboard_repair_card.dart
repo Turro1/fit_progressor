@@ -8,7 +8,6 @@ import 'package:car_repair_manager/features/repairs/presentation/widgets/repair_
 import 'package:car_repair_manager/shared/widgets/entity_card.dart';
 import 'package:car_repair_manager/shared/widgets/delete_confirmation_dialog.dart';
 import 'package:car_repair_manager/shared/services/undo_service.dart';
-import 'package:car_repair_manager/core/utils/car_logo_helper.dart';
 import 'package:car_repair_manager/core/utils/date_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -335,23 +334,6 @@ class DashboardRepairCard extends StatelessWidget {
 
   Widget _buildLeading(BuildContext context, ThemeData theme) {
     final repair = repairWithDetails.repair;
-
-    // Priority: car logo, then photo, then icon
-    if (repair.carMake.isNotEmpty) {
-      return Container(
-        width: 64,
-        height: 64,
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest.withValues(
-            alpha: 0.5,
-          ),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Center(
-          child: CarLogoHelper.getLogoWidget(context, repair.carMake, size: 40),
-        ),
-      );
-    }
 
     if (repair.photoPaths.isNotEmpty) {
       return Container(

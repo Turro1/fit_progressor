@@ -1,4 +1,3 @@
-import 'package:car_repair_manager/core/utils/car_logo_helper.dart';
 import 'package:car_repair_manager/features/cars/domain/entities/car_filter.dart';
 import 'package:flutter/material.dart';
 
@@ -218,14 +217,6 @@ class _CarMakeChip extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Car logo
-              SizedBox(
-                width: 24,
-                height: 24,
-                child: Center(
-                  child: CarLogoHelper.getLogoWidget(context, make, size: 20),
-                ),
-              ),
               const SizedBox(width: 8),
               Text(
                 make,

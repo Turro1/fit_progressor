@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:car_repair_manager/core/utils/car_logo_helper.dart';
 import 'package:car_repair_manager/features/repairs/domain/entities/repair.dart';
 import 'package:car_repair_manager/features/repairs/domain/entities/repair_status.dart';
 import 'package:car_repair_manager/features/repairs/presentation/bloc/repairs_bloc.dart';
@@ -428,18 +427,6 @@ class _RepairDetailSheetState extends State<RepairDetailSheet>
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Car logo
-        SizedBox(
-          width: 56,
-          height: 56,
-          child: Center(
-            child: CarLogoHelper.getLogoWidget(
-              context,
-              repair.carMake,
-              size: 40,
-            ),
-          ),
-        ),
         const SizedBox(width: 16),
         // Title and status
         Expanded(

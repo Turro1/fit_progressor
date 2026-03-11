@@ -13,7 +13,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:car_repair_manager/core/theme/app_spacing.dart';
-import 'package:car_repair_manager/core/utils/car_logo_helper.dart';
 import 'package:car_repair_manager/core/widgets/country_flag.dart';
 
 import '../../domain/entities/car.dart';
@@ -130,17 +129,7 @@ class _CarRepairsModalState extends State<CarRepairsModal> {
                 // Car info
                 Row(
                   children: [
-                    SizedBox(
-                      width: 56,
-                      height: 56,
-                      child: Center(
-                        child: CarLogoHelper.getLogoWidget(
-                          context,
-                          widget.car.make,
-                          size: 40,
-                        ),
-                      ),
-                    ),
+                    SizedBox(width: 56, height: 56),
                     const SizedBox(width: AppSpacing.lg),
                     Expanded(
                       child: Column(

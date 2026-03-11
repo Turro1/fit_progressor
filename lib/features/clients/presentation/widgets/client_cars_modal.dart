@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:car_repair_manager/core/theme/app_spacing.dart';
-import 'package:car_repair_manager/core/utils/car_logo_helper.dart';
 import 'package:car_repair_manager/core/widgets/country_flag.dart';
 import 'package:car_repair_manager/features/cars/domain/entities/car.dart';
 
@@ -241,17 +240,6 @@ class ClientCarsModal extends StatelessWidget {
           padding: const EdgeInsets.all(AppSpacing.md),
           child: Row(
             children: [
-              SizedBox(
-                width: 48,
-                height: 48,
-                child: Center(
-                  child: CarLogoHelper.getLogoWidget(
-                    context,
-                    car.make,
-                    size: 36,
-                  ),
-                ),
-              ),
               const SizedBox(width: AppSpacing.md),
               // Car info
               Expanded(
